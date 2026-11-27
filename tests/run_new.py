@@ -21,7 +21,7 @@ async def main():
             st, js = fk.handle(r.method, r.url.split("/api", 1)[1], body)
             await route.fulfill(status=st, content_type="application/json", body=json.dumps(js))
         await pg.route("**/api/v1/**", api)
-        await pg.goto("http://127.0.0.1:8801/"); await pg.wait_for_timeout(800); await pg.click("#tdhPickN"); await pg.wait_for_timeout(300)
+        await pg.goto("http://127.0.0.1:8801/?ui=C"); await pg.wait_for_timeout(800); await pg.click("#tdhPickN"); await pg.wait_for_timeout(300)
         await pg.fill("#tdhTok", "ntn_new"); await pg.click("#tdhGo"); await pg.wait_for_timeout(2500)
         await pg.screenshot(path=str(OUT / "n1_pages.png"))
         await pg.click("#tdhPages button"); await pg.wait_for_timeout(9000)

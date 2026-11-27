@@ -155,10 +155,18 @@ head_extra = f"""<meta name="apple-mobile-web-app-capable" content="yes">
 rep("</head>", head_extra + "</head>", 1)
 
 out = ROOT / "dist"; out.mkdir(exist_ok=True)
+# 框架 D：截圖搬到結案、找人卡片標上案子網址
+for a, b in [
+    ('c.className = "card" + (selected.has(i.key) ? " sel" : "");', 'c.className = "card" + (selected.has(i.key) ? " sel" : ""); c.dataset.url = i.url || "";'),
+    ('const PHASE_TABS = { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };',
+     'const PHASE_TABS = window.__tdh && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"], ["shot", "截圖"]] } : { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };'),
+]:
+    assert a in h, a[:40]; h = h.replace(a, b)
 # 標題、進場前最下面的「回到最上面」
 for a, b in [
     ("<header><h1>進場中</h1>", "<header><h1>每日打卡 / 截圖</h1>"),
-    ('t.textContent = phase === "close" ? "結案" : "進場中";', 't.textContent = phase === "close" ? "時段表生成" : "每日打卡 / 截圖";'),
+    ('t.textContent = phase === "close" ? "結案" : "進場中";', 't.textContent = phase === "close" ? "時段表生成" : (window.__tdh.ui && window.__tdh.ui() !== "C" ? "每日打卡" : "每日打卡 / 截圖");'),
+    ('let h = `<div class="ptabs">${tabs.map(', 'let h = tabs.length < 2 ? "" : `<div class="ptabs">${tabs.map('),
     ('<div id="list"><div class="state">讀取中…</div></div>\n  </div>', '<div id="list"><div class="state">讀取中…</div></div>\n  <button class="totop" type="button" onclick="window.scrollTo({top:0,behavior:\'smooth\'})" aria-label="回到最上面"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>回到最上面</button>\n  </div>'),
 ]:
     assert a in h, a[:40]; h = h.replace(a, b)

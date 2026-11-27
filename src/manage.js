@@ -12,6 +12,7 @@
   .mg *{box-sizing:border-box}
   .mg.embed{z-index:14;bottom:calc(var(--tab-h,58px) + env(safe-area-inset-bottom))}
   .mg.embed .mg-body{padding-bottom:96px}
+  .mg.embed.d{bottom:calc(var(--tab-h,0px) + env(safe-area-inset-bottom))}
   .mg.embed .mg-add{bottom:calc(var(--tab-h,58px) + env(safe-area-inset-bottom) + 12px)}
   .mg-gear{flex:0 0 40px;width:40px;height:40px;border:0;background:transparent;color:var(--ink);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
   .mg-quick{display:flex;gap:8px;margin:0 0 6px}.mg-quick button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 6px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
@@ -117,20 +118,25 @@
   function open(o = {}) {
     if (typeof o === "string") o = { section: o === "cases" ? "cases" : "lists" };
     section = o.section === "lists" ? "lists" : "cases";
-    const tabs = section === "cases" ? ["cases"] : ["crew", "venue", "troupe"];
+    let tabs = section === "cases" ? ["cases"] : ["crew", "venue", "troupe"];
+    if (o.only) { tabs = [o.only]; section = o.only === "cases" ? "cases" : "lists"; }
+    if (o.tab && tabs.includes(o.tab)) tab = o.tab;
     if (!tabs.includes(tab)) tab = tabs[0];
     q = ""; sub = "";
     if (ov) ov.remove();
-    ov = document.createElement("div"); ov.className = "mg embed";
-    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><h1>${section === "cases" ? "案子" : "名單"}</h1><button class="mg-gear" id="mgGear" aria-label="設定"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></button></div>
+    const D = T.ui && T.ui() !== "C";   // D 框架：左上角是選單，不放齒輪
+    const title = o.only ? (o.only === "cases" ? "案子" : K[o.only]) : section === "cases" ? "案子" : "名單";
+    ov = document.createElement("div"); ov.className = "mg embed" + (D ? " d" : "");
+    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row">${D ? `<span id="mgMenu"></span>` : ""}<h1>${title}</h1>${D ? "" : `<button class="mg-gear" id="mgGear" aria-label="設定"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></button>`}</div>
       ${tabs.length > 1 ? `<div class="mg-tabs">${tabs.map(k => `<button data-k="${k}">${K[k]}</button>`).join("")}</div>` : ""}</div>
       </div></div><div class="mg-body" id="mgScroll"><div class="mg-in" id="mgBody"></div></div>`;
     document.body.appendChild(ov);
     document.documentElement.style.overflow = "hidden";
-    $("mgGear").onclick = () => T.openSettings && T.openSettings();
+    if ($("mgMenu") && T.menuButton) $("mgMenu").replaceWith(T.menuButton());
+    if ($("mgGear")) $("mgGear").onclick = () => T.openSettings && T.openSettings();
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.onclick = () => { tab = b.dataset.k; q = ""; sub = ""; list(); });
     if (o.caseId) { tab = "cases"; loadKind("cases").then(() => Promise.all([loadKind("venue"), loadKind("troupe"), loadKind("crew")])).then(() => edit("cases", o.caseId)).catch(() => list()); }
-    else list();
+    else { list().then(() => { if (o.add) edit(tab, null); }); }
   }
   // 離開案子／名單頁。資料有改過就重新載入，回傳 true
   function close(nextTab) {

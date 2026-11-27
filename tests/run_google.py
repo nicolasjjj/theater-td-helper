@@ -35,7 +35,7 @@ async def main():
             await route.fulfill(status=st, json=js)
         for pat in ["**/api/google/**", "https://accounts.google.com/**", "https://www.googleapis.com/**", "https://sheets.googleapis.com/**"]: await pg.route(pat, gapi)
         async def shot(n): await pg.wait_for_timeout(500); await pg.screenshot(path=str(OUT / f"{n}.png"))
-        await pg.goto(U); await pg.wait_for_timeout(800); await shot("g01_choose")
+        await pg.goto(U + "?ui=C"); await pg.wait_for_timeout(800); await shot("g01_choose")
         await pg.click("#tdhPickG"); await pg.wait_for_timeout(3500); await shot("g02_ready")
         await pg.fill("#tdhTd", "李小華"); await pg.click('.tdh-chips[data-for="tdhRole"] button:has-text("SM")')
         await pg.click('.tdh-chips[data-for="tdhTeam"] button:has-text("舞台組")'); await pg.click("#tdhSave"); await pg.wait_for_timeout(3500); await shot("g03_app")

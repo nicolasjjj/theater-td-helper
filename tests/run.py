@@ -30,7 +30,7 @@ async def main():
         await pg.route("**/api/v1/**", api)
         async def shot(n): await pg.wait_for_timeout(600); await pg.screenshot(path=str(OUT / f"{n}.png"))
         U = "http://127.0.0.1:8800/"
-        await pg.goto(U); await pg.wait_for_timeout(800); await shot("01_setup"); await pg.click("#tdhPickN"); await pg.wait_for_timeout(300)
+        await pg.goto(U + "?ui=C"); await pg.wait_for_timeout(800); await shot("01_setup"); await pg.click("#tdhPickN"); await pg.wait_for_timeout(300)
         await pg.fill("#tdhTok", "ntn_test"); await pg.click("#tdhGo"); await pg.wait_for_timeout(1500); await shot("02_found")
         await pg.fill("#tdhTd", "王大明"); await pg.click("#tdhSave"); await pg.wait_for_timeout(4000); await shot("03_find")
         # 看表格
