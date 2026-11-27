@@ -27,16 +27,16 @@
     ov.innerHTML = `<div class="tdh-in">
       <h1>劇場TD小幫手</h1><div class="sub">${force ? "設定" : "第一次使用，先連接你的 Notion（約 5 分鐘）"}</div>
       <div class="tdh-st"><h2><b>1</b>建立 Notion 連線金鑰</h2><ol>
-        <li>按下面按鈕打開 Notion 的「整合」頁面（手機請用瀏覽器開）</li>
-        <li>按「新增整合」，名稱填「劇場TD小幫手」，類型選「內部」，選你的工作區，儲存</li>
-        <li>在「設定」裡找到「內部整合密鑰」，按「顯示」→ 複製</li></ol>
-        <a class="btn" href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener">打開 Notion 整合頁面</a></div>
+        <li>按下面按鈕打開 Notion 的「開發人員連接」頁面（手機請用瀏覽器開）</li>
+        <li>按「＋ 新連接」：名稱填「劇場TD小幫手」，驗證方式選「API 權杖」，按「建立連接」</li>
+        <li>點進剛建立的連接，找到「API 權杖」→ 複製（開頭是 ntn_）</li></ol>
+        <a class="btn" href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener">打開 Notion 開發人員連接</a></div>
       <div class="tdh-st"><h2><b>2</b>讓金鑰可以看到你的資料庫</h2><ol>
-        <li>在 Notion 打開放著「劇場の案子」等資料庫的那一頁</li>
-        <li>右上角「⋯」→「連線」（Connections）→ 選「劇場TD小幫手」→ 確認</li>
-        <li>底下的子頁面和資料庫會一起被授權</li></ol></div>
+        <li>在剛才的連接設定裡，打開「內容存取」，勾選放著資料庫的頁面</li>
+        <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場TD小幫手」</li>
+        <li>上層頁面授權後，底下的子頁面和資料庫會一起被授權</li></ol></div>
       <div class="tdh-st"><h2><b>3</b>貼上金鑰</h2>
-        <input id="tdhTok" type="password" autocomplete="off" placeholder="ntn_ 或 secret_ 開頭的一串字" value="${c.token ? c.token.replace(/"/g, "") : ""}">
+        <input id="tdhTok" type="password" autocomplete="off" placeholder="ntn_ 開頭的一串字" value="${c.token ? c.token.replace(/"/g, "") : ""}">
         <button id="tdhGo">連線並尋找資料庫</button>
         <div class="tdh-res" id="tdhRes"></div><div class="tdh-err" id="tdhErr"></div></div>
       <div class="tdh-st" id="tdhStep4" style="display:none"><h2><b>4</b>你的名字</h2>
