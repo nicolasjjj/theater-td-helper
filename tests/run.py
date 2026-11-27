@@ -48,7 +48,7 @@ async def main():
         print("writes:", [(m, p.split('/')[-2] if 'blocks' in p else p.split('/')[1], (json.dumps(b, ensure_ascii=False)[:140])) for m, p, b in writes])
         # 進場中：打卡 11/25
         await pg.goto(U); await pg.wait_for_timeout(3000)
-        await pg.click('button.mode[data-m="live"]'); await pg.wait_for_timeout(3500); await shot("07_live")
+        await pg.click('.tdh-tabbar [data-t="live"]'); await pg.wait_for_timeout(3500); await shot("07_live")
         n0 = len(fk.log)
         await pg.evaluate("document.querySelector('.day[data-i=\"10\"]').scrollIntoView({block:'center'})")
         await pg.click('.day[data-i="10"] .qin[data-t="0900"]'); await pg.wait_for_timeout(300)
@@ -59,7 +59,7 @@ async def main():
         await pg.click("#shotTax"); await shot("09_tax"); await pg.mouse.click(195, 830); await pg.wait_for_timeout(300)
         await pg.click("#shotCrew"); await shot("10_crew"); await pg.mouse.click(195, 830); await pg.wait_for_timeout(300)
         # 結案：下載 Excel
-        await pg.click('button.mode[data-m="close"]'); await pg.wait_for_timeout(1500)
+        await pg.click('.tdh-tabbar [data-t="close"]'); await pg.wait_for_timeout(1500)
         await pg.click('.ptabs button[data-t="sheet"]'); await pg.wait_for_timeout(2000); await shot("11_sheet")
         async with pg.expect_download() as dl:
             await pg.click("#tsXlsx")
