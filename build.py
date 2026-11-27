@@ -112,7 +112,23 @@ h = h.replace("還沒連接 Notion，請到 claude.ai「設定 → 連接器」�
 h = h.replace("這個畫面無法連到 Notion。請在 claude.ai 或 Claude App 裡打開這個頁面。", "還沒設定 Notion，請按上方的 ⚙︎ 設定。")
 h = h.replace("這個畫面無法連到 Notion。請在 claude.ai 或 Claude App 裡打開。", "還沒設定 Notion，請按上方的 ⚙︎ 設定。")
 h = h.replace("Notion 連線過期，請到 claude.ai 設定 → 連接器 重新連接。", "Notion 金鑰失效了，請按上方的 ⚙︎ 重新貼上金鑰。")
-h = h.replace('case "not_granted":', 'case "not_configured": case "not_granted":', 1)
+h = h.replace('case "not_granted":', 'case "google_login": msg = "Google 登入過期了，請按上方的 ⚙︎ 重新登入 Google。"; break;\n      case "not_configured": case "not_granted":', 1)
+rep('if (c === "needs_reauth") return', 'if (c === "google_login") return "Google 登入過期了，請按上方的 ⚙︎ 重新登入 Google。";\n    if (c === "needs_reauth") return', 1)
+# 不一定用 Notion：畫面上的字改成中性的說法
+for a, b in [
+    ("還沒設定 Notion，請按上方的 ⚙︎ 設定。", "還沒設定好，請按上方的 ⚙︎ 設定。"),
+    ("・來自「劇場の案子」`", "・來自${window.__tdh.cfg.mode === \"google\" ? \"你的 Google 雲端\" : \" Notion「劇場の案子」\"}`"),
+    ('toast("已記錄到 Notion")', 'toast("已記錄")'),
+    ("表格有幾列沒寫進去，請到 Notion 確認", "表格有幾列沒寫進去，請到「☰ 管理」確認排班表"),
+    (">寫入 Notion<", ">確定寫入<"),
+    ('fail(e, go, "寫入 Notion")', 'fail(e, go, "確定寫入")'),
+    ("`已把 ${person.name} 寫進 Notion`", "`已把 ${person.name} 排進去了`"),
+    ("讀取 Notion 時出了問題", "讀取資料時出了問題"),
+    ("Notion 暫時沒有回應", "資料暫時讀不到"),
+    ("Notion 回報錯誤", "讀取資料出錯"),
+    ("Notion 這個小時的查詢次數用完了", "這個小時的查詢次數用完了"),
+    ("還沒找到，請在案子內文或「劇場の劇團」填寫", "還沒找到，請在「☰ 管理」的劇團或案子裡填寫"),
+]: h = h.replace(a, b)
 
 # 5. 標題、手機加到主畫面、版本
 h = re.sub(r"<title>[^<]*</title>", "<title>劇場幫幫</title>", h, count=1)
@@ -122,10 +138,13 @@ head_extra = f"""<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
 <script>window.TDH_VERSION={json.dumps(VERSION)};</script>
+<script>\n{(ROOT/'src/schema.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/shim.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/google.js').read_text()}\n</script>
+<script>\n{(ROOT/'src/gstore.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/xlsx.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/setup.js').read_text()}\n</script>
+<script>\n{(ROOT/'src/manage.js').read_text()}\n</script>
 """
 rep("</head>", head_extra + "</head>", 1)
 

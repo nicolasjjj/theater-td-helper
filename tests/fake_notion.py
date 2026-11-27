@@ -110,8 +110,11 @@ class Fake:
         if m and method == "PATCH":
             d = self.dbs[m.group(1)]
             for k, v in body["properties"].items():
+                hit = False
                 for pk, pv in list(d["properties"].items()):
-                    if pv.get("id") == k: d["properties"][v["name"]] = dict(pv, name=v["name"]); del d["properties"][pk]
+                    if pv.get("id") == k: d["properties"][v["name"]] = dict(pv, name=v["name"]); del d["properties"][pk]; hit = True
+                if not hit and k not in d["properties"]:
+                    t = list(v.keys())[0]; d["properties"][k] = {"type": t, "name": k, "id": nid()[:4], t: v[t]}
             return 200, d
         if m: return (200, self.dbs[m.group(1)]) if m.group(1) in self.dbs else (404, {"message": "no db"})
         m = re.match(r"^databases/([\w-]+)/query$", p)
@@ -121,12 +124,14 @@ class Fake:
             pg = self.pages.get(m.group(1))
             if not pg: return 404, {"message": "no page"}
             if method == "PATCH":
+                if body.get("archived"): pg["archived"] = True
                 for k, v in (body.get("properties") or {}).items():
                     t = self.dbs[pg["parent"]["database_id"]]["properties"][k]["type"]
                     pg["properties"][k] = dict(v, type=t)
-                    if t == "rich_text": pg["properties"][k]["rich_text"] = [dict(x, plain_text=x["text"]["content"]) for x in v["rich_text"]]
+                    if t in ("rich_text", "title"): pg["properties"][k][t] = [dict(x, plain_text=x["text"]["content"]) for x in v[t]]
             return 200, pg
         m = re.match(r"^blocks/([\w-]+)/children$", p)
+        if m and method == "PATCH": self.add_blocks(m.group(1), body.get("children")); return 200, {}
         if m: return 200, {"results": [self.blocks[i] for i in self.children.get(m.group(1), [])], "has_more": False}
         m = re.match(r"^blocks/([\w-]+)$", p)
         if m and method == "PATCH":
@@ -136,9 +141,11 @@ class Fake:
         return 404, {"message": "unknown " + p}
 
     def query(self, db, body):
-        rows = [pg for pg in self.pages.values() if pg["parent"].get("database_id") == db]
+        rows = [pg for pg in self.pages.values() if pg["parent"].get("database_id") == db and not pg.get("archived")]
         def ok(pg, f):
             if "and" in f: return all(ok(pg, x) for x in f["and"])
+            if "or" in f: return any(ok(pg, x) for x in f["or"])
+            if "checkbox" in f: return bool((pg["properties"].get(f["property"]) or {}).get("checkbox")) == f["checkbox"]["equals"]
             pr = pg["properties"].get(f["property"]) or {}
             if "select" in f: return (pr.get("select") or {}).get("name") == f["select"]["equals"]
             if "multi_select" in f: return f["multi_select"]["does_not_contain"] not in [x["name"] for x in pr.get("multi_select") or []]

@@ -13,7 +13,11 @@
     save(v) { try { localStorage.setItem(LS, JSON.stringify(v)); } catch (e) {} },
   };
   let cfg = S.load();
-  window.__tdh = { get cfg() { return cfg; }, setCfg(v) { cfg = Object.assign({}, cfg, v); S.save(cfg); } };
+  if (!cfg.mode && cfg.token) cfg.mode = "notion";   // 舊設定：只有 Notion
+  const T = window.__tdh = window.__tdh || {};
+  Object.defineProperty(T, "cfg", { get() { return cfg; }, configurable: true });
+  T.setCfg = (v) => { cfg = Object.assign({}, cfg, v); S.save(cfg); };
+  const isGoogle = () => cfg.mode === "google";
 
   // ---------- 呼叫 Notion（限速：Notion 每秒約 3 次） ----------
   let chain = Promise.resolve(), last = 0;
@@ -58,8 +62,7 @@
   }
 
   // 新建立的資料庫用「負責人」稱呼；網頁內部仍用舊欄位名（TD姓名…），在這裡互相轉換
-  const ALIAS = { "負責人姓名": "TD姓名", "負責人時段費": "TD時段費", "負責人整筆費用": "TD整筆費用" };
-  const LEAD = ["TD", "負責人"];
+  const ALIAS = T.ALIAS, LEAD = T.LEAD;
   // ---------- 一列資料 → 原本網頁看得懂的格式 ----------
   function flat(page) {
     const o = { url: purl(page.id) };
@@ -105,6 +108,7 @@
         else { and.push({ property: "進場日期", date: { on_or_after: isoDay(weekAgo) } }); sorts.push({ property: "進場日期", direction: "ascending" }); }
       }
       if (key === "NEED" && has("Crew 狀態", "multi_select")) and.push({ property: "Crew 狀態", multi_select: { does_not_contain: "全部完成" } });
+      if (has("封存", "checkbox")) and.push({ property: "封存", checkbox: { equals: false } });
     }
     const title = Object.keys(sch).find(k => sch[k].type === "title");
     if (db !== "cases" && title) sorts.push({ property: title, direction: "ascending" });
@@ -169,6 +173,7 @@
         case "select": out[k] = { select: v ? { name: String(v) } : null }; break;
         case "multi_select": out[k] = { multi_select: list.map(n => ({ name: String(n) })) }; break;
         case "checkbox": out[k] = { checkbox: v === true || v === "__YES__" }; break;
+        case "date": out[k] = { date: v && (v.start || typeof v === "string") ? (typeof v === "string" ? { start: v } : { start: v.start, end: v.end && v.end !== v.start ? v.end : null }) : null }; break;
         default: break;   // 不認得的欄位略過
       }
     }
@@ -204,6 +209,17 @@
   const ckey = (tool, input) => tool + "|" + JSON.stringify(input);
   async function run(server, tool, input) {
     if (server !== "Notion") throw Object.assign(new Error("此功能在獨立版不支援：" + server), { code: "server_not_connected" });
+    if (isGoogle()) {
+      const G = T.gstore;
+      if (!cfg.gData) throw Object.assign(new Error("尚未設定"), { code: "not_configured" });
+      if (tool === "notion-query-data-sources") return G.queryView(input.data && input.data.view_url);
+      if (tool === "notion-fetch") return { text: await G.fetchText(input.id) };
+      if (tool === "notion-update-page") {
+        if (input.command === "update_properties") return G.updateProps(input.page_id, input.properties || {});
+        if (input.command === "update_content") return G.updateContent(input.page_id, input.content_updates);
+      }
+      throw Object.assign(new Error("unsupported " + tool), { code: "tool_error" });
+    }
     if (!cfg.token) throw Object.assign(new Error("尚未設定 Notion 金鑰"), { code: "not_configured" });
     if (tool === "notion-query-data-sources") return queryView(input.data && input.data.view_url);
     if (tool === "notion-fetch") return { text: await blocksText(dashed(hex(input.id))) };
@@ -232,7 +248,7 @@
         .catch(e => { if (live) handler({ type: "error", error: { code: e.code || "tool_error", message: e.message } }); });
       return () => { live = false; };
     },
-    async invalidate(server, tool) { for (const k of [...cache.keys()]) if (!tool || k.startsWith(tool + "|")) cache.delete(k); },
+    async invalidate(server, tool) { for (const k of [...cache.keys()]) if (!tool || k.startsWith(tool + "|")) cache.delete(k); if (T.gstore) T.gstore.invalidate(); },
   };
   window.claude = { use: async (kind) => (kind === "mcp" ? mcp : null) };
 
@@ -263,11 +279,11 @@
     const opts = (names, color = "default") => ({ options: names.map(n => ({ name: n, color })) });
     const mk = async (title, icon, props) => (await nfetch("/databases", { method: "POST", body: { parent: { type: "page_id", page_id: parentId }, icon: { type: "emoji", emoji: icon }, title: T(title), properties: props } }, token)).id;
     onStep("建立「劇場の場館」…");
-    const venue = await mk("劇場の場館", "🏛️", { "場館名稱": { title: {} }, "地區": { select: opts(["雙北地區", "桃竹苗地區", "中部地區", "南部地區", "東部地區", "海外地區"]) }, "官方網站": { url: {} }, "技術資料與圖面": { url: {} } });
+    const venue = await mk("劇場の場館", "🏛️", { "場館名稱": { title: {} }, "地區": { select: opts(["雙北地區", "桃竹苗地區", "中部地區", "南部地區", "東部地區", "海外地區"]) }, "地址": { rich_text: {} }, "官方網站": { url: {} }, "技術資料與圖面": { url: {} } });
     onStep("建立「劇場の劇團」…");
-    const troupe = await mk("劇場の劇團", "🎭", { "劇團名稱": { title: {} }, "抬頭": { rich_text: {} }, "統編": { rich_text: {} } });
+    const troupe = await mk("劇場の劇團", "🎭", { "劇團名稱": { title: {} }, "抬頭": { rich_text: {} }, "統編": { rich_text: {} }, "聯絡人": { rich_text: {} }, "電話": { rich_text: {} } });
     onStep("建立「劇場のCrew」…");
-    const crew = await mk("劇場のCrew", "👷", { "姓名": { title: {} }, "時段費": { number: { format: "number" } }, "時段費紀錄": { rich_text: {} }, "居住地區": { select: opts(["台北", "新北", "桃園", "台中", "台南", "高雄", "其他"]) }, "車號": { rich_text: {} } });
+    const crew = await mk("劇場のCrew", "👷", { "姓名": { title: {} }, "時段費": { number: { format: "number" } }, "時段費紀錄": { rich_text: {} }, "居住地區": { select: opts(["台北", "新北", "桃園", "台中", "台南", "高雄", "其他"]) }, "車號": { rich_text: {} }, "電話": { rich_text: {} }, "備註": { rich_text: {} } });
     onStep("建立「劇場の案子」…");
     const st = [["尚未開始", "gray"], ["等待製作確認", "gray"], ["全部完成", "default"]];
     for (let i = 1; i <= 4; i++) st.push([`全程缺${i}`, "blue"]);
@@ -283,7 +299,7 @@
       "人力分配": { rich_text: {} }, "Crew 狀態": { multi_select: { options: st.map(([name, color]) => ({ name, color })) } },
       "問過的人": rel(crew), "摳的人": rel(crew), "負責人姓名": { rich_text: {} }, "負責人時段費": { number: { format: "number" } }, "負責人整筆費用": { number: { format: "number" } },
       "Crew時段費": { number: { format: "number" } }, "前置": { rich_text: {} }, "前置段數": { number: { format: "number" } }, "打卡": { rich_text: {} },
-      "時段表資料夾": { url: {} }, "巡演": { select: { options: [] } },
+      "時段表資料夾": { url: {} }, "巡演": { select: { options: [] } }, "封存": { checkbox: {} },
     });
     // 把另一邊自動產生的關聯欄位改成好懂的名字
     onStep("整理關聯欄位…");
@@ -316,4 +332,79 @@
     return { cases, crew, troupe, venue };
   };
   window.__tdh.DB_NAMES = DB_NAMES;
+
+  // ---------- 管理畫面用：Notion 版的 list / create / update ----------
+  const SC = T.SCHEMA;
+  const dbName = (sch, name) => sch[name] ? name : ALIAS[name] && sch[ALIAS[name]] ? ALIAS[name] : null;
+  function rawOf(kind, page, sch) {
+    const o = { id: hex(page.id) };
+    for (const [name, type] of SC[kind].fields) {
+      const n = dbName(sch, name); if (!n || type === "content") continue;
+      const p = page.properties[n]; if (!p) continue;
+      switch (p.type) {
+        case "title": case "rich_text": o[name] = plain(p[p.type]); break;
+        case "number": o[name] = p.number; break;
+        case "select": o[name] = p.select ? p.select.name : ""; break;
+        case "multi_select": o[name] = (p.multi_select || []).map(x => x.name); break;
+        case "relation": o[name] = (p.relation || []).map(x => hex(x.id)); break;
+        case "date": o[name] = p.date ? { start: p.date.start.slice(0, 10), end: p.date.end ? p.date.end.slice(0, 10) : null } : null; break;
+        case "checkbox": o[name] = !!p.checkbox; break;
+        case "url": o[name] = p.url || ""; break;
+        default: break;
+      }
+    }
+    return o;
+  }
+  const toDbProps = (sch, vals) => {
+    const o = {};
+    for (const [k, v] of Object.entries(vals)) {
+      const n = dbName(sch, k); if (!n) continue;
+      if (n === "職位" && v === "負責人") { const ops = ((sch[n].select || {}).options || []).map(x => x.name); o[n] = ops.includes("負責人") ? "負責人" : ops.includes("TD") ? "TD" : v; }
+      else o[n] = v;
+    }
+    return o;
+  };
+  async function ensureProp(kind, name) {   // 舊資料庫沒有「封存」這類新欄位 → 自動加上
+    const dbId = cfg.db[kind], sch = await schemaOf(dbId);
+    if (dbName(sch, name)) return;
+    const type = (SC[kind].fields.find(f => f[0] === name) || [])[1];
+    const def = type === "checkbox" ? { checkbox: {} } : type === "number" ? { number: { format: "number" } } : type === "url" ? { url: {} } : { rich_text: {} };
+    await nfetch(`/databases/${dbId}`, { method: "PATCH", body: { properties: { [name]: def } } });
+    delete schemas[dbId];
+  }
+  T.nstore = {
+    async fields(kind) { const sch = await schemaOf(cfg.db[kind]); return SC[kind].fields.filter(f => f[1] === "content" || dbName(sch, f[0])).map(f => f[0]); },
+    async list(kind) {
+      const dbId = cfg.db[kind], sch = await schemaOf(dbId), out = []; let cursor = null, g = 0;
+      do {
+        const r = await nfetch(`/databases/${dbId}/query`, { method: "POST", body: Object.assign({ page_size: 100 }, cursor ? { start_cursor: cursor } : {}) });
+        out.push(...(r.results || []).map(p => rawOf(kind, p, sch)));
+        cursor = r.has_more ? r.next_cursor : null;
+      } while (cursor && g++ < 50);
+      return out;
+    },
+    async update(kind, id, vals) {
+      if ("封存" in vals) await ensureProp(kind, "封存");
+      const sch = await schemaOf(cfg.db[kind]);
+      return updateProps(id, toDbProps(sch, vals));
+    },
+    async create(kind, vals, content) {
+      const dbId = cfg.db[kind], sch = await schemaOf(dbId);
+      const page = await nfetch("/pages", { method: "POST", body: { parent: { database_id: dbId }, properties: {} } });
+      const tasks = [updateProps(page.id, toDbProps(sch, vals))];
+      if (content) {
+        const T2 = (x, b) => [Object.assign({ type: "text", text: { content: x } }, b ? { annotations: { bold: true } } : {})];
+        const children = (content.notes || []).map(n => ({ object: "block", type: "paragraph", paragraph: { rich_text: T2(n) } }));
+        if ((content.table || []).length) children.push(
+          { object: "block", type: "callout", callout: { rich_text: T2(`${window.TEAM ? window.TEAM() : "舞台組"}人員 Call Time`, true), icon: { type: "emoji", emoji: "⏰" }, color: "gray_background" } },
+          { object: "block", type: "table", table: { table_width: 2, has_column_header: false, has_row_header: false, children: content.table.map(r => ({ type: "table_row", table_row: { cells: [T2(r[0], true), r[1] ? T2(r[1]) : []] } })) } });
+        if (children.length) tasks.push(nfetch(`/blocks/${page.id}/children`, { method: "PATCH", body: { children } }));
+      }
+      await Promise.all(tasks);
+      return hex(page.id);
+    },
+    async remove(kind, id) { await nfetch(`/pages/${dashed(hex(id))}`, { method: "PATCH", body: { archived: true } }); },
+    url: () => "",
+  };
+  T.store = () => (isGoogle() ? T.gstore : T.nstore);
 })();
