@@ -62,7 +62,7 @@ async def main():
         print("P3"); await pg.check("#c_tourOn"); print("P4", await pg.evaluate("[document.querySelector('#c_tourOn').checked, document.querySelector('#c_tourBox').style.display, typeof document.querySelector('#c_tourOn').onchange]")); await pg.fill("#c_tour", "2026午後的信")
         await shot("g06_caseform")
         await pg.click("#mgSave"); await pg.wait_for_timeout(1200); await shot("g07_cases")
-        await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(800); await pg.evaluate("document.querySelector('#c_tbl').scrollIntoView()"); await shot("g08_table")
+        await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(800); await pg.evaluate("document.querySelector('#c_tblBox').scrollIntoView()"); await shot("g08_table")
         await pg.click("#mgBack"); await pg.wait_for_timeout(400)
         await pg.click("#mgX"); await pg.wait_for_timeout(4000); await shot("g09_app")
         # 看表格

@@ -2,6 +2,19 @@
 // 兩種存資料的方式：Google（資料存在自己的 Google 雲端，推薦給沒用過 Notion 的人）或 Notion（已經在用 Notion 的人）。
 (() => {
   const T = window.__tdh;
+  // 日間／夜間模式：沒選就跟著手機
+  function applyTheme() {
+    const t = T.cfg.theme || "", r = document.documentElement;
+    if (t) r.dataset.theme = t; else delete r.dataset.theme;
+    r.style.colorScheme = t || "light dark";
+    const m = document.querySelector('meta[name="theme-color"]'); if (m && t) m.content = t === "dark" ? "#171614" : "#f6f4f0";
+  }
+  applyTheme();
+  T.applyTheme = applyTheme;
+  function toast(msg) {
+    const b = document.createElement("div"); b.className = "tdh-toast"; b.textContent = msg; document.body.appendChild(b);
+    requestAnimationFrame(() => b.classList.add("in")); setTimeout(() => { b.classList.remove("in"); setTimeout(() => b.remove(), 300); }, 1600);
+  }
   window.TDN = () => (T.cfg.tdName || "").trim() || "我";
   window.ROLE = () => (T.cfg.role || "").trim() || "負責人";
   window.TEAM = () => (T.cfg.team || "").trim() || "舞台組";
@@ -20,7 +33,7 @@
   @media (prefers-color-scheme: dark){:root{--tdh-field:#1c1b19;--tdh-field-bd:#403c36;--tdh-soft:#302d29;--tdh-dan-bg:#3a1714;--tdh-dan:#ff8a80;--tdh-tip-bg:#33270f;--tdh-tip-bd:#8a6a2a;--tdh-tip-ink:#f0d9a0;--tdh-ok:#5fe39a;--tdh-no:#ffb04d;
     --tg-blue:#1f2c3d;--tg-blue-bd:#3d5a80;--tg-blue-ink:#9cc0ea;--tg-yellow:#352c16;--tg-yellow-bd:#7a6428;--tg-yellow-ink:#e7c66a;--tg-green:#16301f;--tg-green-bd:#2e6b45;--tg-green-ink:#7fd6a0;
     --tg-orange:#3a2414;--tg-orange-bd:#8a5428;--tg-orange-ink:#f0a868;--tg-gray:#2c2a27;--tg-gray-bd:#55514a;--tg-gray-ink:#cfc9bf;--tg-purple:#2c2137;--tg-purple-bd:#6a4f86;--tg-purple-ink:#cfb2ea}}
-  .tdh-ov{color-scheme:light dark;position:fixed;inset:0;z-index:9999;background:var(--bg);color:var(--ink);overflow:auto;-webkit-overflow-scrolling:touch;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
+  .tdh-ov{position:fixed;inset:0;z-index:9999;background:var(--bg);color:var(--ink);overflow:auto;-webkit-overflow-scrolling:touch;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
   .tdh-ov *{box-sizing:border-box}
   .tdh-in{max-width:560px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 14px 60px}
   .tdh-in h1{font-size:24px;font-weight:700;margin:0 0 2px}.tdh-in .sub{color:var(--muted);font-size:12px;margin:0 0 16px;line-height:1.6}
@@ -56,6 +69,12 @@
   .tdh-ov a{color:var(--accent)}
   .tdh-head{display:flex;align-items:center;gap:6px;margin-bottom:14px}.tdh-head h1{margin:0}
   .tdh-done{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .tdh-seg{display:flex;background:var(--line);border-radius:12px;padding:3px;gap:2px}
+  .tdh-st .tdh-seg button{flex:1;margin:0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:500;padding:8px 0;font-size:14px}
+  .tdh-st .tdh-seg button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .tdh-toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:10001;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;transition:all .2s;pointer-events:none;font-family:"Noto Sans TC",sans-serif}
+  .tdh-toast.in{transform:translate(-50%,0);opacity:1}
+  #findView .totop{display:flex;flex-direction:row;white-space:nowrap;width:auto;height:auto;align-items:center;gap:6px;margin:18px auto 0;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer}
   .tdh-foot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:6px;padding:0 4px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -82,7 +101,7 @@
         <li>在同一個連接設定裡打開「內容存取」，勾選要放劇場資料的頁面</li>
         <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場幫幫」</li>
         <li>還沒有劇場資料庫的話，先在 Notion 建一個空白頁面（例如「劇場管理」）再勾選它，下一步可以自動建立</li></ol></details></div>`;
-  const whoCard = (c, force) => `<div class="tdh-st" id="tdhWho"><h2>${force ? "" : "<b>2</b>"}你是誰</h2>
+  const whoCard = (c, force) => `<div class="tdh-st" id="tdhWho">${force ? "" : "<h2><b>2</b>你是誰</h2>"}
         <label class="tdh-lab" for="tdhTd">你的名字</label>
         <input id="tdhTd" value="${esc(c.tdName || "")}" placeholder="例如：王小明">
         <label class="tdh-lab">你的職稱（畫面和時段表上會這樣稱呼你）</label>
@@ -101,6 +120,7 @@
     let body;
     if (force) {
       body = `${whoCard(c, true)}
+        <div class="tdh-st"><h2>外觀</h2><div class="tdh-seg">${[["", "跟著手機"], ["light", "日間模式"], ["dark", "夜間模式"]].map(([v, t]) => `<button type="button" class="${(T.cfg.theme || "") === v ? "on" : ""}" data-theme-v="${v}">${t}</button>`).join("")}</div></div>
         <div class="tdh-st"><h2>資料放在</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
           <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>
         ${googleCard(true)}
@@ -194,13 +214,20 @@
       inp.addEventListener("input", mark); mark();
     });
     if ($("tdhTipOk")) $("tdhTipOk").onclick = () => $("tdhTipOk").parentNode.remove();
+    let changed = false;
+    const closeOv = () => { ov.remove(); if (changed) location.reload(); };
     if ($("tdhSave")) $("tdhSave").onclick = () => {
       T.setCfg({ tdName: $("tdhTd").value.trim(), role: $("tdhRole").value.trim(), team: $("tdhTeam").value.trim(), named: true });
       try { localStorage.setItem("tdh.seen", "1"); } catch (e) {}
-      location.reload();
+      if (!force) { location.reload(); return; }
+      changed = true; toast("已儲存");
     };
-    if ($("tdhClose")) $("tdhClose").onclick = () => ov.remove();
-    if ($("tdhDone")) $("tdhDone").onclick = () => ov.remove();
+    ov.querySelectorAll("[data-theme-v]").forEach(b => b.onclick = () => {
+      T.setCfg({ theme: b.dataset.themeV }); applyTheme();
+      ov.querySelectorAll("[data-theme-v]").forEach(x => x.classList.toggle("on", x === b));
+    });
+    if ($("tdhClose")) $("tdhClose").onclick = closeOv;
+    if ($("tdhDone")) $("tdhDone").onclick = closeOv;
     if ($("tdhSwitch")) $("tdhSwitch").onclick = () => {
       if (!confirm(T.cfg.mode === "google" ? "改用 Notion 後，會讀取 Notion 裡的資料（Google 雲端裡的資料不會被刪除）。要繼續嗎？" : "改用 Google 雲端後，會在你的雲端硬碟建立新的資料（Notion 裡的資料不會被刪除、也不會搬過去）。要繼續嗎？")) return;
       if (T.cfg.mode === "google") { T.setCfg({ mode: "notion" }); ov.remove(); open(false, "notion"); }

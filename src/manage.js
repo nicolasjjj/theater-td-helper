@@ -8,7 +8,7 @@
   const today = () => T.isoDay(new Date());
 
   const css = `
-  .mg{color-scheme:light dark;position:fixed;inset:0;z-index:9000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
+  .mg{position:fixed;inset:0;z-index:9000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
   .mg *{box-sizing:border-box}
   .mg-top{padding:calc(14px + env(safe-area-inset-top)) 14px 0;background:var(--bg)}
   .mg-top>div,.mg-in{max-width:560px;margin:0 auto}
@@ -33,6 +33,11 @@
   .mg-empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted);padding:22px 12px;font-size:14px;line-height:1.7;margin-top:6px}
   .mg-back{border:0;background:none;color:var(--accent);font:inherit;font-size:14px;font-weight:600;padding:4px 0;margin:0 0 6px;cursor:pointer}
   .mg-card{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:6px 14px 14px;margin-bottom:12px}
+  .mg-h{font-size:16px;font-weight:700;color:var(--ink);margin:18px 2px 8px}.mg-f>.mg-h:first-child{margin-top:4px}
+  .mg-ct{width:100%;border-collapse:collapse;background:var(--card);table-layout:fixed}
+  .mg-ct td{border:1px solid var(--line);padding:0;vertical-align:top}.mg-ct td:first-child{width:34%}
+  .mg-f .mg-ct input{border:0;border-radius:0;background:transparent;padding:9px 10px;font-size:15px;min-height:0}
+  .mg-f .mg-ct .ca{font-weight:700}.mg-f .mg-ct input:focus{background:var(--sel)}
   .mg-card h3.big{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:0;margin:12px 0 2px}
   .mg-card h3{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:10px 0 2px}
   .mg-f label{display:block;font-size:12.5px;color:var(--muted);margin:12px 2px 5px}
@@ -52,7 +57,7 @@
   .mg-tagrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line)}.mg-tagrow:last-child{border-bottom:0}
   .mg-tagrow>span{flex:0 0 34px;font-size:13px;color:var(--muted);padding-top:9px}.mg-tagrow>div{flex:1;display:flex;flex-wrap:wrap;gap:6px}
   .mg-tag{border:1.5px solid var(--line);border-radius:8px;padding:4px 10px;font:inherit;font-size:13px;background:var(--card);color:var(--muted);cursor:pointer}
-  .mg-tag.on{color:#fff;font-weight:700}
+  .mg-tag.on{color:var(--accent-ink);font-weight:700}
   .mg-tag.on.c-blue{background:#4a86c5;border-color:#4a86c5}.mg-tag.on.c-yellow{background:#c99412;border-color:#c99412}
   .mg-tag.on.c-green{background:#3f9a5a;border-color:#3f9a5a}.mg-tag.on.c-orange{background:#d9662b;border-color:#d9662b}
   .mg-tag.on.c-gray{background:#7a746b;border-color:#7a746b}.mg-tag.on.c-purple{background:#7a5aa8;border-color:#7a5aa8}
@@ -222,7 +227,7 @@
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
     const r = id ? data[k].find(x => x.id === id) : {};
     const isNew = !id;
-    let h = `<button class="mg-back" id="mgBack">‹ ${K[k]}列表</button><div class="mg-f">`;
+    let h = `<button class="mg-back" id="mgBack">‹ 返回${K[k]}列表</button><div class="mg-f">`;
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
@@ -270,9 +275,19 @@
     const cnt = (kind) => { const m = st.map(x => x.match(new RegExp("^" + kind + "缺(\\d+)$"))).find(Boolean); return m ? +m[1] : 0; };
     const vOpts = (data.venue || []).map(x => [x.id, x["場館名稱"] || "（未命名）"]).sort((a, b) => a[1].localeCompare(b[1], "zh-Hant"));
     const tOpts = (data.troupe || []).map(x => [x.id, x["劇團名稱"] || "（未命名）"]).sort((a, b) => a[1].localeCompare(b[1], "zh-Hant"));
-    let content = null;
-    if (!isNew && T.cfg.mode === "google") content = await T.gstore.getContent(r.id);
-    let h = `<div class="mg-card"><h3 class="big">基本資料</h3>
+    // Call Time 排班表：新增時照日期自動產生；Google 存在資料表；Notion 讀頁面裡的表格
+    ct = { mode: isNew ? "new" : T.cfg.mode, rows: [], notes: null, orig: {} };
+    if (!isNew && T.cfg.mode === "google") { const c = await T.gstore.getContent(r.id); ct.rows = c.table.map((x, i) => ({ key: "ROW" + i, a: x[0] || "", b: x[1] || "" })); ct.notes = c.notes; }
+    else if (!isNew) {
+      try {
+        const m = await window.claude.use("mcp"); const res = await m.callTool("Notion", "notion-fetch", { id: r.id });
+        const text = (res && ((res.payload && res.payload.text) || res.text)) || "";
+        const strip = (x) => x.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim();
+        ct.rows = [...text.matchAll(/<tr data-b="([^"]+)">([\s\S]*?)<\/tr>/g)].map(mm => { const cells = [...mm[2].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(c => strip(c[1])); return { key: mm[1], a: cells[0] || "", b: cells[1] || "" }; });
+      } catch (e) { ct.err = String(e.message || e); }
+    } else ct.rows = T.callRows(d.start, d.end, ld.start).map(x => ({ key: "", a: x[0], b: "" }));
+    ct.rows.forEach(x => { ct.orig[x.key] = x.a + "\u0001" + x.b; });
+    let h = `<div class="mg-h">基本資料填寫</div><div class="mg-card">
       ${inp("c_name", "案名／劇名（必填）", r["案名"], 'placeholder="例如：午後的信"')}
       ${has("cases", "劇團") ? pickHtml("c_troupe", "劇團", "troupe", tOpts, (r["劇團"] || [])[0] || "") : ""}
       <div class="two"><div>${inp("c_s", "進場日期", d.start, 'type="date"')}</div><div>${inp("c_e", "最後一天", d.end || d.start, 'type="date"')}</div></div>
@@ -283,44 +298,45 @@
       ${has("cases", "巡演") ? `<label class="mg-ck"><input type="checkbox" id="c_tourOn" ${r["巡演"] ? "checked" : ""}>這一檔是巡演</label>
         <div id="c_tourBox" style="${r["巡演"] ? "" : "display:none"}">${inp("c_tour", "巡演名稱（每一站都填一樣的名字，結案時可以合併成一張時段表）", r["巡演"], 'placeholder="例如：2026午後的信"')}</div>` : ""}
       </div>
-      <div class="mg-card"><h3 class="big">這檔要找幾個人？</h3>
-      ${has("cases", "人力分配") ? inp("c_plan", "人力分配", r["人力分配"], 'placeholder="例如：全程1帶2 / 裝2天+拆台1帶4"') : ""}
+      <div class="mg-h">人力分配填寫</div><div class="mg-card">
+      ${has("cases", "人力分配") ? inp("c_plan", "人力分配（寫給自己看的筆記）", r["人力分配"], 'placeholder="例如：全程1帶2 / 裝2天+拆台1帶4"') : ""}
       <label>目前還缺幾人？（可複選）</label>
       <div id="c_need">${T.NEED_KINDS.map(([kind, n, col]) => `<div class="mg-tagrow"><span>${kind}</span><div>${Array.from({ length: n }, (_, i) => `${kind}缺${i + 1}`).map(tg => `<button type="button" class="mg-tag c-${col} ${st.includes(tg) ? "on" : ""}" data-tag="${tg}">${tg}</button>`).join("")}</div></div>`).join("")}
         <div class="mg-tagrow"><span>其他</span><div><button type="button" class="mg-tag c-default ${st.includes("全部完成") ? "on" : ""}" data-tag="全部完成">人都找齊了</button><button type="button" class="mg-tag c-gray ${st.includes("等待製作確認") ? "on" : ""}" data-tag="等待製作確認">人數尚未確認</button></div></div></div>
       </div>
-      ${isNew ? "" : `      <div class="mg-card"><h3>費用</h3>
-      ${inp("c_tdr", "我這一檔的時段費", r["負責人時段費"], 'inputmode="numeric" placeholder="例如：1400"')}
-      ${inp("c_flat", "整筆費用（這一檔是談整筆才填寫）", r["負責人整筆費用"], 'inputmode="numeric"')}
-      </div>`}`;
-    if (isNew) h += `<div class="mg-note" style="margin:0 4px 10px">新增後會自動建立每一天的 Call Time 排班表，之後在主畫面「找人」選人就會填進去。</div>`;
-    else if (content) {
-      h += `<div class="mg-card"><h3>Call Time 排班表</h3><div class="mg-note">左邊是日期或項目，右邊是排的人（用「、」分開）。主畫面選人時會自動填，這裡可以手動修改。</div>
-        <div class="mg-tbl" id="c_tbl">${content.table.map(row => `<div class="r"><input value="${esc(row[0])}"><input value="${esc(row[1] || "")}"><button type="button" title="刪除這列">✕</button></div>`).join("")}</div>
-        <button type="button" class="mg-chip" id="c_addRow">＋ 加一列</button> <button type="button" class="mg-chip" id="c_fillDays">補上缺的日期</button>
-        <h3 style="margin-top:16px">其他資訊</h3><textarea id="c_notes" placeholder="抬頭：&#10;統編：&#10;地址：">${esc(content.notes.join("\n"))}</textarea>
-        <div class="mg-note">「抬頭：」「統編：」會用在截圖的抬頭統編卡片。</div></div>`;
-    } else if (!isNew) h += `<div class="mg-note" style="margin:0 4px 10px">Call Time 排班表在這個案子的 Notion 頁面裡。</div>`;
+      <div class="mg-h">${esc(window.TEAM())}人員 Call Time</div>
+      ${ct.err ? `<div class="mg-note">讀不到這個案子的 Call Time 表格：${esc(ct.err)}</div>` : `<div id="c_tblBox">${ctTable()}</div>
+      <div class="mg-note">${isNew ? "會照日期自動產生，改日期會跟著變。" : ""}名字用「、」分開；主畫面選人時也會自動填進來。</div>
+      ${ct.mode === "google" ? `<div><button type="button" class="mg-chip" id="c_addRow">＋ 加一列</button><button type="button" class="mg-chip" id="c_fillDays">補上缺的日期</button></div>` : ""}`}
+      ${ct.notes ? `<div class="mg-h">其他資訊</div><div class="mg-card"><label for="c_notes">抬頭、統編（會用在截圖的抬頭統編卡片）</label><textarea id="c_notes" placeholder="抬頭：&#10;統編：">${esc(ct.notes.join("\n"))}</textarea></div>` : ""}`;
     return h;
+  }
+  let ct = null;
+  function ctTable() {
+    if (!ct.rows.length) return `<div class="mg-empty" style="margin:0">${ct.mode === "new" ? "填好進場日期就會出現排班表" : "這個案子還沒有 Call Time 表格"}</div>`;
+    return `<table class="mg-ct"><tbody>${ct.rows.map((x, i) => `<tr data-i="${i}"><td><input class="ca" value="${esc(x.a)}" placeholder="日期或項目"></td><td><input class="cb" value="${esc(x.b)}" placeholder=""></td></tr>`).join("")}</tbody></table>`;
+  }
+  function ctRead() {   // 把畫面上的表格讀回 ct.rows
+    const tb = $("c_tblBox"); if (!tb) return;
+    tb.querySelectorAll("tr[data-i]").forEach(tr => { const x = ct.rows[+tr.dataset.i]; if (x) { x.a = tr.querySelector(".ca").value.trim(); x.b = tr.querySelector(".cb").value.trim(); } });
   }
   function bindCase(r, isNew) {
     ov.querySelectorAll("#c_need .mg-tag").forEach(b => b.onclick = () => b.classList.toggle("on"));
     [["c_subOn", "c_subBox", "c_td"], ["c_tourOn", "c_tourBox", "c_tour"]].forEach(([ck, box, input]) => { if ($(ck)) $(ck).onchange = () => { $(box).style.display = $(ck).checked ? "" : "none"; if ($(ck).checked) $(input).focus(); }; });
-    $("c_s").onchange = () => { if (!$("c_e").value || $("c_e").value < $("c_s").value) $("c_e").value = $("c_s").value; };
-    const tbl = $("c_tbl");
-    if (tbl) {
-      const bindDel = () => tbl.querySelectorAll("button").forEach(b => b.onclick = () => b.parentNode.remove());
-      bindDel();
-      $("c_addRow").onclick = () => { tbl.insertAdjacentHTML("beforeend", `<div class="r"><input placeholder="例如 12/20 (六)"><input placeholder="人名"><button type="button">✕</button></div>`); bindDel(); };
-      $("c_fillDays").onclick = () => {
-        const have = new Set([...tbl.querySelectorAll(".r")].map(x => x.children[0].value.replace(/\s*\(.*$/, "").trim()));
-        T.callRows($("c_s").value, $("c_e").value, $("c_l").value).forEach(([label]) => {
-          if (have.has(label.replace(/\s*\(.*$/, "").trim())) return;
-          tbl.insertAdjacentHTML("beforeend", `<div class="r"><input value="${esc(label)}"><input><button type="button">✕</button></div>`);
-        });
-        bindDel();
-      };
-    }
+    const regen = () => {   // 新增時：日期改了就重新產生表格（已經填的名字照日期保留）
+      if (ct.mode !== "new") return;
+      ctRead(); const keep = {}; ct.rows.forEach(x => { if (x.b) keep[x.a] = x.b; });
+      ct.rows = T.callRows($("c_s").value, $("c_e").value || $("c_s").value, $("c_l").value).map(x => ({ key: "", a: x[0], b: keep[x[0]] || "" }));
+      $("c_tblBox").innerHTML = ctTable();
+    };
+    $("c_s").onchange = () => { if (!$("c_e").value || $("c_e").value < $("c_s").value) $("c_e").value = $("c_s").value; regen(); };
+    $("c_e").onchange = regen; $("c_l").onchange = regen;
+    if ($("c_addRow")) $("c_addRow").onclick = () => { ctRead(); ct.rows.push({ key: "", a: "", b: "" }); $("c_tblBox").innerHTML = ctTable(); };
+    if ($("c_fillDays")) $("c_fillDays").onclick = () => {
+      ctRead(); const have = new Set(ct.rows.map(x => x.a.replace(/\s*\(.*$/, "").trim()));
+      T.callRows($("c_s").value, $("c_e").value, $("c_l").value).forEach(([label]) => { if (!have.has(label.replace(/\s*\(.*$/, "").trim())) ct.rows.push({ key: "", a: label, b: "" }); });
+      $("c_tblBox").innerHTML = ctTable();
+    };
   }
   const num = (v) => { const t = String(v || "").replace(/[,\s$]/g, ""); return t === "" || isNaN(+t) ? null : +t; };
 
@@ -343,8 +359,9 @@
       vals["Crew 狀態"] = tags;
       if ($("c_tdr")) { vals["負責人時段費"] = num($("c_tdr").value); vals["負責人整筆費用"] = num($("c_flat").value); }
       if ($("c_td")) vals["負責人姓名"] = $("c_subOn").checked ? ($("c_td").value.trim() || null) : null;
-      if (!id) content = { notes: ["抬頭：", "統編："], table: T.callRows(s, e > s ? e : s, l) };
-      else if ($("c_tbl")) content = { notes: $("c_notes").value.split("\n"), table: [...$("c_tbl").querySelectorAll(".r")].map(x => [x.children[0].value.trim(), x.children[1].value.trim()]).filter(x => x[0] || x[1]) };
+      ctRead();
+      if (!id) content = { notes: ["抬頭：", "統編："], table: ct.rows.filter(x => x.a || x.b).map(x => [x.a, x.b]) };
+      else if (ct && ct.mode === "google") content = { notes: $("c_notes") ? $("c_notes").value.split("\n") : ct.notes, table: ct.rows.filter(x => x.a || x.b).map(x => [x.a, x.b]) };
     } else {
       for (const [name, type] of T.SCHEMA[k].fields) {
         const el = $("f_" + name); if (!el) continue;
@@ -356,7 +373,15 @@
     // Notion：自訂的單選值（例如巡演名稱）會自動新增選項；沒有的欄位略過
     btn.disabled = true; btn.textContent = "儲存中…";
     try {
-      if (id) { await store().update(k, id, vals); if (content && T.cfg.mode === "google") await store().update(k, id, { "內容": content }); }
+      if (id) {
+        await store().update(k, id, vals);
+        if (content && T.cfg.mode === "google") await store().update(k, id, { "內容": content });
+        if (k === "cases" && ct && ct.mode === "notion") {   // Notion：只把改過的列寫回頁面裡的表格
+          const e2 = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const ups = ct.rows.filter(x => x.key && ct.orig[x.key] !== x.a + "\u0001" + x.b).map(x => ({ old_str: `<tr data-b="${x.key}">`, new_str: `<tr data-b="${x.key}"><td><b>${e2(x.a)}</b></td><td>${e2(x.b).replace(/\n/g, "<br>")}</td></tr>` }));
+          if (ups.length) { const m = await window.claude.use("mcp"); await m.callTool("Notion", "notion-update-page", { page_id: id, command: "update_content", content_updates: ups }); }
+        }
+      }
       else await store().create(k, vals, k === "cases" ? content : null);
       dirty = true;
       await loadKind(k, true);

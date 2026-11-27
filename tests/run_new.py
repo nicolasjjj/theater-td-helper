@@ -1,3 +1,4 @@
+import json
 import asyncio, json, threading, http.server, functools, sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from fake_notion import Fake
@@ -37,7 +38,12 @@ async def main():
         await pg.fill("#c_name", "新的戲"); await pg.fill("#c_s", "2026-12-20"); await pg.fill("#c_e", "2026-12-21")
         await pg.click('#c_need [data-tag="全程缺1"]'); await pg.click("#mgSave"); await pg.wait_for_timeout(2500)
         await pg.screenshot(path=str(OUT / "n5_manage.png"))
+        await pg.click('.mg-it:has-text("範例")'); await pg.wait_for_timeout(2500)
+        await pg.evaluate("document.querySelector('#c_tblBox').scrollIntoView()"); await pg.screenshot(path=str(OUT / "n7_case_notion.png"))
+        print("ct rows:", await pg.evaluate("document.querySelectorAll('.mg-ct tr').length"))
+        await pg.fill('.mg-ct tr[data-i="1"] .cb', "陳小米"); await pg.click("#mgSave"); await pg.wait_for_timeout(2500)
         await pg.click("#mgX"); await pg.wait_for_timeout(5000); await pg.screenshot(path=str(OUT / "n6_app.png"))
+        print("ROWCHK", [b for b in fk.blocks.values() if b.get("type") == "table_row" and "陳小米" in json.dumps(b, ensure_ascii=False)][:1] if hasattr(fk, "blocks") else "no blocks attr")
         cases_db = [d for d in fk.dbs.values() if d["title"][0]["plain_text"] == "劇場の案子"][0]["id"]
         for pid, pgx in fk.pages.items():
             if pgx["parent"].get("database_id") == cases_db:

@@ -154,6 +154,16 @@ head_extra = f"""<meta name="apple-mobile-web-app-capable" content="yes">
 rep("</head>", head_extra + "</head>", 1)
 
 out = ROOT / "dist"; out.mkdir(exist_ok=True)
+# 標題、進場前最下面的「回到最上面」
+for a, b in [
+    ("<header><h1>進場中</h1>", "<header><h1>每日打卡 / 截圖</h1>"),
+    ('t.textContent = phase === "close" ? "結案" : "進場中";', 't.textContent = phase === "close" ? "時段表生成" : "每日打卡 / 截圖";'),
+    ('<div id="list"><div class="state">讀取中…</div></div>\n  </div>', '<div id="list"><div class="state">讀取中…</div></div>\n  <button class="totop" type="button" onclick="window.scrollTo({top:0,behavior:\'smooth\'})" aria-label="回到最上面"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>回到最上面</button>\n  </div>'),
+]:
+    assert a in h, a[:40]; h = h.replace(a, b)
+# 日間／夜間模式可以手動切換：<html data-theme="light|dark">；沒設定就跟著系統
+h, n = re.subn(r'@media \(prefers-color-scheme: dark\)\{\s*:root\{([^}]*)\}\s*\}', lambda m: "@media (prefers-color-scheme: dark){:root:not([data-theme=light]){" + m.group(1) + "}} :root[data-theme=dark]{" + m.group(1) + "}", h)
+print("theme blocks", n)
 (out / "index.html").write_text(h, encoding="utf-8")
 (out / "version.json").write_text(json.dumps({"version": VERSION}), encoding="utf-8")
 (out / "manifest.webmanifest").write_text(json.dumps({
