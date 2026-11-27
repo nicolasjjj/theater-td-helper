@@ -61,13 +61,24 @@
 
   // ---------- 讀取（快取 15 秒，寫入時同步更新快取） ----------
   let cache = null, loading = null;
+  // 沒有要求重新讀取時：先用記憶體，再用手機裡的快照（打開 app 不用等）；寫入一定先讀最新
+  function drop() { cache = null; T.snap.drop(k => k === "g:data"); }
   async function load(force) {
-    if (!force && cache && Date.now() - cache.at < 15000) return cache;
+    if (!force && cache) return cache;
+    if (!force && !cache && !loading) { const sv = T.snap.get("g:data"); if (sv) { cache = build(sv.r, sv.at); cache.snap = true; return cache; } }
     if (loading) return loading;
     loading = (async () => {
       const id = T.cfg.gData; if (!id) throw err("not_configured", "還沒設定資料");
       const r = await T.google.api(`${SS(id)}/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&` + KINDS.map(k => "ranges=" + encodeURIComponent(`'${S[k].tab}'!A1:AZ5000`)).join("&"));
-      const c = { at: Date.now(), byId: {} };
+      T.snap.set("g:data", { at: Date.now(), r });
+      cache = build(r, Date.now()); return cache;
+    })().finally(() => { loading = null; });
+    return loading;
+  }
+  const loadW = () => load(!cache || !!cache.snap);
+  function build(r, at) {
+    {
+      const c = { at, byId: {} };
       KINDS.forEach((k, i) => {
         const vals = (r.valueRanges[i] || {}).values || [];
         const head = vals[0] || [];
@@ -81,9 +92,8 @@
         }
         c[k] = { head, rows };
       });
-      cache = c; return c;
-    })().finally(() => { loading = null; });
-    return loading;
+      return c;
+    }
   }
 
   // ---------- 一列資料 → 網頁本體看得懂的格式（和 Notion 版相同） ----------
@@ -192,9 +202,10 @@
       data.push({ range: `'${tab}'!${colL(col)}${rec.row}`, values: [[cell]] });
     }
     if (data.length) await T.google.api(`${SS(T.cfg.gData)}/values:batchUpdate`, { method: "POST", body: { valueInputOption: "RAW", data } });
+    T.snap.drop(k => k === "g:data");
   }
   async function updateProps(pageId, props) {
-    const c = await load(), rec = c.byId[idOf(pageId)];
+    const c = await loadW(), rec = c.byId[idOf(pageId)];
     if (!rec) throw err("not_found", "找不到這筆資料");
     const vals = {};
     for (const [k, v] of Object.entries(props)) vals[T.BACK[k] || k] = v;
@@ -207,7 +218,7 @@
     const r = await T.google.api(`${SS(T.cfg.gData)}/values/${encodeURIComponent(`'${tab}'!A1`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, { method: "POST", body: { values: [row] } });
     const m = String((r.updates || {}).updatedRange || "").match(/(\d+)(?::[A-Z]+\d+)?$/);
     const rec = { id, kind, row: m ? +m[1] : c[kind].rows.length + 2, v: Object.fromEntries(head.map((h, i) => [h, row[i]])) };
-    c[kind].rows.push(rec); c.byId[id] = rec;
+    c[kind].rows.push(rec); c.byId[id] = rec; T.snap.drop(k => k === "g:data");
     return id;
   }
   async function remove(kind, id) {
@@ -215,15 +226,15 @@
     const meta = await T.google.api(`${SS(T.cfg.gData)}?fields=sheets.properties`);
     const sh = (meta.sheets || []).find(s => s.properties.title === S[kind].tab);
     await T.google.api(`${SS(T.cfg.gData)}:batchUpdate`, { method: "POST", body: { requests: [{ deleteDimension: { range: { sheetId: sh.properties.sheetId, dimension: "ROWS", startIndex: rec.row - 1, endIndex: rec.row } } }] } });
-    cache = null;
+    drop();
   }
 
   T.gstore = {
     ensure, load, queryView, fetchText, updateContent, updateProps, create, remove,
-    async list(kind) { const c = await load(true); return c[kind].rows.map(raw); },
-    async update(kind, id, vals) { const c = await load(); const rec = c.byId[idOf(id)]; if (!rec) throw err("not_found", "找不到這筆資料"); await writeFields(rec, vals); },
+    async list(kind, fresh) { const c = await load(!!fresh); return c[kind].rows.map(raw); },
+    async update(kind, id, vals) { const c = await loadW(); const rec = c.byId[idOf(id)]; if (!rec) throw err("not_found", "找不到這筆資料"); await writeFields(rec, vals); },
     async getContent(id) { const c = await load(); const rec = c.byId[idOf(id)]; return rec ? contentOf(rec) : { notes: [], table: [] }; },
     url: () => T.cfg.gData ? `https://docs.google.com/spreadsheets/d/${T.cfg.gData}/edit` : "",
-    invalidate() { cache = null; },
+    invalidate() { drop(); },
   };
 })();

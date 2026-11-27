@@ -33,7 +33,7 @@ async def main():
         pg.on("dialog", lambda d: asyncio.ensure_future(d.accept()))
         await pg.click('.tdh-tabbar [data-t="cases"]'); await pg.wait_for_timeout(1500)
         await pg.click('.tdh-tabbar [data-t="lists"]'); await pg.wait_for_timeout(700); await pg.click('.mg-tabs button[data-k="crew"]'); await pg.wait_for_timeout(800); await pg.click(".mg-add"); await pg.wait_for_timeout(400)
-        await pg.fill('[id="f_姓名"]', "陳小米"); await pg.fill('[id="f_時段費"]', "900"); await pg.click("#mgSave"); await pg.wait_for_timeout(1500)
+        await pg.fill('[id="f_姓名"]', "陳小米"); await pg.click("#mgSave"); await pg.wait_for_timeout(1500)
         await pg.click('.tdh-tabbar [data-t="cases"]'); await pg.wait_for_timeout(800); await pg.click(".mg-add"); await pg.wait_for_timeout(600)
         await pg.fill("#c_name", "新的戲"); await pg.fill("#c_s", "2026-12-20"); await pg.fill("#c_e", "2026-12-21")
         await pg.click('#c_need [data-tag="全程缺1"]'); await pg.click("#mgSave"); await pg.wait_for_timeout(2500)

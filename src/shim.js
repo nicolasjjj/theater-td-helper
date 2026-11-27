@@ -18,6 +18,19 @@
   Object.defineProperty(T, "cfg", { get() { return cfg; }, configurable: true });
   T.setCfg = (v) => { cfg = Object.assign({}, cfg, v); S.save(cfg); };
   const isGoogle = () => cfg.mode === "google";
+  // ---------- 本機快照：讀過的資料存在手機裡，下次打開直接顯示；往下拉才重新向雲端讀 ----------
+  const SNAP = "tdh.snap:";
+  const scope = () => isGoogle() ? "g:" + (cfg.gData || "") : "n:" + Object.values(cfg.db || {}).join(",").replace(/-/g, "").slice(0, 140);
+  T.snap = {
+    get(k) { try { const v = localStorage.getItem(SNAP + scope() + "|" + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set(k, v) {
+      try { localStorage.setItem(SNAP + scope() + "|" + k, JSON.stringify(v)); localStorage.setItem("tdh.syncAt", String(Date.now())); }
+      catch (e) { T.snap.clear(); }   // 空間不夠就整個清掉，下次重新讀
+    },
+    drop(test) { try { const pre = SNAP + scope() + "|"; for (let i = localStorage.length - 1; i >= 0; i--) { const key = localStorage.key(i); if (key && key.startsWith(pre) && (!test || test(key.slice(pre.length)))) localStorage.removeItem(key); } } catch (e) {} },
+    clear() { try { for (let i = localStorage.length - 1; i >= 0; i--) { const key = localStorage.key(i); if (key && key.startsWith(SNAP)) localStorage.removeItem(key); } } catch (e) {} },
+    syncAt() { return +(localStorage.getItem("tdh.syncAt") || 0); },
+  };
 
   // ---------- 呼叫 Notion（限速：Notion 每秒約 3 次） ----------
   let chain = Promise.resolve(), last = 0;
@@ -57,7 +70,7 @@
   // ---------- 資料庫結構（欄位型別） ----------
   const schemas = {};
   async function schemaOf(dbId) {
-    if (!schemas[dbId]) schemas[dbId] = nfetch(`/databases/${dbId}`).then(d => d.properties || {});
+    if (!schemas[dbId]) { const sv = T.snap.get("schema:" + dbId); schemas[dbId] = sv ? Promise.resolve(sv) : nfetch(`/databases/${dbId}`).then(d => { const p = d.properties || {}; T.snap.set("schema:" + dbId, p); return p; }); }
     return schemas[dbId];
   }
 
@@ -233,12 +246,22 @@
   const mcp = {
     async callTool(server, tool, input, opts = {}) {
       const k = ckey(tool, input), c = opts && opts.cache, write = tool === "notion-update-page";
-      if (!write && c && !c.refresh) {
+      // 列表查詢：沒有要求重新整理就先用記憶體／手機裡的快照；notion-fetch 只有允許快取時才用（寫入前的讀取一定讀最新）
+      const canUse = !write && !(c && c.refresh) && (c || tool === "notion-query-data-sources");
+      if (canUse) {
         const hit = cache.get(k);
-        if (hit && Date.now() - hit.at < (c.staleTime || 0)) return wrap(hit.value, hit.at);
+        if (hit) return wrap(hit.value, hit.at);
+        if (!isGoogle()) { const sv = T.snap.get("t:" + k); if (sv) { cache.set(k, sv); return wrap(sv.value, sv.at); } }
       }
       const value = await run(server, tool, input);
-      if (!write) cache.set(k, { at: Date.now(), value });
+      if (!write) { const e = { at: Date.now(), value }; cache.set(k, e); if (!isGoogle()) T.snap.set("t:" + k, e); }
+      else {
+        // 寫入後：列表與這一頁的內容快照作廢
+        const pid = String(input.page_id || "").replace(/-/g, "").toLowerCase();
+        const stale = (key) => key.startsWith("notion-query-data-sources|") || (pid && key.startsWith("notion-fetch|") && key.replace(/-/g, "").toLowerCase().includes(pid));
+        for (const key of [...cache.keys()]) if (stale(key)) cache.delete(key);
+        T.snap.drop(key => key.startsWith("t:") && stale(key.slice(2)));
+      }
       return wrap(value, Date.now());
     },
     watchTool(server, tool, input, handler, opts) {
@@ -248,7 +271,12 @@
         .catch(e => { if (live) handler({ type: "error", error: { code: e.code || "tool_error", message: e.message } }); });
       return () => { live = false; };
     },
-    async invalidate(server, tool) { for (const k of [...cache.keys()]) if (!tool || k.startsWith(tool + "|")) cache.delete(k); if (T.gstore) T.gstore.invalidate(); },
+    async invalidate(server, tool) {
+      for (const k of [...cache.keys()]) if (!tool || k.startsWith(tool + "|")) cache.delete(k);
+      T.snap.drop(k => !tool || k.startsWith("t:" + tool + "|") || k.startsWith("list:") || k.startsWith("schema:"));
+      for (const d in schemas) delete schemas[d];
+      if (T.gstore) T.gstore.invalidate();
+    },
   };
   window.claude = { use: async (kind) => (kind === "mcp" ? mcp : null) };
 
@@ -370,17 +398,20 @@
     const type = (SC[kind].fields.find(f => f[0] === name) || [])[1];
     const def = type === "checkbox" ? { checkbox: {} } : type === "number" ? { number: { format: "number" } } : type === "url" ? { url: {} } : { rich_text: {} };
     await nfetch(`/databases/${dbId}`, { method: "PATCH", body: { properties: { [name]: def } } });
-    delete schemas[dbId];
+    delete schemas[dbId]; T.snap.drop(k => k === "schema:" + dbId);
   }
   T.nstore = {
     async fields(kind) { const sch = await schemaOf(cfg.db[kind]); return SC[kind].fields.filter(f => f[1] === "content" || dbName(sch, f[0])).map(f => f[0]); },
-    async list(kind) {
-      const dbId = cfg.db[kind], sch = await schemaOf(dbId), out = []; let cursor = null, g = 0;
+    async list(kind, fresh) {
+      const dbId = cfg.db[kind];
+      if (!fresh) { const sv = T.snap.get("list:" + dbId); if (sv) return sv; }
+      const sch = await schemaOf(dbId), out = []; let cursor = null, g = 0;
       do {
         const r = await nfetch(`/databases/${dbId}/query`, { method: "POST", body: Object.assign({ page_size: 100 }, cursor ? { start_cursor: cursor } : {}) });
         out.push(...(r.results || []).map(p => rawOf(kind, p, sch)));
         cursor = r.has_more ? r.next_cursor : null;
       } while (cursor && g++ < 50);
+      T.snap.set("list:" + dbId, out);
       return out;
     },
     async update(kind, id, vals) {
@@ -406,5 +437,16 @@
     async remove(kind, id) { await nfetch(`/pages/${dashed(hex(id))}`, { method: "PATCH", body: { archived: true } }); },
     url: () => "",
   };
+  // 寫入後：這一類的列表快照、主畫面的查詢快照作廢
+  ["update", "create", "remove"].forEach(fn => {
+    const f0 = T.nstore[fn];
+    T.nstore[fn] = async function (kind, id) {
+      const out = await f0.apply(this, arguments);
+      const pid = fn === "create" ? "" : String(id || "").replace(/-/g, "").toLowerCase();
+      for (const key of [...cache.keys()]) if (key.startsWith("notion-query-data-sources|") || (pid && key.replace(/-/g, "").toLowerCase().includes(pid))) cache.delete(key);
+      T.snap.drop(key => key === "list:" + cfg.db[kind] || key.startsWith("t:notion-query-data-sources|") || (pid && key.startsWith("t:notion-fetch|") && key.replace(/-/g, "").toLowerCase().includes(pid)));
+      return out;
+    };
+  });
   T.store = () => (isGoogle() ? T.gstore : T.nstore);
 })();

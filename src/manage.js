@@ -32,6 +32,14 @@
   .mg-in details>summary{list-style:none}.mg-in details>summary::-webkit-details-marker{display:none}
   .mg-in details>summary::before{content:"▸";display:inline-block;width:14px;transition:transform .15s}.mg-in details[open]>summary::before{transform:rotate(90deg)}
   .mg-it{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer}
+  .mg-it{position:relative;padding-right:40px;transition:transform .15s ease,border-color .2s,background .2s}
+  .mg-it::after,.mg-go i{content:"";position:absolute;right:17px;top:50%;width:7px;height:7px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg);opacity:.75;transition:right .2s}
+  .mg-it:active{transform:scale(.982);background:var(--sel)}
+  @media (hover:hover){.mg-it:hover{border-color:var(--accent)}.mg-it:hover::after{right:14px}}
+  .mg-go{position:relative;display:flex;align-items:center;width:100%;margin:22px 0 8px;padding:15px 44px 15px 16px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink,#fff);font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 18px -8px var(--accent);transition:transform .15s}
+  .mg-go b{display:block;font-size:16px;font-weight:700}.mg-go small{display:block;font-size:12.5px;opacity:.85;margin-top:2px}
+  .mg-go i{border-color:currentColor;opacity:.9}
+  .mg-go:active{transform:scale(.98)}
   .mg-it b{font-size:15px;font-weight:700;display:block}.mg-it small{color:var(--muted);font-size:12px;display:block;margin-top:3px;line-height:1.5}
   .mg-it .tg{display:inline-block;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;margin:6px 4px 0 0;background:var(--blue);color:var(--blue-ink)}
   .mg-it .tg.ok{background:var(--sel);color:var(--accent)}.mg-it .tg.w{background:var(--yellow);color:var(--yellow-ink)}
@@ -70,9 +78,22 @@
   .mg-tag.on.c-gray{background:#7a746b;border-color:#7a746b}.mg-tag.on.c-purple{background:#7a5aa8;border-color:#7a5aa8}
   .mg-tag.on.c-default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
   .mg a{color:var(--accent)}
-  .mg-modal{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));transition:background .18s}
-  .mg-modal.in{background:rgba(0,0,0,.45)}
-  .mg-dlg{background:var(--bg);border-radius:22px;width:100%;max-width:540px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.3);transform:translateY(16px) scale(.98);opacity:0;transition:all .18s}
+  @keyframes mgFwd{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+  @keyframes mgBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+  @keyframes mgFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes mgItem{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  #mgBody.a-fwd{animation:mgFwd .32s cubic-bezier(.2,.8,.2,1) both}
+  #mgBody.a-back{animation:mgBack .32s cubic-bezier(.2,.8,.2,1) both}
+  #mgBody.a-fade{animation:mgFade .3s cubic-bezier(.2,.8,.2,1) both}
+  #mgBody.a-list .mg-it,#mgBody.a-list .mg-card,#mgBody.a-list .mg-h,#mgBody.a-list details{animation:mgItem .38s cubic-bezier(.2,.8,.2,1) both}
+  #mgBody.a-list .mg-it:nth-of-type(2){animation-delay:.03s}#mgBody.a-list .mg-it:nth-of-type(3){animation-delay:.06s}#mgBody.a-list .mg-it:nth-of-type(4){animation-delay:.09s}#mgBody.a-list .mg-it:nth-of-type(5){animation-delay:.12s}#mgBody.a-list .mg-it:nth-of-type(n+6){animation-delay:.15s}
+  .mg-add{transition:transform .15s,box-shadow .2s}.mg-add:active{transform:scale(.9)}
+  .mg-top button:active,.tdh-back:active{transform:scale(.92)}
+  .mg-tabs button{transition:background .22s,color .22s,border-color .22s}
+  .mg-card{transition:border-color .2s}
+  .mg-modal{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));transition:background .28s,backdrop-filter .28s}
+  .mg-modal.in{background:rgba(0,0,0,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+  .mg-dlg{background:var(--bg);border-radius:22px;width:100%;max-width:540px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.3);transform:translateY(28px) scale(.96);opacity:0;transition:transform .36s cubic-bezier(.2,.9,.25,1.05),opacity .22s ease}
   .mg-modal.in .mg-dlg{transform:none;opacity:1}
   .mg-dlg-h{font-size:19px;font-weight:700;padding:18px 18px 10px}
   .mg-dlg-b{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 16px 8px}
@@ -120,7 +141,7 @@
   const $ = (id) => ov.querySelector("#" + id);
 
   async function loadKind(k, force) {
-    if (!data[k] || force) data[k] = await store().list(k);
+    if (!data[k] || force) data[k] = await store().list(k, force);
     if (!fields[k]) fields[k] = store().fields ? await store().fields(k) : T.SCHEMA[k].fields.map(f => f[0]);
     return data[k];
   }
@@ -165,6 +186,15 @@
   function fail(e) { $("mgBody").innerHTML = `<div class="mg-empty">讀取失敗：${esc((e && e.message) || e)}<br><button class="mg-chip" id="mgRetry">再試一次</button></div>`; $("mgRetry").onclick = () => list(true); }
 
   // ---------- 列表 ----------
+  let lastMode = "list";
+  function reveal(mode) {
+    const b = $("mgBody"); if (!b) return;
+    const dir = lastMode === "list" && mode === "item" ? "a-fwd" : lastMode === "item" && mode === "list" ? "a-back" : mode === "list" ? "a-list" : "a-fade";
+    lastMode = mode;
+    b.classList.remove("a-fwd", "a-back", "a-fade", "a-list"); void b.offsetWidth; b.classList.add(dir);
+    if (mode === "list" && dir !== "a-list") setTimeout(() => b.classList.add("a-list"), 0);
+    clearTimeout(reveal.t); reveal.t = setTimeout(() => b.classList.remove("a-fwd", "a-back", "a-fade", "a-list"), 700);
+  }
   let sub = "";   // Crew：居住地區、場館：地區 的篩選頁籤
   // 標題列：列表時是「選單＋頁面名稱」，看板／編輯時是「← 項目名稱」
   let listTitle = "";
@@ -175,7 +205,7 @@
     ab.hidden = !act; if (act) { ab.textContent = act.label; ab.onclick = act.fn; }
   }
   async function list(force) {
-    head(null);
+    reBoard = null; head(null);
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.classList.toggle("on", b.dataset.k === tab));
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
     busy("讀取中…");
@@ -186,7 +216,7 @@
     } catch (e) { return fail(e); }
     const k = tab;
     // 搜尋框只建立一次，打字（含注音組字）時只更新下面的結果，不會跳掉
-    $("mgBody").innerHTML = `<div class="mg-sbox"><input class="mg-search" id="mgQ" placeholder="搜尋${K[k]}" value="${esc(q)}" autocomplete="off"><button type="button" class="mg-clr" id="mgClr" aria-label="清除" style="${q ? "" : "display:none"}">✕</button></div><div id="mgSubTabs"></div><div id="mgList"></div>`;
+    $("mgBody").innerHTML = `<div class="mg-sbox"><input class="mg-search" id="mgQ" placeholder="搜尋${K[k]}" value="${esc(q)}" autocomplete="off"><button type="button" class="mg-clr" id="mgClr" aria-label="清除" style="${q ? "" : "display:none"}">✕</button></div><div id="mgSubTabs"></div><div id="mgList"></div>`; reveal("list");
     const qi = $("mgQ"); let composing = false;
     const clr = $("mgClr"), syncClr = () => { clr.style.display = qi.value ? "" : "none"; };
     qi.addEventListener("input", syncClr);
@@ -239,7 +269,7 @@
         rows.sort((a, b) => (lastAt[b.id] || "").localeCompare(lastAt[a.id] || "") || String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
       } else rows.sort((a, b) => String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
       h += rows.length ? rows.map(r => {
-        const sub2 = k === "crew" ? [r["時段費"] ? "$" + r["時段費"] : "", r["居住地區"], r["電話"], r._n ? `合作 ${r._n} 檔` : ""].filter(Boolean).join("・")
+        const sub2 = k === "crew" ? [r["居住地區"], r["電話"], r._n ? `合作 ${r._n} 檔` : ""].filter(Boolean).join("・")
           : k === "venue" ? [r["地區"], r["地址"]].filter(Boolean).join("・") : [r["抬頭"], r["統編"]].filter(Boolean).join("・");
         return `<button class="mg-it" data-id="${r.id}"><b>${esc(r[title] || "（未命名）")}</b>${sub2 ? `<small>${esc(sub2)}</small>` : ""}</button>`;
       }).join("") : `<div class="mg-empty">${q || sub ? "找不到符合的" + K[k] : "還沒有" + K[k] + "，按右下角的 ＋ 新增。"}</div>`;
@@ -298,7 +328,7 @@
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
-      const HIDE = { venue: ["官方網站", "技術資料與圖面"] };
+      const HIDE = { venue: ["官方網站", "技術資料與圖面"], crew: ["時段費"] };
       for (const [name, type, opts] of T.SCHEMA[k].fields) {
         if (!has(k, name) || type === "content" || (HIDE[k] || []).includes(name) || (isNew && name === "時段費紀錄")) continue;
         const lab = name + (type === "title" ? "（必填）" : "（非必填）");
@@ -324,7 +354,7 @@
       md.onclick = (e) => { if (e.target === md) $("mgCancel").onclick(); };
     } else {
       h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="ghost2" id="mgCancel">取消</button><button class="pri" id="mgSave">儲存</button></div><div class="mg-act" style="margin-top:28px"><button class="red" id="mgDel">${k === "cases" ? "刪除整個案子" : "刪除這筆" + K[k]}</button></div></div>`;
-      $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
+      $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0; reveal("item");
       $("mgCancel").onclick = () => edit(k, id);
     }
     // 「清除資料」：點兩下才清（第一下變成「再點一次清除」）
@@ -375,7 +405,9 @@
     });
   }
   // ---------- 案子看板（只看，按「編輯」才改） ----------
+  let reBoard = null;
   async function caseBoard(id) {
+    reBoard = () => caseBoard(id);
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
     const r = (data.cases || []).find(x => x.id === id);
     if (!r) return list();
@@ -406,7 +438,9 @@
       </div>
       <div class="mg-h" id="ctSec">${esc(window.TEAM())}人員 Call Time</div>
       ${ct.err ? `<div class="mg-note">讀不到 Call Time 表格：${esc(ct.err)}</div>` : ct.rows.length ? `<table class="mg-ct ro"><tbody>${ct.rows.map(x => `<tr><td>${esc(x.a)}</td><td><div class="mg-names">${splitNames(x.b).map(n => `<span class="mg-nm${known.size && !known.has(n) ? " unk" : ""}">${esc(n)}</span>`).join("") || `<span class="mg-none">—</span>`}</div></td></tr>`).join("")}</tbody></table>` : `<div class="mg-empty" style="margin:0">還沒有 Call Time 表格</div>`}`;
-    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
+    h += `<button class="mg-go" id="mgGoClose"><span><b>去結案</b><small>回報出勤、算時段、產生時段表</small></span><i></i></button>`;
+    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0; reveal("item");
+    $("mgGoClose").onclick = () => T.showTab && T.showTab("close", { caseId: id });
     if (scrollCT) { scrollCT = false; const el = $("ctSec"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }
   }
   let scrollCT = false, backTo = null;
@@ -415,15 +449,16 @@
   }
   // ---------- Crew／場館／劇團 看板 ----------
   async function itemBoard(k, id) {
+    reBoard = () => itemBoard(k, id);
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
     const r = (data[k] || []).find(x => x.id === id); if (!r) return list();
     const tf = T.SCHEMA[k].fields[0][0];
     head(r[tf] || "（未命名）", () => list(), { label: "編輯", fn: () => edit(k, id, "edit") });
     const kv = (a, v) => v ? `<div class="kv"><span>${a}</span><b>${v}</b></div>` : "";
-    const HIDE = { venue: [] };
+    const HIDE = { venue: [], crew: ["時段費"] };
     let rows = "";
     for (const [name, type] of T.SCHEMA[k].fields) {
-      if (name === tf || type === "content" || !has(k, name)) continue;
+      if (name === tf || type === "content" || !has(k, name) || (HIDE[k] || []).includes(name)) continue;
       const v = r[name]; if (v === null || v === undefined || v === "") continue;
       if (name === "電話") rows += kv(name, `<a href="tel:${esc(String(v).replace(/[^\d+]/g, ""))}">${esc(v)}</a>`);
       else if (type === "url") rows += kv(name, `<a href="${esc(v)}" target="_blank" rel="noopener">打開連結 ↗</a>`);
@@ -436,7 +471,7 @@
       .sort((a, b) => String((b["進場日期"] || {}).start || "").localeCompare(String((a["進場日期"] || {}).start || "")));
     let h = `<div class="mg-h" style="margin-top:4px">資料</div><div class="mg-card mg-kvs">${rows || `<div class="kv"><b><i>還沒有填其他資料，按右上角「編輯」補上</i></b></div>`}</div>`;
     if (rel.length) h += `<div class="mg-h">${k === "crew" ? "合作過的案子" : "相關案子"}（${rel.length}）</div>` + rel.slice(0, 12).map(c => `<button class="mg-it" data-cid="${c.id}"><b>${esc(c["案名"] || "")}</b><small>${c["進場日期"] ? md(c["進場日期"].start) : ""}</small></button>`).join("");
-    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
+    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0; reveal("item");
     $("mgBody").querySelectorAll("[data-cid]").forEach(b => b.onclick = () => T.showTab && T.showTab("cases", { caseId: b.dataset.cid }));
   }
   // 案子表單
@@ -605,6 +640,14 @@
     } catch (e) { errEl.textContent = "儲存失敗：" + ((e && e.message) || e); btn.disabled = false; btn.textContent = id ? "儲存" : "新增"; }
   }
 
+  // 往下拉重新整理：清掉這頁的資料重新向雲端讀
+  T.manageRefresh = async () => {
+    if (!ov || ov.querySelector(".mg-modal") || $("mgCancel")) return false;
+    const kinds = Object.keys(data); data = {}; fields = {};
+    if (reBoard) { busy("更新中…"); try { await Promise.all(kinds.map(k => loadKind(k, true))); } catch (e) { fail(e); return true; } reBoard(); }
+    else { await Promise.all(kinds.filter(k => k !== tab).map(k => loadKind(k, true).catch(() => {}))); await list(true); }
+    return true;
+  };
   T.openManage = open;
   T.closeManage = close;
 })();

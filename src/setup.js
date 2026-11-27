@@ -11,6 +11,7 @@
   }
   applyTheme();
   T.applyTheme = applyTheme;
+  T.toast = (m) => toast(m);
   function toast(msg) {
     const b = document.createElement("div"); b.className = "tdh-toast"; b.textContent = msg; document.body.appendChild(b);
     requestAnimationFrame(() => b.classList.add("in")); setTimeout(() => { b.classList.remove("in"); setTimeout(() => b.remove(), 300); }, 1600);
@@ -64,7 +65,6 @@
   .tdh-gear,.mg-btn{flex:0 0 40px;width:40px;border:0;background:transparent;color:var(--ink);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .tdh-gear:active,.mg-btn:active{background:var(--line)}
   .tdh-back{flex:0 0 auto;border:0;background:transparent;color:var(--ink);padding:4px 4px 4px 0;margin-left:-6px;display:flex;align-items:center;cursor:pointer}
-  #findView header h1{font-size:clamp(15px,4.4vw,19px);white-space:nowrap;letter-spacing:-.01em}
   #findView header #refresh{flex:0 0 auto}
   .tdh-ov a{color:var(--accent)}
   .tdh-head{display:flex;align-items:center;gap:6px;margin-bottom:14px}.tdh-head h1{margin:0}
@@ -72,7 +72,7 @@
   .tdh-seg{display:flex;background:var(--line);border-radius:12px;padding:3px;gap:2px}
   .tdh-st .tdh-seg button{flex:1;margin:0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:500;padding:8px 0;font-size:14px}
   .tdh-st .tdh-seg button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
-  .tdh-toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:10001;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;transition:all .2s;pointer-events:none;font-family:"Noto Sans TC",sans-serif}
+  .tdh-toast{position:fixed;left:50%;bottom:calc(var(--tab-h,0px) + 24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:10001;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;transition:all .2s;pointer-events:none;font-family:"Noto Sans TC",sans-serif}
   .tdh-toast.in{transform:translate(-50%,0);opacity:1}
   #findView .totop{display:flex;flex-direction:row;white-space:nowrap;width:auto;height:auto;align-items:center;gap:6px;margin:18px auto 0;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer}
   .tdh-foot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:6px;padding:0 4px}
@@ -239,7 +239,7 @@
       if (T.cfg.mode === "google") { T.setCfg({ mode: "notion" }); ov.remove(); open(false, "notion"); }
       else { T.setCfg({ mode: "google" }); if (T.google.signedIn) { ov.remove(); open(false, "google"); } else T.google.login("setup"); }
     };
-    if ($("tdhOut")) $("tdhOut").onclick = () => { if (confirm("確定要登出並清除這個瀏覽器裡的設定？（你的資料不會被刪除）")) { localStorage.removeItem("tdh.settings.v1"); localStorage.removeItem("tdh.gat"); location.reload(); } };
+    if ($("tdhOut")) $("tdhOut").onclick = () => { if (confirm("確定要登出並清除這個瀏覽器裡的設定？（你的資料不會被刪除）")) { localStorage.removeItem("tdh.settings.v1"); localStorage.removeItem("tdh.gat"); if (T.snap) T.snap.clear(); location.reload(); } };
   }
 
   T.openSettings = (cb) => open(true, undefined, cb);

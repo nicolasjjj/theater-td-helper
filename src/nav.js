@@ -23,7 +23,17 @@
   .tdh-tabbar button.on{color:var(--accent);font-weight:700}
   .tdh-tabbar button.on svg{stroke-width:2.3}
   .tdh-tabbar.text button{font-size:15px;letter-spacing:.08em}
-  .tdh-tabbar.text button.on{position:relative}.tdh-tabbar.text button.on::after{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+  .tdh-tabbar.text button{position:relative;transition:color .25s ease,transform .12s}
+  .tdh-tabbar.text button::after{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--accent);transform:scaleX(0);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+  .tdh-tabbar.text button.on::after{transform:scaleX(1)}
+  .tdh-tabbar button:active{transform:scale(.94)}
+  @keyframes tdhViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .tdh-vin{animation:tdhViewIn .32s cubic-bezier(.2,.8,.2,1) both}
+  .mg.embed{animation:tdhViewIn .3s cubic-bezier(.2,.8,.2,1) both}
+  .toast{top:calc(env(safe-area-inset-top) + 64px)!important;bottom:auto!important;z-index:9600!important;transform:translateX(-50%) translateY(-14px) scale(.96)!important;transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1)!important;box-shadow:0 8px 24px -8px rgba(0,0,0,.35)}
+  .toast.show{transform:translateX(-50%) translateY(0) scale(1)!important}
+  button,.card,.chip{-webkit-tap-highlight-color:transparent}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
   body.tdh-sheet-open .tdh-tabbar{display:none}
   .wrap{padding-bottom:calc(170px + var(--tab-h))!important}
   .bar{bottom:calc(var(--tab-h) + env(safe-area-inset-bottom))!important;padding-bottom:10px!important;z-index:13}
@@ -33,18 +43,31 @@
   body.tdh-d header h1{flex:1;min-width:0}
   body.tdh-d #refresh,body.tdh-d #pRefresh{display:none!important}
   .tdh-drawer{position:fixed;inset:0;z-index:9500;pointer-events:none}
-  .tdh-drawer .sh{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .22s}
-  .tdh-drawer .pn{position:absolute;top:0;bottom:0;left:0;width:min(80vw,320px);background:var(--bg);box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;padding:calc(18px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom));font-family:"Noto Sans TC",-apple-system,sans-serif;color:var(--ink)}
-  .tdh-drawer.open{pointer-events:auto}.tdh-drawer.open .sh{background:rgba(0,0,0,.4)}.tdh-drawer.open .pn{transform:none}
+  .tdh-drawer .sh{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .3s,backdrop-filter .3s}
+  .tdh-drawer .pn{position:absolute;top:0;bottom:0;left:0;width:min(80vw,320px);background:var(--bg);box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-102%);transition:transform .34s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;padding:calc(18px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom));font-family:"Noto Sans TC",-apple-system,sans-serif;color:var(--ink)}
+  .tdh-drawer.open{pointer-events:auto}.tdh-drawer.open .sh{background:rgba(0,0,0,.38);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}.tdh-drawer.open .pn{transform:none}
   .tdh-drawer h2{font-size:20px;font-weight:700;margin:2px 10px 14px}
   .tdh-drawer .new{display:flex;align-items:center;gap:8px;margin:0 4px 12px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:15px;font-weight:700;padding:12px 14px;cursor:pointer}
   .tdh-drawer .grp{font-size:12px;color:var(--muted);font-weight:600;margin:14px 10px 4px}
   .tdh-drawer .it{display:flex;align-items:center;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left;padding:11px 10px;border-radius:10px;cursor:pointer}
   .tdh-drawer .it.on{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:700}
   .tdh-drawer .sp{flex:1}
-  .tdh-drawer .db .car{display:inline-flex;color:var(--muted);transition:transform .2s ease}.tdh-drawer .db.open .car{transform:rotate(90deg)}
+  .tdh-drawer .db .car{display:inline-flex;color:var(--muted);transition:transform .32s cubic-bezier(.2,.8,.2,1)}.tdh-drawer .db.open .car{transform:rotate(90deg)}
+  .tdh-drawer .scr{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -12px;padding:0 12px 10px}
+  .tdh-drawer .dbl{display:grid;grid-template-rows:0fr;transition:grid-template-rows .34s cubic-bezier(.2,.8,.2,1)}
+  .tdh-drawer .dbl>div{min-height:0;overflow:hidden}
+  .tdh-drawer .dbl.open{grid-template-rows:1fr}
+  .tdh-drawer .dbl .it.sub,.tdh-drawer .dbl .none{opacity:0;transform:translateX(-10px);transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1)}
+  .tdh-drawer .dbl.open .it.sub,.tdh-drawer .dbl.open .none{opacity:1;transform:none}
+  .tdh-drawer .dbl.open>div>*:nth-child(2){transition-delay:.04s}.tdh-drawer .dbl.open>div>*:nth-child(3){transition-delay:.08s}.tdh-drawer .dbl.open>div>*:nth-child(4){transition-delay:.12s}.tdh-drawer .dbl.open>div>*:nth-child(5){transition-delay:.16s}.tdh-drawer .dbl.open>div>*:nth-child(n+6){transition-delay:.2s}
+  .tdh-drawer .it{transition:background .18s,transform .12s}.tdh-drawer .it:active{transform:scale(.98);background:var(--sel)}
+  .tdh-drawer .new{transition:transform .12s,filter .2s}.tdh-drawer .new:active{transform:scale(.97)}
+  .tdh-drawer .pn>h2,.tdh-drawer .scr>*,.tdh-drawer .foot{opacity:0;transform:translateX(-14px);transition:opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+  .tdh-drawer.open .pn>h2,.tdh-drawer.open .scr>*,.tdh-drawer.open .foot{opacity:1;transform:none}
+  .tdh-drawer.open .scr>*:nth-child(1){transition-delay:.04s}.tdh-drawer.open .scr>*:nth-child(2){transition-delay:.07s}.tdh-drawer.open .scr>*:nth-child(3){transition-delay:.1s}.tdh-drawer.open .scr>*:nth-child(4){transition-delay:.13s}.tdh-drawer.open .scr>*:nth-child(n+5){transition-delay:.16s}.tdh-drawer.open .foot{transition-delay:.18s}
+  .tdh-drawer .sync{font-size:11.5px;color:var(--muted);margin:6px 10px 8px;line-height:1.5}
   .tdh-drawer .it.sub{font-size:14.5px;padding:6px 10px 6px 22px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.tdh-drawer .it.sub.on{color:var(--accent);font-weight:700}
-  .tdh-drawer .dbl{margin-bottom:6px}.tdh-drawer .none{font-size:13px;color:var(--muted);padding:4px 22px 6px}
+  .tdh-drawer .dbl>div{padding-bottom:2px}.tdh-drawer .none{font-size:13px;color:var(--muted);padding:4px 22px 6px}
   .tdh-drawer .ic{display:inline-flex;margin-right:10px;color:var(--muted)}
   .tdh-drawer .foot{border-top:1px solid var(--line);padding-top:8px}
   .tdh-drawer .ver{font-size:11px;color:var(--muted);margin:6px 10px 0}
@@ -81,6 +104,7 @@
     closeHome();
     const b = document.querySelector(`.mode[data-m="${m}"]`); if (b) b.click();
     window.scrollTo(0, 0);
+    const w = document.querySelector(".wrap"); if (w) { w.classList.remove("tdh-vin"); void w.offsetWidth; w.classList.add("tdh-vin"); }
     const pickTab = () => { if (!opt.ptab) return true; const t = document.querySelector(`.ptabs button[data-t="${opt.ptab}"]`); if (t) { t.click(); return true; } return false; };
     if (opt.caseId && m !== "find") setTimeout(() => later(() => {   // 選到那個案子
       const sel = document.getElementById("caseSel");
@@ -117,21 +141,22 @@
   function buildDrawer() {
     drawer = document.createElement("div"); drawer.className = "tdh-drawer";
     const main = UI === "D2" ? [["home", "首頁"], ["find", "找人"], ["live", "每日打卡"], ["close", "結案"]] : [];
-    drawer.innerHTML = `<div class="sh"></div><div class="pn"><h2>劇場幫幫</h2>
+    drawer.innerHTML = `<div class="sh"></div><div class="pn"><h2>劇場幫幫</h2><div class="scr">
       <button class="new" data-new="1">＋ 新增案子</button>
       ${main.map(([v, t]) => `<button class="it" data-v="${v}">${t}</button>`).join("")}
       <button class="it" data-v="cases">我的案子</button>
       <button class="it db" id="rcTog"><span style="flex:1">最近項目</span><span class="car">${CHEV}</span></button>
-      <div class="dbl" id="rcList" hidden></div>
+      <div class="dbl" id="rcWrap"><div id="rcList"></div></div>
       <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">${CHEV}</span></button>
-      <div class="dbl" id="dbList" hidden>${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div>
-      <div class="sp"></div>
+      <div class="dbl" id="dbWrap"><div id="dbList">${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div></div>
+      </div>
+      <div class="sync" id="drSync"></div>
       <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button>${UI !== "D1" ? `<div class="ver">介面 ${UI}（測試）</div>` : ""}</div></div>`;
     document.body.appendChild(drawer);
     drawer.querySelector(".sh").onclick = closeDrawer;
     drawer.querySelectorAll("[data-v]").forEach(b => b.onclick = () => show(b.dataset.v));
     drawer.querySelector("[data-new]").onclick = () => show("cases", { add: true });
-    [["#dbTog", "#dbList"], ["#rcTog", "#rcList"]].forEach(([t, l]) => drawer.querySelector(t).onclick = () => { const el = drawer.querySelector(l); el.hidden = !el.hidden; drawer.querySelector(t).classList.toggle("open", !el.hidden); });
+    [["#dbTog", "#dbWrap"], ["#rcTog", "#rcWrap"]].forEach(([t, l]) => drawer.querySelector(t).onclick = () => { const el = drawer.querySelector(l), on = !el.classList.contains("open"); el.classList.toggle("open", on); drawer.querySelector(t).classList.toggle("open", on); });
     drawer.querySelector("[data-set]").onclick = () => { T.openSettings && T.openSettings(() => openDrawer()); setTimeout(() => drawer.classList.remove("open"), 250); };
     let x0 = null;   // 往左滑關閉
     drawer.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
@@ -140,7 +165,9 @@
   function openDrawer() {
     if (!drawer) buildDrawer();
     drawer.querySelectorAll(".it[data-v]").forEach(b => b.classList.toggle("on", b.dataset.v === cur));
-    if (["troupe", "crew", "venue"].includes(cur)) { drawer.querySelector("#dbList").hidden = false; drawer.querySelector("#dbTog").classList.add("open"); }
+    if (["troupe", "crew", "venue"].includes(cur)) { drawer.querySelector("#dbWrap").classList.add("open"); drawer.querySelector("#dbTog").classList.add("open"); }
+    const at = T.snap ? T.snap.syncAt() : 0, sy = drawer.querySelector("#drSync");
+    if (sy) { const d = new Date(at); sy.textContent = at ? `資料更新於 ${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}・往下拉可重新整理` : ""; }
     let rc = []; try { rc = JSON.parse(localStorage.getItem("tdh.recent") || "[]"); } catch (e) {}   // 最近看過的案子
     const rl = drawer.querySelector("#rcList");
     rl.innerHTML = rc.length ? rc.map(x => `<button class="it sub" data-rc="${esc(x.id)}">${esc(x.title)}</button>`).join("") : `<div class="none">還沒有看過的案子</div>`;
@@ -204,7 +231,12 @@
   }
 
   // ---------- 往下拉重新整理、回到 app 時自動更新 ----------
-  function refreshNow() {
+  async function refreshNow() {
+    if (document.querySelector(".mg.embed")) {
+      try { const m = await window.claude.use("mcp"); await m.invalidate("Notion"); } catch (e) {}
+      if (T.manageRefresh) { await T.manageRefresh(); T.toast && T.toast("已更新"); }
+      return;
+    }
     if (home) { if (T.gstore) T.gstore.invalidate(); openHome(); return; }
     const m = document.querySelector(".mode.on"); const v = m ? m.dataset.m : "find";
     const b = document.getElementById(v === "find" ? "refresh" : "pRefresh"); if (b) b.click();
@@ -214,8 +246,10 @@
     const tip = document.createElement("div"); tip.className = "tdh-ptr"; tip.textContent = "放開重新整理"; document.body.appendChild(tip);
     let y0 = null, dy = 0;
     document.addEventListener("touchstart", e => {
-      if (document.querySelector(".mg, .tdh-ov, .tdh-drawer.open") || document.body.classList.contains("tdh-sheet-open")) { y0 = null; return; }
-      const top = home ? home.scrollTop : window.scrollY;
+      const emb = document.querySelector(".mg.embed");
+      if (document.querySelector(".mg:not(.embed), .tdh-ov, .tdh-drawer.open, .mg-modal") || document.body.classList.contains("tdh-sheet-open")) { y0 = null; return; }
+      const sc = emb ? emb.querySelector("#mgScroll") : null;
+      const top = sc ? sc.scrollTop : home ? home.scrollTop : window.scrollY;
       y0 = top <= 0 ? e.touches[0].clientY : null; dy = 0;
     }, { passive: true });
     document.addEventListener("touchmove", e => {
@@ -227,11 +261,7 @@
       else tip.style.transform = "";
       y0 = null; dy = 0;
     });
-    let hidAt = 0;
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) hidAt = Date.now();
-      else if (hidAt && Date.now() - hidAt > 60000 && !document.querySelector(".mg, .tdh-ov")) refreshNow();
-    });
+    // 不再自動更新：資料先用手機裡存的，想看最新就往下拉
   }
 
   // ---------- 啟動 ----------
