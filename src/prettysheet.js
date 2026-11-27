@@ -3,7 +3,7 @@
   // 版面：一行標題 → 深色表頭（組別色塊＋日期）→ 每人兩列（上：上下班時間，下：段數）→ 總計 → 說明。不凍結。
   function prettyPlan(s) {
     const P = { ink: "#1F1D1A", muted: "#6E685F", time: "#3F3B35", line: "#DDD8CE", head: "#2B2A27", head2: "#3A3833", white: "#FFFFFF",
-      zebra: "#F6F4EF", seg: "#DDEBE3", segInk: "#24513F", totRow: "#E8E4DB", warn: "#9A5A12", red: "#B3261E" };
+      zebra: "#F6F4EF", seg: "#DDEBE3", segInk: "#24513F", totRow: "#E8E4DB", warn: "#C0803A", red: "#B3261E" };
     const GC = { "進場": ["#3B6EA5", "#5383BA"], "裝車": ["#6B7280"], "裝台": ["#3F9A5A"], "拆台": ["#C27A1A"], "卸車": ["#7A5AA8"], "交通": ["#6B7280"] };
     const gColor = (g) => { const a = GC[g.group] || ["#6B7280"]; return a[((g.week || 1) - 1) % a.length]; };
     const FONT = "Noto Sans TC";
@@ -18,9 +18,8 @@
     const lead = window.TDN();
 
     const rows = [];
-    const R = { title: 0, gap: 1, grp: 2, date: 3 };
+    const R = { title: 0, grp: 1, date: 2 };
     const t0 = row(); t0[C.name] = s.title; rows.push(t0);
-    rows.push(row());
     const g1 = row(), g2 = row();
     g1[C.name] = "人員"; g1[C.rate] = "時段費"; g1[C.prep] = "前置";
     s.groups.forEach(g => { g1[C.day0 + g.start] = g.glabel.replace("\n", ""); });
@@ -29,7 +28,7 @@
     rows.push(g1, g2);
 
     const lines = (v) => String(v).split("\n").length;
-    const personStart = rows.length, heights = [];
+    const personStart = rows.length, heights = [], tagCells = [];   // tagCells：有「午+、晚+、超+」補充的格子，補充文字另外上色
     s.people.forEach((p) => {
       const a = row(), b = row(), ra = rows.length + 1, rb = ra + 1;
       a[C.name] = p.name;
@@ -46,7 +45,9 @@
         const ls = x.adj === null || x.adj === undefined ? lateSeg(x.tin, x.tout) : 0;
         if (ls) t.push(`超+${fmtSeg(ls)}`);
         (x.note || []).forEach(n => t.push(n));
-        a[C.day0 + k] = (x.slot ? SLOTS[x.slot] : `${x.tin || "?"}\n${x.tout || "?"}`) + (t.length ? "\n" + t.join(" ") : "");
+        const tm = x.slot ? SLOTS[x.slot] : `${x.tin || "?"}\n${x.tout || "?"}`;
+        a[C.day0 + k] = tm + (t.length ? "\n" + t.join(" ") : "");
+        if (t.length) tagCells.push({ r: rows.length, c: C.day0 + k, text: a[C.day0 + k], at: tm.length + 1 });
         b[C.day0 + k] = cell.seg === "" ? "" : cell.seg;
       });
       const segFrom = colL(C.prep), segTo = colL(C.dEnd - 1);
@@ -65,7 +66,7 @@
     ft[C.dEnd - 1 >= C.day0 ? C.dEnd - 1 : C.prep] = "總計"; ft[C.total] = sumCol(C.total); ft[C.pay] = sumCol(C.pay); ft[C.send] = sumCol(C.send);
     rows.push(ft);
     rows.push(row());
-    const legR = rows.length; const lg = row(); lg[C.name] = "午+ 午餐　　晚+ 晚餐　　超+ 22:00 後　　空白：當天沒來或未填　　淺綠色格子是段數，改了會自動重算"; rows.push(lg);
+    const legR = rows.length; const lg = row(); lg[C.name] = "午+ 午餐誤餐　／　晚+ 晚餐誤餐　／　超+ 22:00後超時　／　空白：當天沒來"; rows.push(lg);
     const ruleR = rows.length; const ru = row(); ru[C.name] = ruleLines(s.late).join("\n"); rows.push(ru);
 
     // 支出明細表
@@ -91,7 +92,7 @@
         // 標題：一行
         merge(G(R.title, R.title + 1, C.name, W)), al(G(R.title, R.title + 1, C.name, W), "LEFT"),
         tx(G(R.title, R.title + 1, 0, W), { fontSize: 15, bold: true }),
-        rowH(R.title, R.title + 1, 40), rowH(R.gap, R.gap + 1, 8),
+        rowH(R.title, R.title + 1, 44),
         // 表頭：深色底白字
         bg(G(R.grp, R.date + 1, 0, W), P.head),
         bg(G(R.date, R.date + 1, C.day0, C.dEnd), P.head2),
@@ -141,6 +142,7 @@
         out.push(tx(G(r + 1, r + 2, C.prep, C.dEnd), { bold: true, fontSize: 11, color: P.segInk }));
         out.push(rowH(r, r + 1, heights[i * 2]), rowH(r + 1, r + 2, heights[i * 2 + 1]));
         out.push({ updateBorders: { range: G(r + 1, r + 2, 0, W), bottom: line(P.line) } });
+        if (i > 0) out.push({ updateBorders: { range: G(r, r + 1, 0, W), top: line(P.line) } });   // 跨兩列合併的格子（時段費、時段數…）要從上一格補線
         if (target !== "sheets") {   // Excel：直接把有段數的格子塗淺綠
           const b = rows[r + 1];
           for (let c = C.prep; c < C.dEnd; c++) if (b[c] !== "") out.push(bg(G(r + 1, r + 2, c, c + 1), P.seg));
@@ -151,6 +153,9 @@
       // 分隔線：人員｜前置與每天｜各組別｜時段數以後
       const vline = (c) => out.push({ updateBorders: { range: G(personStart, last, c, c + 1), left: line(P.ink, "SOLID_MEDIUM") } });
       vline(C.prep); s.groups.forEach(g => vline(C.day0 + g.start)); vline(C.total);
+      // 補充文字（午+、晚+、超+）用淡橘色小字，和上下班時間區隔
+      if (target === "sheets") tagCells.forEach(t => out.push({ updateCells: { range: G(t.r, t.r + 1, t.c, t.c + 1), fields: "userEnteredValue,textFormatRuns",
+        rows: [{ values: [{ userEnteredValue: { stringValue: t.text }, textFormatRuns: [{ startIndex: 0, format: { foregroundColorStyle: { rgbColor: rgb(P.time) }, fontSize: 10 } }, { startIndex: t.at, format: { foregroundColorStyle: { rgbColor: rgb(P.warn) }, fontSize: 9 } }] }] }] } }));
       if (target === "sheets") {    // Google 試算表：有填段數就自動變淺綠（之後改資料也會跟著變）
         const ranges = s.people.map((p, i) => G(personStart + i * 2 + 1, personStart + i * 2 + 2, C.prep, C.dEnd));
         if (ranges.length) out.push({ addConditionalFormatRule: { index: 0, rule: { ranges, booleanRule: {
