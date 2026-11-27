@@ -111,16 +111,16 @@ h, n = re.subn(r'\$\{shot \? "" : `<div class="tsx-chips">.*?</div>`\}', "", h, 
 assert n == 1, "tsx-chips"
 
 # 4. 錯誤訊息：獨立版沒有 claude.ai
-h = h.replace("Notion 的連線過期了，請到 claude.ai「設定 → 連接器」重新連接 Notion。", "Notion 金鑰失效了，請按上方的 ⚙︎ 重新貼上金鑰。")
-h = h.replace("還沒連接 Notion，請到 claude.ai「設定 → 連接器」加入 Notion。", "還沒設定 Notion，請按上方的 ⚙︎ 設定。")
-h = h.replace("這個畫面無法連到 Notion。請在 claude.ai 或 Claude App 裡打開這個頁面。", "還沒設定 Notion，請按上方的 ⚙︎ 設定。")
-h = h.replace("這個畫面無法連到 Notion。請在 claude.ai 或 Claude App 裡打開。", "還沒設定 Notion，請按上方的 ⚙︎ 設定。")
-h = h.replace("Notion 連線過期，請到 claude.ai 設定 → 連接器 重新連接。", "Notion 金鑰失效了，請按上方的 ⚙︎ 重新貼上金鑰。")
-h = h.replace('case "not_granted":', 'case "google_login": msg = "Google 登入過期了，請按上方的 ⚙︎ 重新登入 Google。"; break;\n      case "not_configured": case "not_granted":', 1)
-rep('if (c === "needs_reauth") return', 'if (c === "google_login") return "Google 登入過期了，請按上方的 ⚙︎ 重新登入 Google。";\n    if (c === "needs_reauth") return', 1)
+h = h.replace("Notion 的連線過期了，請到 claude.ai「設定 → 連接器」重新連接 Notion。", "Notion 金鑰失效了，請到「名單」頁右上角的 ⚙︎ 重新貼上金鑰。")
+h = h.replace("還沒連接 Notion，請到 claude.ai「設定 → 連接器」加入 Notion。", "還沒設定 Notion，請到「名單」頁右上角的 ⚙︎ 設定。")
+h = h.replace("這個畫面無法連到 Notion。請在 claude.ai 或 Claude App 裡打開這個頁面。", "還沒設定 Notion，請到「名單」頁右上角的 ⚙︎ 設定。")
+h = h.replace("這個畫面無法連到 Notion。請在 claude.ai 或 Claude App 裡打開。", "還沒設定 Notion，請到「名單」頁右上角的 ⚙︎ 設定。")
+h = h.replace("Notion 連線過期，請到 claude.ai 設定 → 連接器 重新連接。", "Notion 金鑰失效了，請到「名單」頁右上角的 ⚙︎ 重新貼上金鑰。")
+h = h.replace('case "not_granted":', 'case "google_login": msg = "Google 登入過期了，請到「名單」頁右上角的 ⚙︎ 重新登入 Google。"; break;\n      case "not_configured": case "not_granted":', 1)
+rep('if (c === "needs_reauth") return', 'if (c === "google_login") return "Google 登入過期了，請到「名單」頁右上角的 ⚙︎ 重新登入 Google。";\n    if (c === "needs_reauth") return', 1)
 # 不一定用 Notion：畫面上的字改成中性的說法
 for a, b in [
-    ("還沒設定 Notion，請按上方的 ⚙︎ 設定。", "還沒設定好，請按上方的 ⚙︎ 設定。"),
+    ("還沒設定 Notion，請到「名單」頁右上角的 ⚙︎ 設定。", "還沒設定好，請到「名單」頁右上角的 ⚙︎ 設定。"),
     ("<h1>缺人訊息</h1>", "<h1>Call人訊息複製 / 編輯人員名單</h1>"),
     ("・來自「劇場の案子」`", "・來自${window.__tdh.cfg.mode === \"google\" ? \"你的 Google 雲端\" : \" Notion「劇場の案子」\"}`"),
     ('toast("已記錄到 Notion")', 'toast("已記錄")'),
@@ -150,6 +150,7 @@ head_extra = f"""<meta name="apple-mobile-web-app-capable" content="yes">
 <script>\n{(ROOT/'src/xlsx.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/setup.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/manage.js').read_text()}\n</script>
+<script>\n{(ROOT/'src/nav.js').read_text()}\n</script>
 """
 rep("</head>", head_extra + "</head>", 1)
 

@@ -10,6 +10,11 @@
   const css = `
   .mg{position:fixed;inset:0;z-index:9000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
   .mg *{box-sizing:border-box}
+  .mg.embed{z-index:14;bottom:calc(var(--tab-h,58px) + env(safe-area-inset-bottom))}
+  .mg.embed .mg-body{padding-bottom:96px}
+  .mg.embed .mg-add{bottom:calc(var(--tab-h,58px) + env(safe-area-inset-bottom) + 12px)}
+  .mg-gear{flex:0 0 40px;width:40px;height:40px;border:0;background:transparent;color:var(--ink);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+  .mg-quick{display:flex;gap:8px;margin:0 0 6px}.mg-quick button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 6px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
   .mg-top{padding:calc(14px + env(safe-area-inset-top)) 14px 0;background:var(--bg)}
   .mg-top>div,.mg-in{max-width:560px;margin:0 auto}
   .mg-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}.mg-row h1{flex:1;font-size:24px;font-weight:700;margin:0}
@@ -36,7 +41,8 @@
   .mg-h{font-size:16px;font-weight:700;color:var(--ink);margin:18px 2px 8px}.mg-f>.mg-h:first-child{margin-top:4px}
   .mg-ct{width:100%;border-collapse:collapse;background:var(--card);table-layout:fixed}
   .mg-ct td{border:1px solid var(--line);padding:0;vertical-align:top}.mg-ct td:first-child{width:34%}
-  .mg-f .mg-ct input{border:0;border-radius:0;background:transparent;padding:9px 10px;font-size:15px;min-height:0}
+  .mg-f .mg-ct input{border:0;border-radius:0;background:transparent;padding:9px 10px;font-size:15px;min-height:0;height:100%}
+  .mg-ct td:first-child{vertical-align:middle}
   .mg-f .mg-ct .ca{font-weight:700}.mg-f .mg-ct input:focus{background:var(--sel)}
   .mg-card h3.big{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:0;margin:12px 0 2px}
   .mg-card h3{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:10px 0 2px}
@@ -76,6 +82,12 @@
   .mg-cardfoot{display:flex;justify-content:flex-end;margin-top:12px}
   .mg-clr2{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:2px 0;cursor:pointer}
   .mg-clr2.armed{color:var(--tdh-dan);font-weight:700}
+  .mg-names{display:flex;flex-wrap:wrap;gap:5px;padding:6px 6px;align-items:center;min-height:38px}
+  .mg-nm{display:inline-flex;align-items:center;gap:2px;background:var(--sel);color:var(--ink);border:1px solid transparent;border-radius:8px;padding:3px 4px 3px 8px;font-size:14px;line-height:1.3}
+  .mg-nm.unk{background:transparent;border:1px dashed var(--tdh-no)}
+  .mg-nm button{border:0;background:none;color:var(--muted);font-size:15px;line-height:1;padding:0 3px;cursor:pointer}
+  .mg-nadd{border:1px dashed var(--line);background:transparent;color:var(--accent);border-radius:8px;width:30px;height:28px;font-size:16px;font-weight:700;cursor:pointer}
+  .mg-pick{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.mg-pick .mg-tag{font-size:14px;padding:6px 12px}.mg-pick .mg-tag.unk{border-style:dashed}
   .mg-note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
   .mg-chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;margin:8px 6px 0 0;font:inherit;font-size:13px;background:transparent;color:var(--ink);cursor:pointer}
   .mg-tbl .r{display:flex;gap:6px;margin-top:6px}.mg-tbl .r input:first-child{flex:0 0 36%}.mg-tbl .r button{flex:0 0 36px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;font-size:14px;cursor:pointer}
@@ -100,22 +112,32 @@
   const has = (k, name) => (fields[k] || []).includes(name);
   const nameOf = (k, id) => { const r = (data[k] || []).find(x => x.id === id); return r ? r[T.SCHEMA[k].fields[0][0]] : ""; };
 
-  function open(startTab) {
-    if (ov) return;
-    tab = startTab || "cases"; q = "";
-    ov = document.createElement("div"); ov.className = "mg";
-    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><button class="tdh-back" id="mgX" aria-label="返回"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>劇場の資料庫</h1></div>
-      <div class="mg-tabs">${Object.entries(K).map(([k, n]) => `<button data-k="${k}">${n}</button>`).join("")}</div></div>
+  // 嵌在下方分頁裡：section = "cases"（案子）或 "lists"（Crew、場館、劇團）
+  let section = "cases";
+  function open(o = {}) {
+    if (typeof o === "string") o = { section: o === "cases" ? "cases" : "lists" };
+    section = o.section === "lists" ? "lists" : "cases";
+    const tabs = section === "cases" ? ["cases"] : ["crew", "venue", "troupe"];
+    if (!tabs.includes(tab)) tab = tabs[0];
+    q = ""; sub = "";
+    if (ov) ov.remove();
+    ov = document.createElement("div"); ov.className = "mg embed";
+    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><h1>${section === "cases" ? "案子" : "名單"}</h1><button class="mg-gear" id="mgGear" aria-label="設定"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></button></div>
+      ${tabs.length > 1 ? `<div class="mg-tabs">${tabs.map(k => `<button data-k="${k}">${K[k]}</button>`).join("")}</div>` : ""}</div>
       </div></div><div class="mg-body" id="mgScroll"><div class="mg-in" id="mgBody"></div></div>`;
     document.body.appendChild(ov);
     document.documentElement.style.overflow = "hidden";
-    $("mgX").onclick = close;
+    $("mgGear").onclick = () => T.openSettings && T.openSettings();
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.onclick = () => { tab = b.dataset.k; q = ""; sub = ""; list(); });
-    list();
+    if (o.caseId) { tab = "cases"; loadKind("cases").then(() => Promise.all([loadKind("venue"), loadKind("troupe"), loadKind("crew")])).then(() => edit("cases", o.caseId)).catch(() => list()); }
+    else list();
   }
-  function close() {
+  // 離開案子／名單頁。資料有改過就重新載入，回傳 true
+  function close(nextTab) {
+    if (!ov) return false;
     ov.remove(); ov = null; document.documentElement.style.overflow = "";
-    if (dirty) { dirty = false; location.reload(); }
+    if (dirty) { dirty = false; try { if (nextTab) localStorage.setItem("tdh.tab", nextTab); } catch (e) {} location.reload(); return true; }
+    return false;
   }
   function busy(msg) { $("mgBody").innerHTML = `<div class="mg-empty">${esc(msg)}</div>`; const a = ov.querySelector(".mg-add"); if (a) a.remove(); }
   function fail(e) { $("mgBody").innerHTML = `<div class="mg-empty">讀取失敗：${esc((e && e.message) || e)}<br><button class="mg-chip" id="mgRetry">再試一次</button></div>`; $("mgRetry").onclick = () => list(true); }
@@ -128,7 +150,7 @@
     busy("讀取中…");
     try {
       await loadKind(tab, force);
-      if (tab === "cases") await Promise.all([loadKind("venue"), loadKind("troupe")]);
+      if (tab === "cases") await Promise.all([loadKind("venue"), loadKind("troupe"), loadKind("crew")]);
       if (tab === "crew" || tab === "troupe") await loadKind("cases");
     } catch (e) { return fail(e); }
     const k = tab;
@@ -240,7 +262,7 @@
     const r = id ? data[k].find(x => x.id === id) : {};
     const isNew = !id;
     if (!isNew) { const old = ov.querySelector(".mg-add"); if (old) old.remove(); }
-    let h = isNew ? `<div class="mg-f">` : `<button class="mg-back" id="mgBack">‹ 返回${K[k]}列表</button><div class="mg-f">`;
+    let h = isNew ? `<div class="mg-f">` : `<button class="mg-back" id="mgBack">‹ 返回${K[k]}列表</button>${k === "cases" ? `<div class="mg-quick"><button type="button" data-go="find">找人</button><button type="button" data-go="live">去打卡</button><button type="button" data-go="close">時段表</button></div>` : ""}<div class="mg-f">`;
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
@@ -272,6 +294,7 @@
       h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="pri" id="mgSave">儲存</button></div><div class="mg-act"><button class="dan" id="mgDel">刪除</button></div></div>`;
       $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
       $("mgBack").onclick = () => list();
+      ov.querySelectorAll("[data-go]").forEach(b => b.onclick = () => T.showTab && T.showTab(b.dataset.go, { caseId: id }));
     }
     // 「清除資料」：點兩下才清（第一下變成「再點一次清除」）
     ov.querySelectorAll("[data-clear]").forEach(btn => {
@@ -340,7 +363,7 @@
       </div>
       <div class="mg-h">${esc(window.TEAM())}人員 Call Time</div>
       ${ct.err ? `<div class="mg-note">讀不到這個案子的 Call Time 表格：${esc(ct.err)}</div>` : `<div id="c_tblBox">${ctTable()}</div>
-      <div class="mg-note">${isNew ? "會照日期自動產生，改日期會跟著變。" : ""}名字用「、」分開；主畫面選人時也會自動填進來。</div>
+      <div class="mg-note">${isNew ? "會照日期自動產生，改日期會跟著變。" : ""}點「＋」從名單選人；虛線框是名單裡沒有的名字，可以檢查是不是打錯字。在「找人」排人也會寫進這張表。</div>
       ${ct.mode === "google" ? `<div><button type="button" class="mg-chip" id="c_addRow">＋ 加一列</button><button type="button" class="mg-chip" id="c_fillDays">補上缺的日期</button></div>` : ""}`}
       ${ct.notes ? `<div class="mg-h">其他資訊</div><div class="mg-card"><label for="c_notes">抬頭、統編（會用在截圖的抬頭統編卡片）</label><textarea id="c_notes" placeholder="抬頭：&#10;統編：">${esc(ct.notes.join("\n"))}</textarea></div>` : ""}`;
     return h;
@@ -354,15 +377,53 @@
     if (which === "basic" && $("c_e") && $("c_e").onchange) $("c_e").onchange();
   }
   let ct = null;
+  const splitNames = (t) => String(t || "").split(/[、,，\n]+/).map(x => x.trim()).filter(Boolean);
+  const crewNames = () => (data.crew || []).map(c => c["姓名"]).filter(Boolean);
   function ctTable() {
     if (!ct.rows.length) return `<div class="mg-empty" style="margin:0">${ct.mode === "new" ? "填好進場日期就會出現排班表" : "這個案子還沒有 Call Time 表格"}</div>`;
-    return `<table class="mg-ct"><tbody>${ct.rows.map((x, i) => `<tr data-i="${i}"><td><input class="ca" value="${esc(x.a)}" placeholder="日期或項目"></td><td><input class="cb" value="${esc(x.b)}" placeholder=""></td></tr>`).join("")}</tbody></table>`;
+    const known = new Set(crewNames());
+    return `<table class="mg-ct"><tbody>${ct.rows.map((x, i) => `<tr data-i="${i}"><td><input class="ca" value="${esc(x.a)}" placeholder="日期或項目"></td><td><div class="mg-names">${splitNames(x.b).map((n, j) =>
+      `<span class="mg-nm${known.size && !known.has(n) ? " unk" : ""}" title="${known.size && !known.has(n) ? "Crew 名單裡沒有這個名字" : ""}">${esc(n)}<button type="button" data-rm="${i}:${j}" aria-label="移除">×</button></span>`).join("")}<button type="button" class="mg-nadd" data-add="${i}" aria-label="加人">＋</button></div></td></tr>`).join("")}</tbody></table>`;
   }
-  function ctRead() {   // 把畫面上的表格讀回 ct.rows
+  function ctRead() {   // 把畫面上的日期欄讀回 ct.rows（名字由選人視窗直接改 ct.rows）
     const tb = $("c_tblBox"); if (!tb) return;
-    tb.querySelectorAll("tr[data-i]").forEach(tr => { const x = ct.rows[+tr.dataset.i]; if (x) { x.a = tr.querySelector(".ca").value.trim(); x.b = tr.querySelector(".cb").value.trim(); } });
+    tb.querySelectorAll("tr[data-i]").forEach(tr => { const x = ct.rows[+tr.dataset.i]; if (x) x.a = tr.querySelector(".ca").value.trim(); });
+  }
+  // 選人視窗：從 Crew 名單點選（避免打錯字），也可以加名單外的名字
+  function pickPeople(i) {
+    ctRead();
+    const row = ct.rows[i]; let chosen = splitNames(row.b);
+    const freq = {}; (data.cases || []).forEach(c => (c["摳的人"] || []).forEach(id => { freq[id] = (freq[id] || 0) + 1; }));
+    const crew = (data.crew || []).slice().sort((a, b) => (freq[b.id] || 0) - (freq[a.id] || 0)).map(c => c["姓名"]).filter(Boolean);
+    const md = document.createElement("div"); md.className = "mg-modal";
+    md.innerHTML = `<div class="mg-dlg"><div class="mg-dlg-h">${esc(row.a || "這一列")}・選人</div><div class="mg-dlg-b">
+      <div class="mg-sbox"><input class="mg-search" id="pkQ" placeholder="搜尋 Crew" autocomplete="off"></div>
+      <div class="mg-pick" id="pkList"></div>
+      <div class="mg-f"><label>名單裡沒有的人</label><div class="mg-newrow" style="display:flex;margin-top:0"><input id="pkNew" placeholder="輸入名字"><button type="button" id="pkAdd">加入</button></div>
+      <div class="mg-note">名單外的名字會用虛線框標出來。常合作的人，建議到「名單」新增，之後就能直接點選。</div></div></div>
+      <div class="mg-dlg-f"><button type="button" class="ghost" id="pkCancel">取消</button><button type="button" class="pri" id="pkOk">完成</button></div></div>`;
+    ov.appendChild(md); requestAnimationFrame(() => md.classList.add("in"));
+    const draw = () => {
+      const qq = md.querySelector("#pkQ").value.trim();
+      const all = crew.concat(chosen.filter(n => !crew.includes(n)));
+      md.querySelector("#pkList").innerHTML = all.filter(n => !qq || n.includes(qq)).map(n => `<button type="button" class="mg-tag c-default${chosen.includes(n) ? " on" : ""}${crew.includes(n) ? "" : " unk"}" data-n="${esc(n)}">${esc(n)}</button>`).join("") || `<div class="mg-note">${crew.length ? "找不到" : "名單裡還沒有 Crew"}</div>`;
+      md.querySelectorAll("#pkList [data-n]").forEach(b => b.onclick = () => { const n = b.dataset.n; chosen = chosen.includes(n) ? chosen.filter(x => x !== n) : chosen.concat(n); draw(); });
+    };
+    let comp = false; const qi = md.querySelector("#pkQ");
+    qi.addEventListener("compositionstart", () => comp = true); qi.addEventListener("compositionend", () => { comp = false; draw(); }); qi.addEventListener("input", () => { if (!comp) draw(); });
+    md.querySelector("#pkAdd").onclick = () => { const v = md.querySelector("#pkNew").value.trim(); if (v && !chosen.includes(v)) chosen.push(v); md.querySelector("#pkNew").value = ""; draw(); };
+    const shut = () => { md.classList.remove("in"); setTimeout(() => md.remove(), 180); };
+    md.querySelector("#pkCancel").onclick = shut; md.onclick = (e) => { if (e.target === md) shut(); };
+    md.querySelector("#pkOk").onclick = () => { row.b = chosen.join("、"); $("c_tblBox").innerHTML = ctTable(); shut(); };
+    draw();
   }
   function bindCase(r, isNew) {
+    const tb = $("c_tblBox");
+    if (tb) tb.onclick = (e) => {
+      const rm = e.target.closest("[data-rm]"), add = e.target.closest("[data-add]");
+      if (rm) { ctRead(); const [i, j] = rm.dataset.rm.split(":").map(Number); const ns = splitNames(ct.rows[i].b); ns.splice(j, 1); ct.rows[i].b = ns.join("、"); tb.innerHTML = ctTable(); }
+      else if (add) pickPeople(+add.dataset.add);
+    };
     ov.querySelectorAll("#c_need .mg-tag").forEach(b => b.onclick = () => b.classList.toggle("on"));
     [["c_subOn", "c_subBox", "c_td"], ["c_tourOn", "c_tourBox", "c_tour"]].forEach(([ck, box, input]) => { if ($(ck)) $(ck).onchange = () => { $(box).style.display = $(ck).checked ? "" : "none"; if ($(ck).checked) $(input).focus(); }; });
     const regen = () => {   // 新增時：日期改了就重新產生表格（已經填的名字照日期保留）
@@ -433,11 +494,5 @@
   }
 
   T.openManage = open;
-  document.addEventListener("DOMContentLoaded", () => {
-    const modes = document.querySelector(".modes");
-    const b = document.createElement("button"); b.className = "mg-btn"; b.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg>'; b.title = "管理案子、人員、場館、劇團"; b.setAttribute("aria-label", "管理");
-    b.onclick = () => open();
-    const tools = document.querySelector(".tdh-tools");
-    if (tools) tools.insertBefore(b, tools.firstChild); else { b.style.cssText = "position:fixed;right:52px;top:10px;z-index:50"; document.body.appendChild(b); }
-  });
+  T.closeManage = close;
 })();

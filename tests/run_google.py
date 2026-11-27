@@ -40,9 +40,10 @@ async def main():
         await pg.fill("#tdhTd", "李小華"); await pg.click('.tdh-chips[data-for="tdhRole"] button:has-text("SM")')
         await pg.click('.tdh-chips[data-for="tdhTeam"] button:has-text("舞台組")'); await pg.click("#tdhSave"); await pg.wait_for_timeout(3500); await shot("g03_app")
         # 管理：場館、人員、劇團、案子
-        await pg.click(".mg-btn"); await pg.wait_for_timeout(1200); await shot("g04_manage")
+        await pg.click('.tdh-tabbar [data-t="cases"]'); await pg.wait_for_timeout(1200); await shot("g04_manage")
         async def add(tab, vals):
-            await pg.click(f'.mg-tabs button[data-k="{tab}"]'); await pg.wait_for_timeout(600)
+            await pg.click('.tdh-tabbar [data-t="lists"]' if tab != 'cases' else '.tdh-tabbar [data-t="cases"]'); await pg.wait_for_timeout(700)
+            if tab != 'cases': await pg.click(f'.mg-tabs button[data-k="{tab}"]'); await pg.wait_for_timeout(600)
             await pg.click(".mg-add"); await pg.wait_for_timeout(400)
             for k, v in vals.items():
                 sel = f'[id="f_{k}"]'
@@ -53,7 +54,7 @@ async def main():
         await add("crew", {"姓名": "陳小米", "電話": "0912345678", "時段費": "900", "居住地區": "台北"})
         await add("crew", {"姓名": "林阿哲", "時段費": "850"})
         await add("troupe", {"劇團名稱": "光點劇場", "抬頭": "光點劇場有限公司", "統編": "12345678"}); await shot("g05_troupe")
-        await pg.click('.mg-tabs button[data-k="cases"]'); await pg.wait_for_timeout(600); await pg.click(".mg-add"); await pg.wait_for_timeout(600)
+        await pg.click('.tdh-tabbar [data-t="cases"]'); await pg.wait_for_timeout(600); await pg.click(".mg-add"); await pg.wait_for_timeout(600)
         print("DBG", await pg.evaluate("[...document.querySelectorAll('#c_name')].map(e=>[e.offsetParent!==null,e.disabled,e.readOnly,getComputedStyle(e).visibility, e.getBoundingClientRect().height])"))
         await pg.fill("#c_name", "午後的信"); print("P1")
         await pg.select_option("#c_troupe", label="光點劇場"); await pg.select_option("#c_venue", label="水源劇場")
@@ -64,7 +65,7 @@ async def main():
         await pg.click("#mgSave"); await pg.wait_for_timeout(1200); await shot("g07_cases")
         await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(800); await pg.evaluate("document.querySelector('#c_tblBox').scrollIntoView()"); await shot("g08_table")
         await pg.click("#mgBack"); await pg.wait_for_timeout(400)
-        await pg.click("#mgX"); await pg.wait_for_timeout(4000); await shot("g09_app")
+        await pg.click('.tdh-tabbar [data-t="find"]'); await pg.wait_for_timeout(4000); await shot("g09_app")
         # 看表格
         btns = pg.locator(".tblBtn")
         print("tblBtn", await btns.count())
@@ -75,14 +76,14 @@ async def main():
         await pg.click('.pchip:has-text("陳小米")'); await pg.wait_for_timeout(1200); await shot("g11_chip")
         await pg.evaluate("[...document.querySelectorAll('.psheet button.primary')].find(x=>x.offsetParent).click()"); await pg.wait_for_timeout(3000); await shot("g12_after")
         await pg.emulate_media(color_scheme="dark"); await pg.reload(); await pg.wait_for_timeout(3500)
-        await pg.click(".mg-btn"); await pg.wait_for_timeout(1500)
-        await pg.click('.mg-tabs button[data-k="crew"]'); await pg.wait_for_timeout(900); await shot("g13_crew_dark")
-        await pg.click('.mg-tabs button[data-k="venue"]'); await pg.wait_for_timeout(900)
+        await pg.click('.tdh-tabbar [data-t="cases"]'); await pg.wait_for_timeout(1500)
+        await pg.click('.tdh-tabbar [data-t="lists"]'); await pg.wait_for_timeout(700); await pg.click('.mg-tabs button[data-k="crew"]'); await pg.wait_for_timeout(900); await shot("g13_crew_dark")
+        await pg.click('.tdh-tabbar [data-t="lists"]'); await pg.wait_for_timeout(700); await pg.click('.mg-tabs button[data-k="venue"]'); await pg.wait_for_timeout(900)
         await pg.click("#mgQ"); await pg.keyboard.type("水源"); await pg.wait_for_timeout(500)
         print("focus kept:", await pg.evaluate("document.activeElement && document.activeElement.id"))
-        await pg.click('.mg-tabs button[data-k="cases"]'); await pg.wait_for_timeout(900); await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(900); await shot("g14_case_dark")
-        await pg.click("#mgX"); await pg.wait_for_timeout(3000)
-        await pg.click(".tdh-gear"); await pg.wait_for_timeout(1500); await shot("g16_settings_top_dark"); await pg.evaluate("document.querySelector('.tdh-ov').scrollTop=9999"); await shot("g15_settings_dark")
+        await pg.click('.tdh-tabbar [data-t="cases"]'); await pg.wait_for_timeout(900); await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(900); await shot("g14_case_dark")
+        await pg.click('.tdh-tabbar [data-t="find"]'); await pg.wait_for_timeout(3000)
+        await pg.click('.tdh-tabbar [data-t="lists"]'); await pg.wait_for_timeout(1200); await pg.click("#mgGear"); await pg.wait_for_timeout(1500); await shot("g16_settings_top_dark"); await pg.evaluate("document.querySelector('.tdh-ov').scrollTop=9999"); await shot("g15_settings_dark")
         await pg.emulate_media(color_scheme="light"); await pg.evaluate("document.querySelector('.tdh-ov').scrollTop=0"); await shot("g17_settings_light")
         print("errors:", errs[:10])
         ss = [k for k, v in fg.files.items() if v["name"] == "劇場幫幫資料"][0]
