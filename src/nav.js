@@ -33,6 +33,28 @@
   .toast{top:calc(env(safe-area-inset-top) + 64px)!important;bottom:auto!important;z-index:9600!important;transform:translateX(-50%) translateY(-14px) scale(.96)!important;transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1)!important;box-shadow:0 8px 24px -8px rgba(0,0,0,.35)}
   .toast.show{transform:translateX(-50%) translateY(0) scale(1)!important}
   button,.card,.chip{-webkit-tap-highlight-color:transparent}
+  .tdh-sx{position:relative;display:block}.tdh-sx>input{padding-right:38px!important}
+  .tdh-sxc{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:11px;border:0;background:color-mix(in srgb,var(--muted) 45%,var(--bg));color:var(--card);font-size:11px;font-weight:700;line-height:22px;padding:0;cursor:pointer;margin-top:-1px}
+  .casesel{appearance:none;-webkit-appearance:none;font-size:18px!important;font-weight:800;letter-spacing:.01em;padding:14px 46px 14px 16px!important;border-radius:16px!important;border:1.5px solid var(--line)!important;background:var(--card)!important;box-shadow:0 4px 14px -10px rgba(0,0,0,.35);cursor:pointer;margin:2px 0 8px!important;text-overflow:ellipsis;transition:border-color .2s}
+  .casesel:focus{outline:none;border-color:var(--accent)!important}
+  .pstick::before{content:"";position:absolute;right:20px;top:24px;width:9px;height:9px;border-right:2.4px solid var(--muted);border-bottom:2.4px solid var(--muted);transform:rotate(45deg);pointer-events:none;z-index:1}
+  .more>summary{list-style:none}.more>summary::-webkit-details-marker{display:none}
+  .more>summary::before{content:"";flex:0 0 auto;width:6px;height:6px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 2px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+  .more[open]>summary::before{transform:rotate(135deg)}
+  .sum.tap{flex-wrap:wrap;cursor:pointer;transition:transform .15s}.sum.tap:active{transform:scale(.985)}
+  .sum-go{display:inline-flex;align-items:center;gap:4px;margin-left:8px;font-size:11px;padding:1px 8px;border-radius:9px;border:1px solid currentColor;opacity:.9}
+  .sum-go::after{content:"";width:5px;height:5px;border-right:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg)}
+  .prog{flex:0 0 100%;margin-top:12px}
+  .prog-t{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:6px}
+  .prog-t span:last-child{font-weight:700;opacity:1}
+  .prog-b{height:8px;border-radius:4px;background:color-mix(in srgb,var(--bg) 22%,transparent);overflow:hidden}
+  .prog-b i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#7fd1a8,#f2c46d,#ef8a5b);background-size:max(100%,260px) 100%;position:relative;overflow:hidden;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+  .prog-b i::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-100%);animation:progShine 2.6s ease-in-out infinite}
+  @keyframes progShine{to{transform:translateX(100%)}}
+  .bk-new{margin-top:12px}
+  .bk-newbtn{width:100%;padding:11px;border-radius:12px;border:1.5px dashed var(--line);background:transparent;color:var(--accent);font:inherit;font-weight:700;cursor:pointer}
+  .bk-newrow{display:flex;gap:8px}.bk-newrow input{flex:1}
+  .bk-newrow button{border:0;border-radius:10px;padding:0 16px;background:var(--accent);color:var(--accent-ink,#fff);font:inherit;font-weight:700;cursor:pointer}
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
   body.tdh-sheet-open .tdh-tabbar{display:none}
   .wrap{padding-bottom:calc(170px + var(--tab-h))!important}
@@ -284,7 +306,18 @@
     }
     const sheets = ["pSheet", "shotLayer"].map(id => document.getElementById(id)).filter(Boolean);
     const sync = () => document.body.classList.toggle("tdh-sheet-open", sheets.some(el => getComputedStyle(el).display !== "none") || !!document.querySelector(".modal.on,.mg-modal"));
-    let pend = false; const tick = () => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; sync(); }); };
+    // 所有搜尋欄右邊都有 ✕ 可以一鍵清除
+    const decorate = () => document.querySelectorAll('input[placeholder^="搜尋"]:not([data-sx])').forEach(inp => {
+      inp.dataset.sx = "1";
+      if (inp.parentElement && inp.parentElement.querySelector(".mg-clr")) return;
+      const w = document.createElement("span"); w.className = "tdh-sx";
+      inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+      const b = document.createElement("button"); b.type = "button"; b.className = "tdh-sxc"; b.setAttribute("aria-label", "清除"); b.textContent = "✕"; w.appendChild(b);
+      const syncB = () => { b.style.display = inp.value ? "" : "none"; w.style.display = inp.style.display === "none" ? "none" : ""; };
+      inp.addEventListener("input", syncB); syncB();
+      b.onclick = () => { inp.value = ""; inp.dispatchEvent(new Event("input", { bubbles: true })); syncB(); inp.focus(); };
+    });
+    let pend = false; const tick = () => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; sync(); decorate(); }); };
     new MutationObserver(tick).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["style", "class"], childList: true });
     let first = UI === "D2" ? "home" : "find"; try { first = localStorage.getItem("tdh.tab") || first; } catch (e) {}
     const ok = UI === "C" ? ["cases", "find", "live", "close", "lists"] : UI === "D1" ? ["find", "live", "close", "cases", "crew", "venue", "troupe"] : ["home", "find", "live", "close", "cases", "crew", "venue", "troupe"];

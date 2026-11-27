@@ -388,7 +388,7 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.28-0129";</script>
+<script>window.TDH_VERSION="2026.11.28-0321";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
@@ -2368,6 +2368,28 @@
   .toast{top:calc(env(safe-area-inset-top) + 64px)!important;bottom:auto!important;z-index:9600!important;transform:translateX(-50%) translateY(-14px) scale(.96)!important;transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1)!important;box-shadow:0 8px 24px -8px rgba(0,0,0,.35)}
   .toast.show{transform:translateX(-50%) translateY(0) scale(1)!important}
   button,.card,.chip{-webkit-tap-highlight-color:transparent}
+  .tdh-sx{position:relative;display:block}.tdh-sx>input{padding-right:38px!important}
+  .tdh-sxc{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:11px;border:0;background:color-mix(in srgb,var(--muted) 45%,var(--bg));color:var(--card);font-size:11px;font-weight:700;line-height:22px;padding:0;cursor:pointer;margin-top:-1px}
+  .casesel{appearance:none;-webkit-appearance:none;font-size:18px!important;font-weight:800;letter-spacing:.01em;padding:14px 46px 14px 16px!important;border-radius:16px!important;border:1.5px solid var(--line)!important;background:var(--card)!important;box-shadow:0 4px 14px -10px rgba(0,0,0,.35);cursor:pointer;margin:2px 0 8px!important;text-overflow:ellipsis;transition:border-color .2s}
+  .casesel:focus{outline:none;border-color:var(--accent)!important}
+  .pstick::before{content:"";position:absolute;right:20px;top:24px;width:9px;height:9px;border-right:2.4px solid var(--muted);border-bottom:2.4px solid var(--muted);transform:rotate(45deg);pointer-events:none;z-index:1}
+  .more>summary{list-style:none}.more>summary::-webkit-details-marker{display:none}
+  .more>summary::before{content:"";flex:0 0 auto;width:6px;height:6px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 2px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+  .more[open]>summary::before{transform:rotate(135deg)}
+  .sum.tap{flex-wrap:wrap;cursor:pointer;transition:transform .15s}.sum.tap:active{transform:scale(.985)}
+  .sum-go{display:inline-flex;align-items:center;gap:4px;margin-left:8px;font-size:11px;padding:1px 8px;border-radius:9px;border:1px solid currentColor;opacity:.9}
+  .sum-go::after{content:"";width:5px;height:5px;border-right:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg)}
+  .prog{flex:0 0 100%;margin-top:12px}
+  .prog-t{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:6px}
+  .prog-t span:last-child{font-weight:700;opacity:1}
+  .prog-b{height:8px;border-radius:4px;background:color-mix(in srgb,var(--bg) 22%,transparent);overflow:hidden}
+  .prog-b i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#7fd1a8,#f2c46d,#ef8a5b);background-size:max(100%,260px) 100%;position:relative;overflow:hidden;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+  .prog-b i::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-100%);animation:progShine 2.6s ease-in-out infinite}
+  @keyframes progShine{to{transform:translateX(100%)}}
+  .bk-new{margin-top:12px}
+  .bk-newbtn{width:100%;padding:11px;border-radius:12px;border:1.5px dashed var(--line);background:transparent;color:var(--accent);font:inherit;font-weight:700;cursor:pointer}
+  .bk-newrow{display:flex;gap:8px}.bk-newrow input{flex:1}
+  .bk-newrow button{border:0;border-radius:10px;padding:0 16px;background:var(--accent);color:var(--accent-ink,#fff);font:inherit;font-weight:700;cursor:pointer}
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
   body.tdh-sheet-open .tdh-tabbar{display:none}
   .wrap{padding-bottom:calc(170px + var(--tab-h))!important}
@@ -2619,7 +2641,18 @@
     }
     const sheets = ["pSheet", "shotLayer"].map(id => document.getElementById(id)).filter(Boolean);
     const sync = () => document.body.classList.toggle("tdh-sheet-open", sheets.some(el => getComputedStyle(el).display !== "none") || !!document.querySelector(".modal.on,.mg-modal"));
-    let pend = false; const tick = () => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; sync(); }); };
+    // 所有搜尋欄右邊都有 ✕ 可以一鍵清除
+    const decorate = () => document.querySelectorAll('input[placeholder^="搜尋"]:not([data-sx])').forEach(inp => {
+      inp.dataset.sx = "1";
+      if (inp.parentElement && inp.parentElement.querySelector(".mg-clr")) return;
+      const w = document.createElement("span"); w.className = "tdh-sx";
+      inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+      const b = document.createElement("button"); b.type = "button"; b.className = "tdh-sxc"; b.setAttribute("aria-label", "清除"); b.textContent = "✕"; w.appendChild(b);
+      const syncB = () => { b.style.display = inp.value ? "" : "none"; w.style.display = inp.style.display === "none" ? "none" : ""; };
+      inp.addEventListener("input", syncB); syncB();
+      b.onclick = () => { inp.value = ""; inp.dispatchEvent(new Event("input", { bubbles: true })); syncB(); inp.focus(); };
+    });
+    let pend = false; const tick = () => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; sync(); decorate(); }); };
     new MutationObserver(tick).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["style", "class"], childList: true });
     let first = UI === "D2" ? "home" : "find"; try { first = localStorage.getItem("tdh.tab") || first; } catch (e) {}
     const ok = UI === "C" ? ["cases", "find", "live", "close", "lists"] : UI === "D1" ? ["find", "live", "close", "cases", "crew", "venue", "troupe"] : ["home", "find", "live", "close", "cases", "crew", "venue", "troupe"];
@@ -3207,6 +3240,25 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
       body.innerHTML = `<div class="tdrow"><span>${window.ROLE()}</span><input id="tdIn" value="${esc(i.td || window.TDN())}" enterkeyhint="done"><button id="tdSave">更換</button></div>
         <div class="clabel">已確定（${yes.length}）・點名字可修改或取消</div>${gHtml || `<div class="note">還沒有</div>`}
         <div class="clabel" style="margin-top:12px">其他人・點名字確認可以</div><div class="plist">${rest.slice(0, q ? 120 : 20).map(p => chip(p, false)).join("") || `<span class="note">找不到</span>`}</div>`;
+      if (!all.some(p => p.name === q)) { body.insertAdjacentHTML("beforeend", `<div class="bk-new"><button type="button" class="bk-newbtn" id="bkNew">＋ 新增${q ? `「${esc(q)}」為` : "全新的"} Crew</button></div>`);
+        body.querySelector("#bkNew").onclick = () => {
+          const box = body.querySelector(".bk-new");
+          box.innerHTML = `<div class="bk-newrow"><input id="bkNewName" placeholder="新 Crew 的姓名" value="${esc(q)}" enterkeyhint="done"><button type="button" id="bkNewOk">新增</button></div><div class="note" style="margin-top:6px">其他資料之後可以到「資料庫 → Crew」補</div>`;
+          const inp = box.querySelector("#bkNewName"); inp.focus();
+          const go = async () => {
+            const nm = inp.value.trim(); if (!nm) { inp.focus(); return; }
+            const ok = box.querySelector("#bkNewOk"); ok.disabled = true; ok.textContent = "新增中…";
+            try {
+              await window.__tdh.store().create("crew", { "姓名": nm });
+              crewDirState = null; await loadCrewDir();
+              const np = Object.values(crewDir).find(p => p.name === nm);
+              toast(`已新增 ${nm}`);
+              if (np) openConfirm(i, np, draw); else draw();
+            } catch (e) { ok.disabled = false; ok.textContent = "新增"; toast("新增失敗：" + ((e && e.message) || e)); }
+          };
+          box.querySelector("#bkNewOk").onclick = go;
+          inp.onkeydown = (e) => { if (e.key === "Enter" && !e.isComposing) go(); };
+        }; }
       body.querySelectorAll(".ask").forEach(b => b.onclick = () => openConfirm(i, crewDir[b.dataset.id], draw));
       const tdIn = body.querySelector("#tdIn");
       tdIn.onkeydown = (e) => { if (e.key === "Enter") tdIn.blur(); };
@@ -3567,7 +3619,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
     const my = ++saveSeq; status("儲存中…");
     try {
       await mcp.callTool(SERVER, "notion-update-page", { page_id: id, command: "update_properties", properties, allow_async: false }, { cache: false });
-      if (my === saveSeq) { status(""); if (window.__tdh && window.__tdh.toast) window.__tdh.toast("已儲存"); else status("已儲存 ✓"); }
+      if (my === saveSeq) status("已儲存 ✓");
     } catch (e) { status("儲存失敗：" + errText(e), true); }
   }
   const timers = {};
@@ -3717,6 +3769,16 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
     $("pSum").innerHTML = `<div class="sum"><div><div class="sum-l">我目前累積</div><div class="sum-n">${fmtSeg(total)}<small> 段</small></div></div>
       <div class="sum-r">進場 ${fmtSeg(daySum)} 段（${done.length}/${rec.days.length} 天）<br>前置 ${fmtSeg(c.prepSeg || 0)} 段
       ${c.tdFlat ? `<br>整筆 $${money(c.tdFlat)}` : c.tdRate ? `<br>約 $${money(total * c.tdRate)}` : ""}</div></div>`;
+    { const sm = $("pSum").querySelector(".sum");
+      const day = 864e5, t0 = new Date(c.start).setHours(0, 0, 0, 0), t1 = new Date(c.end || c.start).setHours(0, 0, 0, 0) + day, now = Date.now();
+      const nD = Math.max(1, Math.round((t1 - t0) / day)), pct = Math.max(0, Math.min(1, (now - t0) / (t1 - t0)));
+      const dN = Math.min(nD, Math.floor((now - t0) / day) + 1), left = nD - dN;
+      const txt = now < t0 ? [`還沒進場`, `${Math.ceil((t0 - now) / day)} 天後開始`] : now >= t1 ? [`共 ${nD} 天`, `這檔走完了，辛苦了！`] : [`第 ${dN} 天／共 ${nD} 天`, left ? `再撐 ${left} 天` : `最後一天！`];
+      sm.classList.add("tap"); sm.querySelector(".sum-l").insertAdjacentHTML("beforeend", `<span class="sum-go">明細</span>`);
+      sm.insertAdjacentHTML("beforeend", `<div class="prog"><div class="prog-t"><span>${txt[0]}</span><span>${txt[1]}</span></div><div class="prog-b"><i style="width:${(window.__progW || 0) * 100}%"></i></div></div>`);
+      const bar = sm.querySelector(".prog-b i"); requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = pct * 100 + "%"; }));
+      window.__progW = pct;
+      sm.onclick = () => { try { const sh = buildSheet(c, rec, tmap), me = sh.people.find(p => p.role === "TD"); if (me) showShot(crewShotCard(c, sh, me)); else toast("還沒有打卡紀錄"); } catch (e) { toast("明細還算不出來"); } }; }
     const tabs = PHASE_TABS[phase];
     if (!tabs.some(([k]) => k === ptab)) ptab = tabs[0][0];
     let h = tabs.length < 2 ? "" : `<div class="ptabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${ptab === k ? "on" : ""}">${l}</button>`).join("")}</div>`;

@@ -54,7 +54,6 @@ h = h.replace("每天預計的舞台組人員", "每天預計的${window.TEAM()}
 assert "劉冠佑" not in h and "冠佑" not in h, "personal name left"
 
 # 3. 時段表：仿預覽樣式。主要按鈕建立 Google 試算表（使用者自己的雲端），另外可以下載 Excel
-rep('if (my === saveSeq) status("已儲存 ✓");', 'if (my === saveSeq) { status(""); if (window.__tdh && window.__tdh.toast) window.__tdh.toast("已儲存"); else status("已儲存 ✓"); }', 1)
 rep("async function makeGoogleSheet(c, s) {", "async function makeGoogleSheet_google(c, s) {", 1)
 rep("  // ---------- preview ----------", (ROOT/"src/prettysheet.js").read_text() + """
   async function makeGoogleSheet(c, s) {   // 劇場幫幫：在使用者自己的 Google 雲端建立試算表
@@ -171,6 +170,38 @@ for a, b in [
     ('<button class="tblBtn">看表格</button>', '<button class="tblBtn">目前人力</button>'),
     ('if (e.target.closest(".tblBtn")) { e.stopPropagation(); openTable(i); return; }', 'if (e.target.closest(".tblBtn")) { e.stopPropagation(); const T2 = window.__tdh, m = String(i.url || "").replace(/-/g, "").match(/[0-9a-f]{32}/i); if (T2 && T2.showTab && m) T2.showTab("cases", { caseId: m[0].toLowerCase(), scrollTo: "ct" }); else openTable(i); return; }'),
     ('${rest.slice(0, 120).map(p => chip(p, false)).join("")', '${rest.slice(0, q ? 120 : 20).map(p => chip(p, false)).join("")'),
+    ('body.querySelectorAll(".ask").forEach(b => b.onclick = () => openConfirm(i, crewDir[b.dataset.id], draw));',
+     '''if (!all.some(p => p.name === q)) { body.insertAdjacentHTML("beforeend", `<div class="bk-new"><button type="button" class="bk-newbtn" id="bkNew">＋ 新增${q ? `「${esc(q)}」為` : "全新的"} Crew</button></div>`);
+        body.querySelector("#bkNew").onclick = () => {
+          const box = body.querySelector(".bk-new");
+          box.innerHTML = `<div class="bk-newrow"><input id="bkNewName" placeholder="新 Crew 的姓名" value="${esc(q)}" enterkeyhint="done"><button type="button" id="bkNewOk">新增</button></div><div class="note" style="margin-top:6px">其他資料之後可以到「資料庫 → Crew」補</div>`;
+          const inp = box.querySelector("#bkNewName"); inp.focus();
+          const go = async () => {
+            const nm = inp.value.trim(); if (!nm) { inp.focus(); return; }
+            const ok = box.querySelector("#bkNewOk"); ok.disabled = true; ok.textContent = "新增中…";
+            try {
+              await window.__tdh.store().create("crew", { "姓名": nm });
+              crewDirState = null; await loadCrewDir();
+              const np = Object.values(crewDir).find(p => p.name === nm);
+              toast(`已新增 ${nm}`);
+              if (np) openConfirm(i, np, draw); else draw();
+            } catch (e) { ok.disabled = false; ok.textContent = "新增"; toast("新增失敗：" + ((e && e.message) || e)); }
+          };
+          box.querySelector("#bkNewOk").onclick = go;
+          inp.onkeydown = (e) => { if (e.key === "Enter" && !e.isComposing) go(); };
+        }; }
+      body.querySelectorAll(".ask").forEach(b => b.onclick = () => openConfirm(i, crewDir[b.dataset.id], draw));'''),
+    ("    const tabs = PHASE_TABS[phase];\n", '''    { const sm = $("pSum").querySelector(".sum");
+      const day = 864e5, t0 = new Date(c.start).setHours(0, 0, 0, 0), t1 = new Date(c.end || c.start).setHours(0, 0, 0, 0) + day, now = Date.now();
+      const nD = Math.max(1, Math.round((t1 - t0) / day)), pct = Math.max(0, Math.min(1, (now - t0) / (t1 - t0)));
+      const dN = Math.min(nD, Math.floor((now - t0) / day) + 1), left = nD - dN;
+      const txt = now < t0 ? [`還沒進場`, `${Math.ceil((t0 - now) / day)} 天後開始`] : now >= t1 ? [`共 ${nD} 天`, `這檔走完了，辛苦了！`] : [`第 ${dN} 天／共 ${nD} 天`, left ? `再撐 ${left} 天` : `最後一天！`];
+      sm.classList.add("tap"); sm.querySelector(".sum-l").insertAdjacentHTML("beforeend", `<span class="sum-go">明細</span>`);
+      sm.insertAdjacentHTML("beforeend", `<div class="prog"><div class="prog-t"><span>${txt[0]}</span><span>${txt[1]}</span></div><div class="prog-b"><i style="width:${(window.__progW || 0) * 100}%"></i></div></div>`);
+      const bar = sm.querySelector(".prog-b i"); requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = pct * 100 + "%"; }));
+      window.__progW = pct;
+      sm.onclick = () => { try { const sh = buildSheet(c, rec, tmap), me = sh.people.find(p => p.role === "TD"); if (me) showShot(crewShotCard(c, sh, me)); else toast("還沒有打卡紀錄"); } catch (e) { toast("明細還算不出來"); } }; }
+    const tabs = PHASE_TABS[phase];\n'''),
 ]:
     assert a in h, a[:40]; h = h.replace(a, b)
 # 標題、進場前最下面的「回到最上面」
