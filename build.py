@@ -121,6 +121,7 @@ rep('if (c === "needs_reauth") return', 'if (c === "google_login") return "Googl
 # 不一定用 Notion：畫面上的字改成中性的說法
 for a, b in [
     ("還沒設定 Notion，請按上方的 ⚙︎ 設定。", "還沒設定好，請按上方的 ⚙︎ 設定。"),
+    ("<h1>缺人訊息</h1>", "<h1>Call人訊息複製 / 編輯人員名單</h1>"),
     ("・來自「劇場の案子」`", "・來自${window.__tdh.cfg.mode === \"google\" ? \"你的 Google 雲端\" : \" Notion「劇場の案子」\"}`"),
     ('toast("已記錄到 Notion")', 'toast("已記錄")'),
     ("表格有幾列沒寫進去，請到 Notion 確認", "表格有幾列沒寫進去，請到「☰ 管理」確認排班表"),

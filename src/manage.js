@@ -12,13 +12,15 @@
   .mg *{box-sizing:border-box}
   .mg-top{padding:calc(14px + env(safe-area-inset-top)) 14px 0;background:var(--bg)}
   .mg-top>div,.mg-in{max-width:560px;margin:0 auto}
-  .mg-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}.mg-row h1{flex:1;font-size:20px;font-weight:700;margin:0}
+  .mg-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}.mg-row h1{flex:1;font-size:24px;font-weight:700;margin:0}
   .mg-x{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
   .mg-tabs{display:flex;gap:6px;margin-bottom:12px}.mg-tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 0;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
   .mg-tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .mg-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:2px 14px calc(96px + env(safe-area-inset-bottom))}
   .mg-search{display:block;width:100%;border:0;border-radius:10px;padding:9px 12px 9px 34px;font:inherit;font-size:16px;color:var(--ink);margin-bottom:10px;outline:none;
     background:color-mix(in srgb,var(--muted) 14%,var(--bg)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23908a80' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px 50%}
+  .mg-sbox{position:relative}.mg-sbox .mg-search{padding-right:36px}
+  .mg-clr{position:absolute;right:8px;top:7px;width:22px;height:22px;border-radius:11px;border:0;background:color-mix(in srgb,var(--muted) 45%,var(--bg));color:var(--card);font-size:11px;font-weight:700;line-height:22px;padding:0;cursor:pointer}
   .mg-search::placeholder{color:var(--muted)}
   .mg-sec{font-size:12px;color:var(--muted);margin:16px 2px 8px;font-weight:600;letter-spacing:.02em}
   .mg-in details>summary{list-style:none}.mg-in details>summary::-webkit-details-marker{display:none}
@@ -31,6 +33,7 @@
   .mg-empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted);padding:22px 12px;font-size:14px;line-height:1.7;margin-top:6px}
   .mg-back{border:0;background:none;color:var(--accent);font:inherit;font-size:14px;font-weight:600;padding:4px 0;margin:0 0 6px;cursor:pointer}
   .mg-card{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:6px 14px 14px;margin-bottom:12px}
+  .mg-card h3.big{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:0;margin:12px 0 2px}
   .mg-card h3{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:10px 0 2px}
   .mg-f label{display:block;font-size:12.5px;color:var(--muted);margin:12px 2px 5px}
   .mg-f input,.mg-f select,.mg-f textarea{display:block;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;background:var(--bg);color:var(--ink);outline:none;-webkit-appearance:none;appearance:none}
@@ -64,7 +67,6 @@
   .mg-sub{display:flex;gap:6px;overflow-x:auto;margin:0 0 6px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
   .mg-sub button{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
   .mg-sub button.on{background:var(--sel);border-color:var(--accent);color:var(--accent);font-weight:700}
-  .mg-btn{border:0;background:transparent;font-size:23px;line-height:1;color:var(--muted);cursor:pointer;border-radius:9px;flex:0 0 44px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
@@ -109,12 +111,15 @@
     try {
       await loadKind(tab, force);
       if (tab === "cases") await Promise.all([loadKind("venue"), loadKind("troupe")]);
-      if (tab === "crew") await loadKind("cases");
+      if (tab === "crew" || tab === "troupe") await loadKind("cases");
     } catch (e) { return fail(e); }
     const k = tab;
     // 搜尋框只建立一次，打字（含注音組字）時只更新下面的結果，不會跳掉
-    $("mgBody").innerHTML = `<input class="mg-search" id="mgQ" placeholder="搜尋${K[k]}" value="${esc(q)}"><div id="mgSubTabs"></div><div id="mgList"></div>`;
+    $("mgBody").innerHTML = `<div class="mg-sbox"><input class="mg-search" id="mgQ" placeholder="搜尋${K[k]}" value="${esc(q)}" autocomplete="off"><button type="button" class="mg-clr" id="mgClr" aria-label="清除" style="${q ? "" : "display:none"}">✕</button></div><div id="mgSubTabs"></div><div id="mgList"></div>`;
     const qi = $("mgQ"); let composing = false;
+    const clr = $("mgClr"), syncClr = () => { clr.style.display = qi.value ? "" : "none"; };
+    qi.addEventListener("input", syncClr);
+    clr.onclick = () => { qi.value = ""; q = ""; syncClr(); results(); qi.focus(); };
     qi.addEventListener("compositionstart", () => { composing = true; });
     qi.addEventListener("compositionend", () => { composing = false; q = qi.value.trim(); results(); });
     qi.addEventListener("input", () => { if (composing) return; q = qi.value.trim(); results(); });
@@ -148,7 +153,8 @@
         const tags = (r["Crew 狀態"] || []).includes("全部完成") ? `<span class="tg ok">人都找齊了</span>` : need.map(x => `<span class="tg w">${esc(x)}</span>`).join("");
         return `<button class="mg-it" data-id="${r.id}"><b>${esc(r["案名"] || "（未命名）")}</b><small>${d ? md(d.start) + (d.end && d.end !== d.start ? " – " + md(d.end) : "") : "還沒填日期"}${v ? "・" + esc(v) : ""}</small>${tags}</button>`;
       };
-      h += live.length ? `<div class="mg-sec">進行中、還沒開始</div>` + live.map(item).join("") : `<div class="mg-empty">${q ? "找不到符合的案子" : "還沒有案子，按下面的「＋ 新增案子」。"}</div>`;
+      if (live.length) h += `<div class="mg-sec">進行中、還沒開始</div>` + live.map(item).join("");
+      else if (!past.length) h += `<div class="mg-empty">${q ? "找不到符合的案子" : "還沒有案子，按下面的「＋ 新增案子」。"}</div>`;
       if (past.length) h += `<div class="mg-sec">已經結束</div>` + years.map(y => { const ys = past.filter(r => st(r).startsWith(y)); return `<details ${q ? "open" : ""}><summary class="mg-sec" style="cursor:pointer;font-size:15px;color:var(--ink)">${y} 年（${ys.length}）</summary>${ys.map(item).join("")}</details>`; }).join("");
     } else {
       if (k === "crew") {   // 常出現的人排前面：被排進或問過的案子數
@@ -156,6 +162,10 @@
         (data.cases || []).forEach(c => new Set([...(c["摳的人"] || []), ...(c["問過的人"] || [])]).forEach(id => { freq[id] = (freq[id] || 0) + 1; }));
         rows.sort((a, b) => (freq[b.id] || 0) - (freq[a.id] || 0) || String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
         rows.forEach(r => { r._n = freq[r.id] || 0; });
+      } else if (k === "troupe") {   // 最近合作的劇團排前面（看案子的進場日期）
+        const lastAt = {};
+        (data.cases || []).forEach(c => { const d = (c["進場日期"] || {}).start || ""; (c["劇團"] || []).forEach(id => { if (d > (lastAt[id] || "")) lastAt[id] = d; }); });
+        rows.sort((a, b) => (lastAt[b.id] || "").localeCompare(lastAt[a.id] || "") || String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
       } else rows.sort((a, b) => String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
       h += rows.length ? rows.map(r => {
         const sub2 = k === "crew" ? [r["時段費"] ? "$" + r["時段費"] : "", r["居住地區"], r["電話"], r._n ? `合作 ${r._n} 檔` : ""].filter(Boolean).join("・")
@@ -229,7 +239,7 @@
       if (!isNew && r["電話"]) h += `<div class="mg-note"><a href="tel:${esc(String(r["電話"]).replace(/[^\d+]/g, ""))}">📞 打電話給 ${esc(r[T.SCHEMA[k].fields[0][0]])}</a></div>`;
       h += `</div>`;
     }
-    h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="pri" id="mgSave">${isNew ? "新增" : "儲存"}</button></div>`;
+    h += `<div class="mg-err" id="mgErr"></div><div class="mg-act">${isNew ? `<button class="dan" id="mgClear" style="flex:0 0 34%">清除全部</button>` : ""}<button class="pri" id="mgSave">${isNew ? "新增" : "儲存"}</button></div>`;
     if (!isNew) h += `<div class="mg-act"><button class="dan" id="mgDel">刪除</button></div>`;
     h += `</div>`;
     $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
@@ -237,6 +247,7 @@
     ov.querySelectorAll("select").forEach(s => s.onchange = () => { if (s.value === "__new") pickNew(s, s.dataset.kind); });
     if (k === "cases") { bindCase(r, isNew); bindPick(); }
     $("mgSave").onclick = () => save(k, id, r);
+    if ($("mgClear")) $("mgClear").onclick = () => { if (confirm("清除這張表單裡填的所有內容？")) edit(k, null); };
     if ($("mgArc")) $("mgArc").onclick = async () => {
       $("mgArc").disabled = true;
       try { await store().update("cases", id, { "封存": !r["封存"] }); dirty = true; await loadKind("cases", true); list(); }
@@ -261,8 +272,8 @@
     const tOpts = (data.troupe || []).map(x => [x.id, x["劇團名稱"] || "（未命名）"]).sort((a, b) => a[1].localeCompare(b[1], "zh-Hant"));
     let content = null;
     if (!isNew && T.cfg.mode === "google") content = await T.gstore.getContent(r.id);
-    let h = `<div class="mg-card"><h3>基本資料</h3>
-      ${inp("c_name", "案名／劇名（必填，劇團另外選）", r["案名"], 'placeholder="例如：午後的信"')}
+    let h = `<div class="mg-card"><h3 class="big">基本資料</h3>
+      ${inp("c_name", "案名／劇名（必填）", r["案名"], 'placeholder="例如：午後的信"')}
       ${has("cases", "劇團") ? pickHtml("c_troupe", "劇團", "troupe", tOpts, (r["劇團"] || [])[0] || "") : ""}
       <div class="two"><div>${inp("c_s", "進場日期", d.start, 'type="date"')}</div><div>${inp("c_e", "最後一天", d.end || d.start, 'type="date"')}</div></div>
       ${has("cases", "進場地點") ? pickHtml("c_venue", "演出場館", "venue", vOpts, (r["進場地點"] || [])[0] || "") : ""}
@@ -272,16 +283,16 @@
       ${has("cases", "巡演") ? `<label class="mg-ck"><input type="checkbox" id="c_tourOn" ${r["巡演"] ? "checked" : ""}>這一檔是巡演</label>
         <div id="c_tourBox" style="${r["巡演"] ? "" : "display:none"}">${inp("c_tour", "巡演名稱（每一站都填一樣的名字，結案時可以合併成一張時段表）", r["巡演"], 'placeholder="例如：2026午後的信"')}</div>` : ""}
       </div>
-      <div class="mg-card"><h3>這檔要找幾個人</h3>
+      <div class="mg-card"><h3 class="big">這檔要找幾個人？</h3>
       ${has("cases", "人力分配") ? inp("c_plan", "人力分配", r["人力分配"], 'placeholder="例如：全程1帶2 / 裝2天+拆台1帶4"') : ""}
-      <label>還缺的人（可複選，主畫面「找人」會照這個顯示）</label>
+      <label>目前還缺幾人？（可複選）</label>
       <div id="c_need">${T.NEED_KINDS.map(([kind, n, col]) => `<div class="mg-tagrow"><span>${kind}</span><div>${Array.from({ length: n }, (_, i) => `${kind}缺${i + 1}`).map(tg => `<button type="button" class="mg-tag c-${col} ${st.includes(tg) ? "on" : ""}" data-tag="${tg}">${tg}</button>`).join("")}</div></div>`).join("")}
         <div class="mg-tagrow"><span>其他</span><div><button type="button" class="mg-tag c-default ${st.includes("全部完成") ? "on" : ""}" data-tag="全部完成">人都找齊了</button><button type="button" class="mg-tag c-gray ${st.includes("等待製作確認") ? "on" : ""}" data-tag="等待製作確認">人數尚未確認</button></div></div></div>
       </div>
-      <div class="mg-card"><h3>費用</h3>
+      ${isNew ? "" : `      <div class="mg-card"><h3>費用</h3>
       ${inp("c_tdr", "我這一檔的時段費", r["負責人時段費"], 'inputmode="numeric" placeholder="例如：1400"')}
       ${inp("c_flat", "整筆費用（這一檔是談整筆才填寫）", r["負責人整筆費用"], 'inputmode="numeric"')}
-      </div>`;
+      </div>`}`;
     if (isNew) h += `<div class="mg-note" style="margin:0 4px 10px">新增後會自動建立每一天的 Call Time 排班表，之後在主畫面「找人」選人就會填進去。</div>`;
     else if (content) {
       h += `<div class="mg-card"><h3>Call Time 排班表</h3><div class="mg-note">左邊是日期或項目，右邊是排的人（用「、」分開）。主畫面選人時會自動填，這裡可以手動修改。</div>
@@ -330,7 +341,7 @@
       const tags = [...ov.querySelectorAll("#c_need .mg-tag.on")].map(b => b.dataset.tag);
       if (!tags.length) tags.push("尚未開始");
       vals["Crew 狀態"] = tags;
-      vals["負責人時段費"] = num($("c_tdr").value); vals["負責人整筆費用"] = num($("c_flat").value);
+      if ($("c_tdr")) { vals["負責人時段費"] = num($("c_tdr").value); vals["負責人整筆費用"] = num($("c_flat").value); }
       if ($("c_td")) vals["負責人姓名"] = $("c_subOn").checked ? ($("c_td").value.trim() || null) : null;
       if (!id) content = { notes: ["抬頭：", "統編："], table: T.callRows(s, e > s ? e : s, l) };
       else if ($("c_tbl")) content = { notes: $("c_notes").value.split("\n"), table: [...$("c_tbl").querySelectorAll(".r")].map(x => [x.children[0].value.trim(), x.children[1].value.trim()]).filter(x => x[0] || x[1]) };
@@ -358,7 +369,7 @@
     const modes = document.querySelector(".modes");
     const b = document.createElement("button"); b.className = "mg-btn"; b.textContent = "☰"; b.title = "管理案子、人員、場館、劇團"; b.setAttribute("aria-label", "管理");
     b.onclick = () => open();
-    const gear = modes && modes.querySelector(".tdh-gear");
-    if (modes) modes.insertBefore(b, gear || null); else { b.style.cssText = "position:fixed;right:52px;top:10px;z-index:50"; document.body.appendChild(b); }
+    const tools = document.querySelector(".tdh-tools");
+    if (tools) tools.insertBefore(b, tools.firstChild); else { b.style.cssText = "position:fixed;right:52px;top:10px;z-index:50"; document.body.appendChild(b); }
   });
 })();

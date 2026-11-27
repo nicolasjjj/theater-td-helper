@@ -23,7 +23,7 @@
   .tdh-ov{color-scheme:light dark;position:fixed;inset:0;z-index:9999;background:var(--bg);color:var(--ink);overflow:auto;-webkit-overflow-scrolling:touch;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
   .tdh-ov *{box-sizing:border-box}
   .tdh-in{max-width:560px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 14px 60px}
-  .tdh-in h1{font-size:20px;font-weight:700;margin:0 0 2px}.tdh-in .sub{color:var(--muted);font-size:12px;margin:0 0 16px;line-height:1.6}
+  .tdh-in h1{font-size:24px;font-weight:700;margin:0 0 2px}.tdh-in .sub{color:var(--muted);font-size:12px;margin:0 0 16px;line-height:1.6}
   .tdh-st{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
   .tdh-st summary{color:var(--ink)}.tdh-st summary::marker{color:var(--accent)}
   .tdh-st h2{font-size:15px;font-weight:700;margin:0 0 8px;display:flex;gap:8px;align-items:center}
@@ -42,10 +42,13 @@
   .tdh-tip{background:var(--tdh-tip-bg);border:1px solid var(--tdh-tip-bd);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.7;color:var(--tdh-tip-ink)}
   .tdh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
   .tdh-st .tdh-chips button{margin:0;padding:5px 12px;font-size:13px;font-weight:500;border-radius:999px;background:transparent;border:1px solid var(--line);color:var(--ink)}
-  .tdh-st .tdh-chips button.on{background:var(--sel);border-color:var(--accent);color:var(--accent);font-weight:700}
+  .tdh-st .tdh-chips button.on{background:color-mix(in srgb,var(--accent) 30%,var(--card));border-color:transparent;color:var(--ink);font-weight:700}
   .tdh-rec{display:inline-block;font-size:11px;background:var(--accent-ink);color:var(--accent);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px}
   .tdh-end{display:flex;gap:10px}.tdh-end button{flex:1;margin:0!important;padding:11px 8px!important;font-size:14px!important}
-  .tdh-gear{flex:0 0 44px;border:0;background:transparent;font-size:23px;line-height:1;color:var(--muted);cursor:pointer;border-radius:9px}
+  .tdh-toprow{display:flex;gap:8px;align-items:stretch;margin-bottom:14px}.tdh-toprow .modes{flex:1;margin-bottom:0!important;min-width:0}
+  .tdh-tools{display:flex;gap:6px}
+  .tdh-gear,.mg-btn{flex:0 0 44px;width:44px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px;line-height:1;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .mg-btn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:21px;font-weight:700}
   .tdh-ov a{color:var(--accent)}
   .tdh-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.tdh-head h1{margin:0}
   .tdh-done{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
@@ -205,8 +208,12 @@
   document.addEventListener("DOMContentLoaded", async () => {
     const g = document.createElement("button"); g.className = "tdh-gear"; g.textContent = "⚙︎"; g.title = "設定";
     g.onclick = () => open(true);
+    // 上方：模式切換 ｜ ☰ 資料庫、⚙︎ 設定（分開的兩顆按鈕）
     const modes = document.querySelector(".modes");
-    if (modes) modes.appendChild(g); else { g.style.cssText = "position:fixed;right:10px;top:10px;z-index:50"; document.body.appendChild(g); }
+    if (modes) {
+      const row = document.createElement("div"); row.className = "tdh-toprow"; modes.parentNode.insertBefore(row, modes); row.appendChild(modes);
+      const tools = document.createElement("div"); tools.className = "tdh-tools"; row.appendChild(tools); tools.appendChild(g);
+    } else { g.style.cssText = "position:fixed;right:10px;top:10px;z-index:50"; document.body.appendChild(g); }
     // 舊版使用者：已經設定好 Notion，就不用再填「你是誰」
     if (T.cfg.mode === "notion" && notionReady() && !T.cfg.named && T.cfg.tdName !== undefined) T.setCfg({ named: true });
     const r = await T.googleReturn;

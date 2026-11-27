@@ -60,7 +60,7 @@ async def main():
         await pg.fill("#c_s", "2026-12-10"); await pg.fill("#c_e", "2026-12-12"); await pg.fill("#c_l", "2026-12-09"); print("P2")
         await pg.click('#c_need [data-tag="全程缺2"]'); await pg.click('#c_need [data-tag="裝拆缺1"]')
         print("P3"); await pg.check("#c_tourOn"); print("P4", await pg.evaluate("[document.querySelector('#c_tourOn').checked, document.querySelector('#c_tourBox').style.display, typeof document.querySelector('#c_tourOn').onchange]")); await pg.fill("#c_tour", "2026午後的信")
-        await pg.fill("#c_tdr", "1400"); await shot("g06_caseform")
+        await shot("g06_caseform")
         await pg.click("#mgSave"); await pg.wait_for_timeout(1200); await shot("g07_cases")
         await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(800); await pg.evaluate("document.querySelector('#c_tbl').scrollIntoView()"); await shot("g08_table")
         await pg.click("#mgBack"); await pg.wait_for_timeout(400)
