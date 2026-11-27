@@ -12,7 +12,7 @@
   .mg *{box-sizing:border-box}
   .mg-top{padding:calc(14px + env(safe-area-inset-top)) 14px 0;background:var(--bg)}
   .mg-top>div,.mg-in{max-width:560px;margin:0 auto}
-  .mg-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}.mg-row h1{flex:1;font-size:24px;font-weight:700;margin:0}
+  .mg-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}.mg-row h1{flex:1;font-size:24px;font-weight:700;margin:0}
   .mg-x{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
   .mg-tabs{display:flex;gap:6px;margin-bottom:12px}.mg-tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 0;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
   .mg-tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -86,7 +86,7 @@
     if (ov) return;
     tab = startTab || "cases"; q = "";
     ov = document.createElement("div"); ov.className = "mg";
-    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><h1>劇場の資料庫</h1><button class="mg-x" id="mgX">完成</button></div>
+    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><button class="tdh-back" id="mgX" aria-label="返回"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>劇場の資料庫</h1></div>
       <div class="mg-tabs">${Object.entries(K).map(([k, n]) => `<button data-k="${k}">${n}</button>`).join("")}</div></div>
       </div></div><div class="mg-body" id="mgScroll"><div class="mg-in" id="mgBody"></div></div>`;
     document.body.appendChild(ov);
@@ -367,7 +367,7 @@
   T.openManage = open;
   document.addEventListener("DOMContentLoaded", () => {
     const modes = document.querySelector(".modes");
-    const b = document.createElement("button"); b.className = "mg-btn"; b.textContent = "☰"; b.title = "管理案子、人員、場館、劇團"; b.setAttribute("aria-label", "管理");
+    const b = document.createElement("button"); b.className = "mg-btn"; b.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg>'; b.title = "管理案子、人員、場館、劇團"; b.setAttribute("aria-label", "管理");
     b.onclick = () => open();
     const tools = document.querySelector(".tdh-tools");
     if (tools) tools.insertBefore(b, tools.firstChild); else { b.style.cssText = "position:fixed;right:52px;top:10px;z-index:50"; document.body.appendChild(b); }

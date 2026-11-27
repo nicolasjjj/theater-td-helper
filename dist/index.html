@@ -388,7 +388,7 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.27-1808";</script>
+<script>window.TDH_VERSION="2026.11.27-1819";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
@@ -1385,15 +1385,19 @@
   .tdh-tip{background:var(--tdh-tip-bg);border:1px solid var(--tdh-tip-bd);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.7;color:var(--tdh-tip-ink)}
   .tdh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
   .tdh-st .tdh-chips button{margin:0;padding:5px 12px;font-size:13px;font-weight:500;border-radius:999px;background:transparent;border:1px solid var(--line);color:var(--ink)}
-  .tdh-st .tdh-chips button.on{background:color-mix(in srgb,var(--accent) 30%,var(--card));border-color:transparent;color:var(--ink);font-weight:700}
+  .tdh-st .tdh-chips button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
   .tdh-rec{display:inline-block;font-size:11px;background:var(--accent-ink);color:var(--accent);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px}
   .tdh-end{display:flex;gap:10px}.tdh-end button{flex:1;margin:0!important;padding:11px 8px!important;font-size:14px!important}
   .tdh-toprow{display:flex;gap:8px;align-items:stretch;margin-bottom:14px}.tdh-toprow .modes{flex:1;margin-bottom:0!important;min-width:0}
   .tdh-tools{display:flex;gap:6px}
-  .tdh-gear,.mg-btn{flex:0 0 44px;width:44px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px;line-height:1;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
-  .mg-btn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:21px;font-weight:700}
+  .tdh-tools{gap:2px}
+  .tdh-gear,.mg-btn{flex:0 0 40px;width:40px;border:0;background:transparent;color:var(--ink);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .tdh-gear:active,.mg-btn:active{background:var(--line)}
+  .tdh-back{flex:0 0 auto;border:0;background:transparent;color:var(--ink);padding:4px 4px 4px 0;margin-left:-6px;display:flex;align-items:center;cursor:pointer}
+  #findView header h1{font-size:clamp(15px,4.4vw,19px);white-space:nowrap;letter-spacing:-.01em}
+  #findView header #refresh{flex:0 0 auto}
   .tdh-ov a{color:var(--accent)}
-  .tdh-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.tdh-head h1{margin:0}
+  .tdh-head{display:flex;align-items:center;gap:6px;margin-bottom:14px}.tdh-head h1{margin:0}
   .tdh-done{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
   .tdh-foot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:6px;padding:0 4px}
   `;
@@ -1453,7 +1457,7 @@
       body = whoCard(c, false);
     } else body = chooseCard();
     ov.innerHTML = `<div class="tdh-in">
-      ${force ? `<div class="tdh-head"><h1>設定</h1><button class="tdh-done" id="tdhDone">完成</button></div>` : `<h1>劇場幫幫</h1><div class="sub">給劇場人的排班、找人、時段表小幫手</div>`}
+      ${force ? `<div class="tdh-head"><button class="tdh-back" id="tdhDone" aria-label="返回"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>設定</h1></div>` : `<h1>劇場幫幫</h1><div class="sub">給劇場人的排班、找人、時段表小幫手</div>`}
       ${ios && !standalone && !force ? `<div class="tdh-tip"><b>📱 iPhone 請先加到主畫面再設定</b><br>Safari 和主畫面的捷徑各自存設定，在這裡設定好，從主畫面打開還要再設定一次。<br>做法：按下方的「分享」→「加入主畫面」→ 從主畫面打開「劇場幫幫」再設定。<br><button type="button" class="ghost" id="tdhTipOk" style="margin-top:8px;padding:6px 12px;font-size:13px;border:0;border-radius:999px;background:#f3e3bd">我只要在 Safari 用，繼續</button></div>` : ""}
       ${body}
       <div class="tdh-foot">設定只存在這個瀏覽器裡；資料直接存在你自己的 Google 雲端或 Notion，不會經過別的地方保存。請用 Safari 或 Chrome 打開，LINE、Notion 裡面的內建瀏覽器不會記住設定。</div>
@@ -1549,7 +1553,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    const g = document.createElement("button"); g.className = "tdh-gear"; g.textContent = "⚙︎"; g.title = "設定";
+    const g = document.createElement("button"); g.className = "tdh-gear"; g.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>'; g.title = "設定"; g.setAttribute("aria-label", "設定");
     g.onclick = () => open(true);
     // 上方：模式切換 ｜ ☰ 資料庫、⚙︎ 設定（分開的兩顆按鈕）
     const modes = document.querySelector(".modes");
@@ -1586,7 +1590,7 @@
   .mg *{box-sizing:border-box}
   .mg-top{padding:calc(14px + env(safe-area-inset-top)) 14px 0;background:var(--bg)}
   .mg-top>div,.mg-in{max-width:560px;margin:0 auto}
-  .mg-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}.mg-row h1{flex:1;font-size:24px;font-weight:700;margin:0}
+  .mg-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}.mg-row h1{flex:1;font-size:24px;font-weight:700;margin:0}
   .mg-x{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
   .mg-tabs{display:flex;gap:6px;margin-bottom:12px}.mg-tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 0;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
   .mg-tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -1660,7 +1664,7 @@
     if (ov) return;
     tab = startTab || "cases"; q = "";
     ov = document.createElement("div"); ov.className = "mg";
-    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><h1>劇場の資料庫</h1><button class="mg-x" id="mgX">完成</button></div>
+    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><button class="tdh-back" id="mgX" aria-label="返回"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>劇場の資料庫</h1></div>
       <div class="mg-tabs">${Object.entries(K).map(([k, n]) => `<button data-k="${k}">${n}</button>`).join("")}</div></div>
       </div></div><div class="mg-body" id="mgScroll"><div class="mg-in" id="mgBody"></div></div>`;
     document.body.appendChild(ov);
@@ -1941,7 +1945,7 @@
   T.openManage = open;
   document.addEventListener("DOMContentLoaded", () => {
     const modes = document.querySelector(".modes");
-    const b = document.createElement("button"); b.className = "mg-btn"; b.textContent = "☰"; b.title = "管理案子、人員、場館、劇團"; b.setAttribute("aria-label", "管理");
+    const b = document.createElement("button"); b.className = "mg-btn"; b.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg>'; b.title = "管理案子、人員、場館、劇團"; b.setAttribute("aria-label", "管理");
     b.onclick = () => open();
     const tools = document.querySelector(".tdh-tools");
     if (tools) tools.insertBefore(b, tools.firstChild); else { b.style.cssText = "position:fixed;right:52px;top:10px;z-index:50"; document.body.appendChild(b); }
