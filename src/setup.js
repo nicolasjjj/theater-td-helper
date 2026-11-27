@@ -20,27 +20,36 @@
   @media (prefers-color-scheme: dark){:root{--tdh-field:#1c1b19;--tdh-field-bd:#403c36;--tdh-soft:#302d29;--tdh-dan-bg:#3a1714;--tdh-dan:#ff8a80;--tdh-tip-bg:#33270f;--tdh-tip-bd:#8a6a2a;--tdh-tip-ink:#f0d9a0;--tdh-ok:#5fe39a;--tdh-no:#ffb04d;
     --tg-blue:#1f2c3d;--tg-blue-bd:#3d5a80;--tg-blue-ink:#9cc0ea;--tg-yellow:#352c16;--tg-yellow-bd:#7a6428;--tg-yellow-ink:#e7c66a;--tg-green:#16301f;--tg-green-bd:#2e6b45;--tg-green-ink:#7fd6a0;
     --tg-orange:#3a2414;--tg-orange-bd:#8a5428;--tg-orange-ink:#f0a868;--tg-gray:#2c2a27;--tg-gray-bd:#55514a;--tg-gray-ink:#cfc9bf;--tg-purple:#2c2137;--tg-purple-bd:#6a4f86;--tg-purple-ink:#cfb2ea}}
-  .tdh-ov{color-scheme:light dark;position:fixed;inset:0;z-index:9999;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;color:var(--ink)}
-  .tdh-in{max-width:520px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) 18px 60px}
-  .tdh-in h1{font-size:26px;margin:0 0 4px}.tdh-in .sub{color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.6}
-  .tdh-st{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .tdh-st summary::marker{color:var(--accent)}.tdh-st h2{font-size:17px;margin:0 0 8px;display:flex;gap:8px;align-items:center}
-  .tdh-st h2 b{display:inline-flex;width:24px;height:24px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-size:13px;align-items:center;justify-content:center}
-  .tdh-st ol{margin:6px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:var(--ink)}
-  .tdh-st p{font-size:14px;color:var(--muted);margin:0;line-height:1.6}
-  .tdh-st a.btn,.tdh-st button{display:inline-block;border:0;border-radius:999px;padding:11px 18px;font-size:15px;font-weight:600;background:var(--accent);color:var(--accent-ink);text-decoration:none;margin-top:10px;cursor:pointer}
-  .tdh-st button.ghost{background:var(--tdh-soft);color:var(--ink)}
-  .tdh-end{display:flex;gap:10px}.tdh-end button{flex:1;margin:0!important;padding:12px 8px!important;font-size:15px;border-radius:12px!important}
+  .tdh-ov{color-scheme:light dark;position:fixed;inset:0;z-index:9999;background:var(--bg);color:var(--ink);overflow:auto;-webkit-overflow-scrolling:touch;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
+  .tdh-ov *{box-sizing:border-box}
+  .tdh-in{max-width:560px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 14px 60px}
+  .tdh-in h1{font-size:20px;font-weight:700;margin:0 0 2px}.tdh-in .sub{color:var(--muted);font-size:12px;margin:0 0 16px;line-height:1.6}
+  .tdh-st{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .tdh-st summary{color:var(--ink)}.tdh-st summary::marker{color:var(--accent)}
+  .tdh-st h2{font-size:15px;font-weight:700;margin:0 0 8px;display:flex;gap:8px;align-items:center}
+  .tdh-st h2 b{display:inline-flex;width:20px;height:20px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-size:12px;align-items:center;justify-content:center}
+  .tdh-st ol{margin:6px 0 0;padding-left:20px;font-size:13px;line-height:1.75;color:var(--ink)}
+  .tdh-st p{font-size:13px;color:var(--muted);margin:0;line-height:1.65}
+  .tdh-lab{display:block;font-size:12.5px;color:var(--muted);margin:14px 2px 5px}.tdh-lab:first-of-type{margin-top:4px}
+  .tdh-st a.btn,.tdh-st button{display:inline-block;border:0;border-radius:12px;padding:10px 16px;font:inherit;font-size:14px;font-weight:700;background:var(--accent);color:var(--accent-ink);text-decoration:none;margin-top:10px;cursor:pointer}
+  .tdh-st button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:500}
   .tdh-st button.danger{background:#b3261e;color:#fff}
-  .tdh-st button.big{display:block;width:100%;text-align:center;padding:14px;font-size:17px;border-radius:14px}
-  .tdh-st input{width:100%;box-sizing:border-box;border:1.5px solid var(--tdh-field-bd);border-radius:12px;padding:12px;font-size:16px;margin-top:8px;background:var(--tdh-field)}
-  .tdh-res{margin-top:10px;font-size:14px;line-height:1.8}.tdh-res .ok,.tdh-st .ok{color:var(--tdh-ok)}.tdh-res .no,.tdh-st .no{color:var(--tdh-no)}
-  .tdh-err{color:var(--tdh-dan);font-size:14px;margin-top:8px}
-  .tdh-tip{background:var(--tdh-tip-bg);border:1.5px solid var(--tdh-tip-bd);border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:14px;line-height:1.7;color:var(--tdh-tip-ink)}
-  .tdh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.tdh-st .tdh-chips button{margin:0;padding:6px 12px;font-size:14px;font-weight:500}
-  .tdh-rec{display:inline-block;font-size:12px;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+  .tdh-st button.big{display:block;width:100%;text-align:center;padding:13px;font-size:15px}
+  .tdh-st input{display:block;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;margin-top:8px;background:var(--bg);color:var(--ink);outline:none}
+  .tdh-st input:focus{border-color:var(--accent)}
+  .tdh-res{margin-top:10px;font-size:13px;line-height:1.8}.tdh-res .ok,.tdh-st .ok{color:var(--tdh-ok)}.tdh-res .no,.tdh-st .no{color:var(--tdh-no)}
+  .tdh-err{color:var(--tdh-dan);font-size:13px;margin-top:8px}
+  .tdh-tip{background:var(--tdh-tip-bg);border:1px solid var(--tdh-tip-bd);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.7;color:var(--tdh-tip-ink)}
+  .tdh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .tdh-st .tdh-chips button{margin:0;padding:5px 12px;font-size:13px;font-weight:500;border-radius:999px;background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .tdh-st .tdh-chips button.on{background:var(--sel);border-color:var(--accent);color:var(--accent);font-weight:700}
+  .tdh-rec{display:inline-block;font-size:11px;background:var(--accent-ink);color:var(--accent);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+  .tdh-end{display:flex;gap:10px}.tdh-end button{flex:1;margin:0!important;padding:11px 8px!important;font-size:14px!important}
   .tdh-gear{flex:0 0 44px;border:0;background:transparent;font-size:23px;line-height:1;color:var(--muted);cursor:pointer;border-radius:9px}
-  .tdh-foot{font-size:12px;color:var(--muted);line-height:1.6;margin-top:8px}
+  .tdh-ov a{color:var(--accent)}
+  .tdh-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.tdh-head h1{margin:0}
+  .tdh-done{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .tdh-foot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:6px;padding:0 4px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
@@ -67,12 +76,12 @@
         <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場幫幫」</li>
         <li>還沒有劇場資料庫的話，先在 Notion 建一個空白頁面（例如「劇場管理」）再勾選它，下一步可以自動建立</li></ol></details></div>`;
   const whoCard = (c, force) => `<div class="tdh-st" id="tdhWho"><h2>${force ? "" : "<b>2</b>"}你是誰</h2>
-        <p>你的名字（案子沒有另外指定負責人時，就用這個）</p>
+        <label class="tdh-lab" for="tdhTd">你的名字</label>
         <input id="tdhTd" value="${esc(c.tdName || "")}" placeholder="例如：王小明">
-        <p style="margin-top:12px">你的職稱（畫面和時段表上會這樣稱呼你）</p>
+        <label class="tdh-lab">你的職稱（畫面和時段表上會這樣稱呼你）</label>
         <div class="tdh-chips" data-for="tdhRole">${["TD", "ME", "PA", "SM"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
         <input id="tdhRole" value="${esc(c.role || "")}" placeholder="例如：TD、ME、PA、SM">
-        <p style="margin-top:12px">你帶的組別（例如「舞台組人員名單」）</p>
+        <label class="tdh-lab">你帶的組別（例如「舞台組人員名單」）</label>
         <div class="tdh-chips" data-for="tdhTeam">${["舞台組", "燈光組", "音響組", "舞監組", "製作組"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
         <input id="tdhTeam" value="${esc(c.team || "")}" placeholder="例如：舞台組">
         <button id="tdhSave" class="big">${force ? "儲存" : "開始使用"}</button></div>`;
@@ -98,7 +107,7 @@
       body = whoCard(c, false);
     } else body = chooseCard();
     ov.innerHTML = `<div class="tdh-in">
-      ${force ? `<h1 style="margin-bottom:18px">設定</h1>` : `<h1>劇場幫幫</h1><div class="sub">給劇場人的排班、找人、時段表小幫手</div>`}
+      ${force ? `<div class="tdh-head"><h1>設定</h1><button class="tdh-done" id="tdhDone">完成</button></div>` : `<h1>劇場幫幫</h1><div class="sub">給劇場人的排班、找人、時段表小幫手</div>`}
       ${ios && !standalone && !force ? `<div class="tdh-tip"><b>📱 iPhone 請先加到主畫面再設定</b><br>Safari 和主畫面的捷徑各自存設定，在這裡設定好，從主畫面打開還要再設定一次。<br>做法：按下方的「分享」→「加入主畫面」→ 從主畫面打開「劇場幫幫」再設定。<br><button type="button" class="ghost" id="tdhTipOk" style="margin-top:8px;padding:6px 12px;font-size:13px;border:0;border-radius:999px;background:#f3e3bd">我只要在 Safari 用，繼續</button></div>` : ""}
       ${body}
       <div class="tdh-foot">設定只存在這個瀏覽器裡；資料直接存在你自己的 Google 雲端或 Notion，不會經過別的地方保存。請用 Safari 或 Chrome 打開，LINE、Notion 裡面的內建瀏覽器不會記住設定。</div>
@@ -172,7 +181,11 @@
     }
 
     // 你是誰
-    ov.querySelectorAll(".tdh-chips").forEach(box => box.querySelectorAll("button").forEach(b => b.onclick = () => { $(box.dataset.for).value = b.textContent; }));
+    ov.querySelectorAll(".tdh-chips").forEach(box => {
+      const inp = $(box.dataset.for), mark = () => box.querySelectorAll("button").forEach(x => x.classList.toggle("on", x.textContent === inp.value.trim()));
+      box.querySelectorAll("button").forEach(b => b.onclick = () => { inp.value = b.textContent; mark(); });
+      inp.addEventListener("input", mark); mark();
+    });
     if ($("tdhTipOk")) $("tdhTipOk").onclick = () => $("tdhTipOk").parentNode.remove();
     if ($("tdhSave")) $("tdhSave").onclick = () => {
       T.setCfg({ tdName: $("tdhTd").value.trim(), role: $("tdhRole").value.trim(), team: $("tdhTeam").value.trim(), named: true });
@@ -180,6 +193,7 @@
       location.reload();
     };
     if ($("tdhClose")) $("tdhClose").onclick = () => ov.remove();
+    if ($("tdhDone")) $("tdhDone").onclick = () => ov.remove();
     if ($("tdhSwitch")) $("tdhSwitch").onclick = () => {
       if (!confirm(T.cfg.mode === "google" ? "改用 Notion 後，會讀取 Notion 裡的資料（Google 雲端裡的資料不會被刪除）。要繼續嗎？" : "改用 Google 雲端後，會在你的雲端硬碟建立新的資料（Notion 裡的資料不會被刪除、也不會搬過去）。要繼續嗎？")) return;
       if (T.cfg.mode === "google") { T.setCfg({ mode: "notion" }); ov.remove(); open(false, "notion"); }

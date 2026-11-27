@@ -17,7 +17,7 @@ async def main():
         b = await p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--no-sandbox"])
         ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2)
         await ctx.add_init_script(CLOCK); pg = await ctx.new_page(); errs = []
-        pg.on("pageerror", lambda e: errs.append(str(e)))
+        pg.on("pageerror", lambda e: (errs.append(str(e)), print("PAGEERR", e)))
         pg.on("console", lambda m: errs.append("console:" + m.text) if m.type == "error" else None)
         pg.on("dialog", lambda d: asyncio.ensure_future(d.accept()))
         async def gapi(route):
@@ -54,12 +54,13 @@ async def main():
         await add("crew", {"姓名": "林阿哲", "時段費": "850"})
         await add("troupe", {"劇團名稱": "光點劇場", "抬頭": "光點劇場有限公司", "統編": "12345678"}); await shot("g05_troupe")
         await pg.click('.mg-tabs button[data-k="cases"]'); await pg.wait_for_timeout(600); await pg.click(".mg-add"); await pg.wait_for_timeout(600)
-        await pg.fill("#c_name", "午後的信")
+        print("DBG", await pg.evaluate("[...document.querySelectorAll('#c_name')].map(e=>[e.offsetParent!==null,e.disabled,e.readOnly,getComputedStyle(e).visibility, e.getBoundingClientRect().height])"))
+        await pg.fill("#c_name", "午後的信"); print("P1")
         await pg.select_option("#c_troupe", label="光點劇場"); await pg.select_option("#c_venue", label="水源劇場")
-        await pg.fill("#c_s", "2026-12-10"); await pg.fill("#c_e", "2026-12-12"); await pg.fill("#c_l", "2026-12-09")
+        await pg.fill("#c_s", "2026-12-10"); await pg.fill("#c_e", "2026-12-12"); await pg.fill("#c_l", "2026-12-09"); print("P2")
         await pg.click('#c_need [data-tag="全程缺2"]'); await pg.click('#c_need [data-tag="裝拆缺1"]')
-        await pg.check("#c_tourOn"); await pg.fill("#c_tour", "2026午後的信")
-        await pg.fill("#c_tdr", "1400"); await pg.fill("#c_cr", "900"); await shot("g06_caseform")
+        print("P3"); await pg.check("#c_tourOn"); print("P4", await pg.evaluate("[document.querySelector('#c_tourOn').checked, document.querySelector('#c_tourBox').style.display, typeof document.querySelector('#c_tourOn').onchange]")); await pg.fill("#c_tour", "2026午後的信")
+        await pg.fill("#c_tdr", "1400"); await shot("g06_caseform")
         await pg.click("#mgSave"); await pg.wait_for_timeout(1200); await shot("g07_cases")
         await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(800); await pg.evaluate("document.querySelector('#c_tbl').scrollIntoView()"); await shot("g08_table")
         await pg.click("#mgBack"); await pg.wait_for_timeout(400)
@@ -81,7 +82,8 @@ async def main():
         print("focus kept:", await pg.evaluate("document.activeElement && document.activeElement.id"))
         await pg.click('.mg-tabs button[data-k="cases"]'); await pg.wait_for_timeout(900); await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(900); await shot("g14_case_dark")
         await pg.click("#mgX"); await pg.wait_for_timeout(3000)
-        await pg.click(".tdh-gear"); await pg.wait_for_timeout(1500); await pg.evaluate("document.querySelector('.tdh-ov').scrollTop=9999"); await shot("g15_settings_dark")
+        await pg.click(".tdh-gear"); await pg.wait_for_timeout(1500); await shot("g16_settings_top_dark"); await pg.evaluate("document.querySelector('.tdh-ov').scrollTop=9999"); await shot("g15_settings_dark")
+        await pg.emulate_media(color_scheme="light"); await pg.evaluate("document.querySelector('.tdh-ov').scrollTop=0"); await shot("g17_settings_light")
         print("errors:", errs[:10])
         ss = [k for k, v in fg.files.items() if v["name"] == "劇場幫幫資料"][0]
         for sid, sh in fg.sheets[ss].items():
@@ -89,4 +91,8 @@ async def main():
         h = fg.sheets[ss][0]["grid"]; ci = h[0].index("內容"); ki = h[0].index("摳的人")
         print("內容:", h[2][ci][:400]); print("摳的人:", h[2][ki])
         await b.close()
-asyncio.run(main()); srv.shutdown()
+try:
+    asyncio.run(main())
+except Exception as e:
+    print("FAIL", str(e)[:200])
+srv.shutdown()

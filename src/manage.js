@@ -8,52 +8,62 @@
   const today = () => T.isoDay(new Date());
 
   const css = `
-  .mg{color-scheme:light dark;position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;color:var(--ink)}
-  .mg-top{padding:calc(12px + env(safe-area-inset-top)) 16px 8px;background:var(--bg);border-bottom:1px solid var(--line)}
-  .mg-row{display:flex;align-items:center;gap:8px}.mg-row h1{flex:1;font-size:20px;margin:0}
-  .mg-x{border:0;background:var(--tdh-soft);border-radius:999px;width:36px;height:36px;font-size:18px;cursor:pointer}
-  .mg-tabs{display:flex;gap:6px;margin-top:10px}.mg-tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 0;font:inherit;font-size:15px;color:var(--muted);cursor:pointer}
-  .mg-tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
-  .mg-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 14px calc(90px + env(safe-area-inset-bottom))}
-  .mg-search{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;background:var(--card);margin-bottom:10px}
-  .mg-sec{font-size:13px;color:var(--muted);margin:14px 4px 6px;font-weight:600}
+  .mg{color-scheme:light dark;position:fixed;inset:0;z-index:9000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
+  .mg *{box-sizing:border-box}
+  .mg-top{padding:calc(14px + env(safe-area-inset-top)) 14px 0;background:var(--bg)}
+  .mg-top>div,.mg-in{max-width:560px;margin:0 auto}
+  .mg-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}.mg-row h1{flex:1;font-size:20px;font-weight:700;margin:0}
+  .mg-x{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .mg-tabs{display:flex;gap:6px;margin-bottom:12px}.mg-tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 0;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
+  .mg-tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .mg-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:2px 14px calc(96px + env(safe-area-inset-bottom))}
+  .mg-search{display:block;width:100%;border:0;border-radius:10px;padding:9px 12px 9px 34px;font:inherit;font-size:16px;color:var(--ink);margin-bottom:10px;outline:none;
+    background:color-mix(in srgb,var(--muted) 14%,var(--bg)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23908a80' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px 50%}
+  .mg-search::placeholder{color:var(--muted)}
+  .mg-sec{font-size:12px;color:var(--muted);margin:16px 2px 8px;font-weight:600;letter-spacing:.02em}
+  .mg-in details>summary{list-style:none}.mg-in details>summary::-webkit-details-marker{display:none}
+  .mg-in details>summary::before{content:"▸";display:inline-block;width:14px;transition:transform .15s}.mg-in details[open]>summary::before{transform:rotate(90deg)}
   .mg-it{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer}
-  .mg-it b{font-size:16px;display:block}.mg-it small{color:var(--muted);font-size:13px;display:block;margin-top:2px;line-height:1.5}
-  .mg-it .tg{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin:4px 4px 0 0;background:var(--tg-blue);color:var(--tg-blue-ink)}
-  .mg-it .tg.ok{background:var(--tg-green);color:var(--tg-green-ink)}.mg-it .tg.w{background:var(--tg-orange);color:var(--tg-orange-ink)}
-  .mg-add{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:17px;font-weight:700;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
-  .mg-empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px;line-height:1.7}
-  .mg-f label{display:block;font-size:13px;color:var(--muted);margin:12px 2px 4px}
-  .mg-f input,.mg-f select,.mg-f textarea{width:100%;box-sizing:border-box;border:1.5px solid var(--tdh-field-bd);border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;background:var(--card);color:var(--ink)}
-  .mg-f textarea{min-height:72px}
+  .mg-it b{font-size:15px;font-weight:700;display:block}.mg-it small{color:var(--muted);font-size:12px;display:block;margin-top:3px;line-height:1.5}
+  .mg-it .tg{display:inline-block;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;margin:6px 4px 0 0;background:var(--blue);color:var(--blue-ink)}
+  .mg-it .tg.ok{background:var(--sel);color:var(--accent)}.mg-it .tg.w{background:var(--yellow);color:var(--yellow-ink)}
+  .mg-add{position:fixed;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:532px;bottom:calc(14px + env(safe-area-inset-bottom));border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:15px;font-weight:700;padding:13px;box-shadow:0 6px 18px rgba(0,0,0,.16);cursor:pointer}
+  .mg-empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted);padding:22px 12px;font-size:14px;line-height:1.7;margin-top:6px}
+  .mg-back{border:0;background:none;color:var(--accent);font:inherit;font-size:14px;font-weight:600;padding:4px 0;margin:0 0 6px;cursor:pointer}
+  .mg-card{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:6px 14px 14px;margin-bottom:12px}
+  .mg-card h3{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:10px 0 2px}
+  .mg-f label{display:block;font-size:12.5px;color:var(--muted);margin:12px 2px 5px}
+  .mg-f input,.mg-f select,.mg-f textarea{display:block;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;background:var(--bg);color:var(--ink);outline:none;-webkit-appearance:none;appearance:none}
+  .mg-f select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23908a80' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+  .mg-f input:focus,.mg-f select:focus,.mg-f textarea:focus{border-color:var(--accent)}
+  .mg-f textarea{min-height:76px;line-height:1.6}
   .mg-f .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.mg-f .two>div{min-width:0}
-  .mg-f input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;display:block;min-height:46px;text-align:left}
+  .mg-f input[type=date]{min-width:0;max-width:100%;min-height:44px;text-align:left}
   .mg-f input::-webkit-date-and-time-value{text-align:left}
-  .mg-f label.mg-ck{display:flex;align-items:center;gap:8px;margin:14px 2px 0;font-size:15px;color:var(--ink);cursor:pointer}.mg-f .mg-ck input[type=checkbox]{width:17px;height:17px;min-height:0;padding:0;margin:0;flex:0 0 17px;border:0;border-radius:4px;accent-color:var(--accent)}
-  .mg-tagrow{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line)}.mg-tagrow:last-child{border-bottom:0}
-  .mg-tagrow>span{flex:0 0 40px;font-size:14px;color:var(--muted);padding-top:12px}.mg-tagrow>div{flex:1}
-  .mg-tag{display:inline-block;border:1.5px solid var(--tdh-field-bd);border-radius:8px;padding:5px 10px;margin:6px 6px 0 0;font:inherit;font-size:14px;background:var(--card);color:var(--muted);cursor:pointer}
-  .mg-tag.on{font-weight:700}
-  .mg-tag.on.c-blue{background:var(--tg-blue);border-color:var(--tg-blue-bd);color:var(--tg-blue-ink)}.mg-tag.on.c-yellow{background:var(--tg-yellow);border-color:var(--tg-yellow-bd);color:var(--tg-yellow-ink)}
-  .mg-tag.on.c-green{background:var(--tg-green);border-color:var(--tg-green-bd);color:var(--tg-green-ink)}.mg-tag.on.c-orange{background:var(--tg-orange);border-color:var(--tg-orange-bd);color:var(--tg-orange-ink)}
-  .mg-tag.on.c-gray{background:var(--tg-gray);border-color:var(--tg-gray-bd);color:var(--tg-gray-ink)}.mg-tag.on.c-purple{background:var(--tg-purple);border-color:var(--tg-purple-bd);color:var(--tg-purple-ink)}
+  .mg-f label.mg-ck{display:flex;align-items:center;gap:8px;margin:14px 2px 0;font-size:14px;color:var(--ink);cursor:pointer}
+  .mg-f .mg-ck input[type=checkbox]{width:17px;height:17px;min-height:0;padding:0;margin:0;flex:0 0 17px;border:0;border-radius:4px;accent-color:var(--accent);-webkit-appearance:auto;appearance:auto}
+  .mg-lrow{display:flex;align-items:baseline;justify-content:space-between}.mg-lrow label{margin-bottom:5px}
+  .mg-mini{border:0;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:600;padding:0 2px;cursor:pointer}
+  .mg-newrow{display:flex;gap:8px;margin-top:8px}.mg-newrow input{flex:1}.mg-newrow button{flex:0 0 auto;border:0;border-radius:10px;padding:0 14px;font:inherit;font-size:14px;font-weight:700;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+  .mg-newrow button.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:500}
+  .mg-tagrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line)}.mg-tagrow:last-child{border-bottom:0}
+  .mg-tagrow>span{flex:0 0 34px;font-size:13px;color:var(--muted);padding-top:9px}.mg-tagrow>div{flex:1;display:flex;flex-wrap:wrap;gap:6px}
+  .mg-tag{border:1.5px solid var(--line);border-radius:8px;padding:4px 10px;font:inherit;font-size:13px;background:var(--card);color:var(--muted);cursor:pointer}
+  .mg-tag.on{color:#fff;font-weight:700}
+  .mg-tag.on.c-blue{background:#4a86c5;border-color:#4a86c5}.mg-tag.on.c-yellow{background:#c99412;border-color:#c99412}
+  .mg-tag.on.c-green{background:#3f9a5a;border-color:#3f9a5a}.mg-tag.on.c-orange{background:#d9662b;border-color:#d9662b}
+  .mg-tag.on.c-gray{background:#7a746b;border-color:#7a746b}.mg-tag.on.c-purple{background:#7a5aa8;border-color:#7a5aa8}
   .mg-tag.on.c-default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-  .mg-card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:4px 14px 14px;margin-bottom:12px}
-  .mg-card h3{font-size:15px;margin:12px 0 0}
-  .mg-note{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.6}
-  .mg-step{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15px}
-  .mg-step:last-child{border-bottom:0}.mg-step span{display:flex;align-items:center;gap:10px}
-  .mg-step button{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--tdh-field-bd);background:var(--tdh-field);font-size:18px;cursor:pointer}
-  .mg-step b{min-width:22px;text-align:center;font-size:17px}
-  .mg-chip{display:inline-block;border:1.5px solid var(--tdh-field-bd);border-radius:999px;padding:7px 13px;margin:6px 6px 0 0;font:inherit;font-size:14px;background:var(--card);cursor:pointer}
-  .mg-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-  .mg-tbl .r{display:flex;gap:6px;margin-top:6px}.mg-tbl .r input:first-child{flex:0 0 38%}.mg-tbl .r button{flex:0 0 38px;border:0;background:var(--tdh-soft);border-radius:10px;font-size:16px;cursor:pointer}
-  .mg-act{display:flex;gap:8px;margin-top:14px}.mg-act button{flex:1;border:0;border-radius:12px;padding:13px;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
-  .mg-act .pri{background:var(--accent);color:var(--accent-ink)}.mg-act .sec{background:var(--tdh-soft);color:var(--ink)}.mg-act .dan{background:var(--tdh-dan-bg);color:var(--tdh-dan)}
-  .mg-sub{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
-  .mg-sub button{flex:0 0 auto;border:1.5px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:6px 13px;font:inherit;font-size:14px;cursor:pointer}
-  .mg-sub button.on{border-color:var(--accent);color:var(--accent);font-weight:700}
-  .mg-err{color:var(--tdh-dan);font-size:14px;margin-top:8px}
+  .mg a{color:var(--accent)}
+  .mg-note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .mg-chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;margin:8px 6px 0 0;font:inherit;font-size:13px;background:transparent;color:var(--ink);cursor:pointer}
+  .mg-tbl .r{display:flex;gap:6px;margin-top:6px}.mg-tbl .r input:first-child{flex:0 0 36%}.mg-tbl .r button{flex:0 0 36px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;font-size:14px;cursor:pointer}
+  .mg-act{display:flex;gap:8px;margin-top:12px}.mg-act button{flex:1;border:0;border-radius:12px;padding:12px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .mg-act .pri{background:var(--accent);color:var(--accent-ink)}.mg-act .dan{background:transparent;border:1px solid var(--line);color:var(--tdh-dan);font-weight:500}
+  .mg-err{color:var(--tdh-dan);font-size:13px;margin-top:8px}
+  .mg-sub{display:flex;gap:6px;overflow-x:auto;margin:0 0 6px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .mg-sub button{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .mg-sub button.on{background:var(--sel);border-color:var(--accent);color:var(--accent);font-weight:700}
   .mg-btn{border:0;background:transparent;font-size:23px;line-height:1;color:var(--muted);cursor:pointer;border-radius:9px;flex:0 0 44px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -74,9 +84,9 @@
     if (ov) return;
     tab = startTab || "cases"; q = "";
     ov = document.createElement("div"); ov.className = "mg";
-    ov.innerHTML = `<div class="mg-top"><div class="mg-row"><h1>劇場の資料庫</h1><button class="mg-x" id="mgX" aria-label="關閉">✕</button></div>
+    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row"><h1>劇場の資料庫</h1><button class="mg-x" id="mgX">完成</button></div>
       <div class="mg-tabs">${Object.entries(K).map(([k, n]) => `<button data-k="${k}">${n}</button>`).join("")}</div></div>
-      <div class="mg-body" id="mgBody"></div>`;
+      </div></div><div class="mg-body" id="mgScroll"><div class="mg-in" id="mgBody"></div></div>`;
     document.body.appendChild(ov);
     document.documentElement.style.overflow = "hidden";
     $("mgX").onclick = close;
@@ -162,6 +172,30 @@
   function selectHtml(id, label, opts, v, addLabel) {
     return `<label for="${id}">${label}</label><select id="${id}"><option value="">（不選）</option>${opts.map(([val, txt]) => `<option value="${esc(val)}" ${val === v ? "selected" : ""}>${esc(txt)}</option>`).join("")}${addLabel ? `<option value="__new">＋ ${addLabel}</option>` : ""}</select>`;
   }
+  // 下拉選單＋右上角「＋ 新增」：在下面展開一列輸入框，直接建立
+  function pickHtml(id, label, kind, opts, v) {
+    return `<div class="mg-lrow"><label for="${id}">${label}</label><button type="button" class="mg-mini" data-addfor="${id}" data-kind="${kind}">＋ 新增${K[kind]}</button></div>
+      <select id="${id}"><option value="">（不選）</option>${opts.map(([val, txt]) => `<option value="${esc(val)}" ${val === v ? "selected" : ""}>${esc(txt)}</option>`).join("")}</select>
+      <div class="mg-newrow" id="${id}_new" style="display:none"><input placeholder="新的${K[kind]}名稱"><button type="button">加入</button><button type="button" class="ghost">取消</button></div>`;
+  }
+  function bindPick() {
+    ov.querySelectorAll("[data-addfor]").forEach(btn => btn.onclick = () => {
+      const id = btn.dataset.addfor, kind = btn.dataset.kind, row = $(id + "_new"), input = row.children[0];
+      row.style.display = "flex"; input.value = ""; input.focus();
+      row.children[2].onclick = () => { row.style.display = "none"; };
+      row.children[1].onclick = async () => {
+        const name = input.value.trim(); if (!name) { input.focus(); return; }
+        row.children[1].disabled = true; row.children[1].textContent = "加入中…";
+        try {
+          const nid = await store().create(kind, { [T.SCHEMA[kind].fields[0][0]]: name });
+          data[kind] = null; await loadKind(kind, true); dirty = true;
+          const sel = $(id); sel.insertAdjacentHTML("beforeend", `<option value="${nid}">${esc(name)}</option>`); sel.value = nid;
+          row.style.display = "none";
+        } catch (e) { alert("新增失敗：" + (e.message || e)); }
+        row.children[1].disabled = false; row.children[1].textContent = "加入";
+      };
+    });
+  }
   async function pickNew(sel, kind) {   // 下拉選單選「＋ 新增…」：直接建立一筆
     const name = prompt(`新增${K[kind]}的名稱`);
     if (!name || !name.trim()) { sel.value = ""; return; }
@@ -178,7 +212,7 @@
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
     const r = id ? data[k].find(x => x.id === id) : {};
     const isNew = !id;
-    let h = `<button class="mg-chip" id="mgBack" style="margin:0 0 10px">‹ 回到${K[k]}列表</button><div class="mg-f">`;
+    let h = `<button class="mg-back" id="mgBack">‹ ${K[k]}列表</button><div class="mg-f">`;
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
@@ -198,10 +232,10 @@
     h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="pri" id="mgSave">${isNew ? "新增" : "儲存"}</button></div>`;
     if (!isNew) h += `<div class="mg-act"><button class="dan" id="mgDel">刪除</button></div>`;
     h += `</div>`;
-    $("mgBody").innerHTML = h; $("mgBody").scrollTop = 0;
+    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
     $("mgBack").onclick = () => list();
     ov.querySelectorAll("select").forEach(s => s.onchange = () => { if (s.value === "__new") pickNew(s, s.dataset.kind); });
-    if (k === "cases") bindCase(r, isNew);
+    if (k === "cases") { bindCase(r, isNew); bindPick(); }
     $("mgSave").onclick = () => save(k, id, r);
     if ($("mgArc")) $("mgArc").onclick = async () => {
       $("mgArc").disabled = true;
@@ -229,13 +263,13 @@
     if (!isNew && T.cfg.mode === "google") content = await T.gstore.getContent(r.id);
     let h = `<div class="mg-card"><h3>基本資料</h3>
       ${inp("c_name", "案名／劇名（必填，劇團另外選）", r["案名"], 'placeholder="例如：午後的信"')}
-      ${has("cases", "劇團") ? selectHtml("c_troupe", "劇團", tOpts, (r["劇團"] || [])[0] || "", "新增劇團…").replace("<select ", '<select data-kind="troupe" ') : ""}
+      ${has("cases", "劇團") ? pickHtml("c_troupe", "劇團", "troupe", tOpts, (r["劇團"] || [])[0] || "") : ""}
       <div class="two"><div>${inp("c_s", "進場日期", d.start, 'type="date"')}</div><div>${inp("c_e", "最後一天", d.end || d.start, 'type="date"')}</div></div>
-      ${has("cases", "進場地點") ? selectHtml("c_venue", "演出場館", vOpts, (r["進場地點"] || [])[0] || "", "新增場館…").replace("<select ", '<select data-kind="venue" ') : ""}
+      ${has("cases", "進場地點") ? pickHtml("c_venue", "演出場館", "venue", vOpts, (r["進場地點"] || [])[0] || "") : ""}
       <div class="two"><div>${inp("c_l", "裝車日期（沒有就空白）", ld.start, 'type="date"')}</div><div>${has("cases", "裝車地點") ? inp("c_lp", "裝車地點（沒有就空白）", r["裝車地點"]) : ""}</div></div>
       ${has("cases", "負責人姓名") ? `<label class="mg-ck"><input type="checkbox" id="c_subOn" ${r["負責人姓名"] ? "checked" : ""}>這一檔我請人代班</label>
         <div id="c_subBox" style="${r["負責人姓名"] ? "" : "display:none"}">${inp("c_td", "代班的人是誰", r["負責人姓名"], 'placeholder="例如：王小明"')}</div>` : ""}
-      ${has("cases", "巡演") ? `<label class="mg-ck"><input type="checkbox" id="c_tourOn" ${r["巡演"] ? "checked" : ""}>這是巡演</label>
+      ${has("cases", "巡演") ? `<label class="mg-ck"><input type="checkbox" id="c_tourOn" ${r["巡演"] ? "checked" : ""}>這一檔是巡演</label>
         <div id="c_tourBox" style="${r["巡演"] ? "" : "display:none"}">${inp("c_tour", "巡演名稱（每一站都填一樣的名字，結案時可以合併成一張時段表）", r["巡演"], 'placeholder="例如：2026午後的信"')}</div>` : ""}
       </div>
       <div class="mg-card"><h3>這檔要找幾個人</h3>
@@ -245,8 +279,8 @@
         <div class="mg-tagrow"><span>其他</span><div><button type="button" class="mg-tag c-default ${st.includes("全部完成") ? "on" : ""}" data-tag="全部完成">人都找齊了</button><button type="button" class="mg-tag c-gray ${st.includes("等待製作確認") ? "on" : ""}" data-tag="等待製作確認">人數尚未確認</button></div></div></div>
       </div>
       <div class="mg-card"><h3>費用</h3>
-      <div class="two"><div>${inp("c_tdr", `${esc(window.ROLE())}時段費`, r["負責人時段費"], 'inputmode="numeric"')}</div><div>${inp("c_cr", "Crew 時段費（預設）", r["Crew時段費"], 'inputmode="numeric"')}</div></div>
-      ${inp("c_flat", "整筆費用（談好總價才填）", r["負責人整筆費用"], 'inputmode="numeric"')}
+      ${inp("c_tdr", "我這一檔的時段費", r["負責人時段費"], 'inputmode="numeric" placeholder="例如：1400"')}
+      ${inp("c_flat", "整筆費用（這一檔是談整筆才填寫）", r["負責人整筆費用"], 'inputmode="numeric"')}
       </div>`;
     if (isNew) h += `<div class="mg-note" style="margin:0 4px 10px">新增後會自動建立每一天的 Call Time 排班表，之後在主畫面「找人」選人就會填進去。</div>`;
     else if (content) {
@@ -296,7 +330,7 @@
       const tags = [...ov.querySelectorAll("#c_need .mg-tag.on")].map(b => b.dataset.tag);
       if (!tags.length) tags.push("尚未開始");
       vals["Crew 狀態"] = tags;
-      vals["負責人時段費"] = num($("c_tdr").value); vals["Crew時段費"] = num($("c_cr").value); vals["負責人整筆費用"] = num($("c_flat").value);
+      vals["負責人時段費"] = num($("c_tdr").value); vals["負責人整筆費用"] = num($("c_flat").value);
       if ($("c_td")) vals["負責人姓名"] = $("c_subOn").checked ? ($("c_td").value.trim() || null) : null;
       if (!id) content = { notes: ["抬頭：", "統編："], table: T.callRows(s, e > s ? e : s, l) };
       else if ($("c_tbl")) content = { notes: $("c_notes").value.split("\n"), table: [...$("c_tbl").querySelectorAll(".r")].map(x => [x.children[0].value.trim(), x.children[1].value.trim()]).filter(x => x[0] || x[1]) };
