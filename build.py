@@ -53,23 +53,57 @@ h = h.replace(">舞台組人員名單<", ">${window.TEAM()}人員名單<")
 h = h.replace("每天預計的舞台組人員", "每天預計的${window.TEAM()}人員")
 assert "劉冠佑" not in h and "冠佑" not in h, "personal name left"
 
-# 3. 時段表：Google 試算表 → 下載 Excel
+# 3. 時段表：仿預覽樣式。主要按鈕建立 Google 試算表（使用者自己的雲端），另外可以下載 Excel
 rep("async function makeGoogleSheet(c, s) {", "async function makeGoogleSheet_google(c, s) {", 1)
-rep("  // ---------- preview ----------", """  async function makeGoogleSheet(c, s) {   // 獨立版：直接下載 Excel 檔
-    const btn = $("tsMake"), msg = $("tsMsg");
-    btn.disabled = true; btn.textContent = "製作中…";
+rep("  // ---------- preview ----------", (ROOT/"src/prettysheet.js").read_text() + """
+  async function makeGoogleSheet(c, s) {   // 劇場幫幫：在使用者自己的 Google 雲端建立試算表
+    const btn = $("tsMake"), msg = $("tsMsg"), G = window.__tdh.google;
+    if (!(await G.ready())) { msg.textContent = "Google 試算表功能還沒開通，請先用「下載 Excel」。"; return; }
+    if (!G.signedIn) { msg.textContent = "要先登入 Google，才能在你的雲端硬碟建立試算表。前往 Google 登入中…"; G.login("sheet:" + c.id); return; }
+    btn.disabled = true; btn.textContent = "建立中…";
     try {
-      const plan = sheetPlan(s);
-      const blob = window.__tdh.xlsx([{ name: "時段表", rows: plan.rows }, { name: EXP_TAB, rows: plan.rows2 }], plan.reqs(0, 1));
+      const plan = prettyPlan(s);
+      msg.textContent = "準備「劇場幫幫 / 時段表」資料夾…";
+      const dir = await G.sheetFolder();
+      msg.textContent = "建立試算表…";
+      const f = await G.api("https://www.googleapis.com/drive/v3/files?fields=id", { method: "POST", body: { name: s.title, mimeType: "application/vnd.google-apps.spreadsheet", parents: [dir] } });
+      const id = f.id, SS = `https://sheets.googleapis.com/v4/spreadsheets/${id}`;
+      const meta = await G.api(`${SS}?fields=sheets.properties.sheetId`);
+      const SID = ((meta.sheets || [])[0] || { properties: { sheetId: 0 } }).properties.sheetId || 0, SID2 = SID === 1 ? 2 : 1;
+      await G.api(`${SS}:batchUpdate`, { method: "POST", body: { requests: [
+        { updateSheetProperties: { properties: { sheetId: SID, title: "時段表" }, fields: "title" } },
+        { addSheet: { properties: { sheetId: SID2, title: EXP_TAB, index: 1 } } } ] } });
+      msg.textContent = "寫入表格內容…";
+      await G.api(`${SS}/values:batchUpdate`, { method: "POST", body: { valueInputOption: "USER_ENTERED", data: [{ range: "'時段表'!A1", values: plan.rows }, { range: `'${EXP_TAB}'!A1`, values: plan.rows2 }] } });
+      msg.textContent = "套用樣式…";
+      await G.api(`${SS}:batchUpdate`, { method: "POST", body: { requests: plan.reqs(SID, SID2, "sheets") } });
+      msg.textContent = "設定共用連結…";
+      let shared = true;
+      try { await G.api(`https://www.googleapis.com/drive/v3/files/${id}/permissions`, { method: "POST", body: { role: "reader", type: "anyone" } }); } catch (e) { shared = false; }
+      if (!shared) sheetWarn[c.id] = "試算表建好了，但共用設定沒有成功，請在 Google 試算表裡手動改成「知道連結的使用者：檢視者」。"; else delete sheetWarn[c.id];
+      sheetLinks[c.id] = `https://docs.google.com/spreadsheets/d/${id}/edit`;
+      toast("試算表建立好了");
+      render();
+    } catch (e) {
+      btn.disabled = false; btn.textContent = "建立 Google 試算表";
+      msg.textContent = e && e.code === "google_login" ? String(e.message) + "（按一下按鈕就會前往登入）" : "建立失敗：" + String((e && e.message) || e).slice(0, 140);
+    }
+  }
+  async function makeXlsx(c, s) {   // 下載 Excel（樣式和 Google 試算表一樣）
+    const btn = $("tsXlsx"), msg = $("tsMsg");
+    btn.disabled = true;
+    try {
+      const plan = prettyPlan(s);
+      const blob = window.__tdh.xlsx([{ name: "時段表", rows: plan.rows }, { name: EXP_TAB, rows: plan.rows2 }], plan.reqs(0, 1, "xlsx"));
       const how = await window.__tdh.saveFile(blob, `${s.title}.xlsx`.replace(/[\\\\/:*?"<>|]/g, "_"));
-      msg.textContent = how === "cancelled" ? "已取消。" : "Excel 檔做好了！可以存到檔案、傳到 LINE，或用 Google 試算表打開。";
-      if (how !== "cancelled") toast("時段表已下載");
+      if (how !== "cancelled") toast("Excel 已下載");
     } catch (e) { msg.textContent = "製作失敗：" + String((e && e.message) || e).slice(0, 120); }
-    btn.disabled = false; btn.textContent = "下載 Excel 時段表";
+    btn.disabled = false;
   }
   // ---------- preview ----------""", 1)
-rep('${sheetLinks[c.id] ? "重新建立 Google 試算表" : "建立 Google 試算表"}', "下載 Excel 時段表", 1)
-rep("會建立在這個案子資料夾裡的「時段表」資料夾（知道連結的人都能檢視），同名的舊檔會保留，新檔名後面加上時間。", "下載成 Excel 檔（.xlsx），格式和顏色都會保留，可以直接傳給製作。", 1)
+rep('${sheetLinks[c.id] ? "重新建立 Google 試算表" : "建立 Google 試算表"}</button>', '${sheetLinks[c.id] ? "重新建立 Google 試算表" : "建立 Google 試算表"}</button><button class="ghost" id="tsXlsx" style="margin-top:8px;width:100%">下載 Excel 檔</button>', 1)
+rep('$("tsMake").onclick = () => makeGoogleSheet(c, merge ? buildTourSheet(c) : buildSheet(c, rec, tmap));', '$("tsMake").onclick = () => makeGoogleSheet(c, merge ? buildTourSheet(c) : buildSheet(c, rec, tmap)); $("tsXlsx").onclick = () => makeXlsx(c, merge ? buildTourSheet(c) : buildSheet(c, rec, tmap));', 1)
+rep("會建立在這個案子資料夾裡的「時段表」資料夾（知道連結的人都能檢視），同名的舊檔會保留，新檔名後面加上時間。", "會建立在你 Google 雲端硬碟的「劇場幫幫 / 時段表」資料夾（知道連結的人都能檢視），樣式和上面的預覽一樣，可以直接編輯：改段數或時段費，金額會自動重算。", 1)
 h = re.sub(r'\$\{c\.tsFolder \? `<div class="note">存放位置：[\s\S]*?</div>` : ""\}', "", h, count=1)
 
 # 4. 錯誤訊息：獨立版沒有 claude.ai
@@ -89,6 +123,7 @@ head_extra = f"""<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="/icon-180.png">
 <script>window.TDH_VERSION={json.dumps(VERSION)};</script>
 <script>\n{(ROOT/'src/shim.js').read_text()}\n</script>
+<script>\n{(ROOT/'src/google.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/xlsx.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/setup.js').read_text()}\n</script>
 """

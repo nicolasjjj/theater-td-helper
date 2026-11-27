@@ -59,6 +59,7 @@
         <li>在同一個連接設定裡打開「內容存取」，勾選要放劇場資料的頁面</li>
         <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場幫幫」</li>
         <li>還沒有劇場資料庫的話，先在 Notion 建一個空白頁面（例如「劇場管理」）再勾選它，下一步可以自動建立</li></ol></details>
+      ${force ? `<div class="tdh-st" id="tdhG"><h2>Google 帳號</h2><div style="font-size:14px;color:#6e685f">用來在你的 Google 雲端硬碟建立時段表試算表。</div><div id="tdhGBody">讀取中…</div></div>` : ""}
       ${force ? `<div class="tdh-st"><button class="ghost" id="tdhClose">關閉</button> <button class="ghost" id="tdhOut">清除權杖（登出）</button></div>` : ""}
       <div style="font-size:12px;color:#8a847a;line-height:1.6;margin-top:8px">權杖只存在這個瀏覽器裡，資料直接在你的 Notion 讀寫，不會存到別的地方。請用 Safari 或 Chrome 打開，LINE、Notion 裡面的內建瀏覽器不會記住設定。</div>
     </div>`;
@@ -106,6 +107,13 @@
       location.reload();
     };
     if ($("tdhClose")) $("tdhClose").onclick = () => ov.remove();
+    if ($("tdhGBody")) (async () => {
+      const G = T.google, box = $("tdhGBody");
+      if (!(await G.ready())) { box.innerHTML = `<div class="no" style="margin-top:8px;font-size:14px">這個網站還沒開通 Google 登入。</div>`; return; }
+      box.innerHTML = G.signedIn ? `<div class="ok" style="margin-top:8px;font-size:14px">✓ 已登入 ${G.email.replace(/</g, "&lt;")}</div><button class="ghost" id="tdhGOut">登出 Google</button>` : `<button id="tdhGIn">登入 Google</button>`;
+      if ($("tdhGIn")) $("tdhGIn").onclick = () => G.login("settings");
+      if ($("tdhGOut")) $("tdhGOut").onclick = () => { G.logout(); box.innerHTML = `<button id="tdhGIn">登入 Google</button>`; $("tdhGIn").onclick = () => G.login("settings"); };
+    })();
     if ($("tdhOut")) $("tdhOut").onclick = () => { if (confirm("確定要清除這個瀏覽器裡的 Notion 權杖？")) { localStorage.removeItem("tdh.settings.v1"); location.reload(); } };
   }
 
@@ -115,5 +123,12 @@
     const modes = document.querySelector(".modes");
     if (modes) modes.appendChild(g); else { g.style.cssText = "position:fixed;right:10px;top:10px;z-index:50"; document.body.appendChild(g); }
     if (need()) open(false);
+    T.googleReturn.then((r) => {
+      if (!r) return;
+      const b = document.createElement("div");
+      b.style.cssText = "position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:10000;background:" + (r.error ? "#b3261e" : "#2f5d50") + ";color:#fff;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.5;box-shadow:0 4px 16px rgba(0,0,0,.2)";
+      b.textContent = r.error || (String(r.after).startsWith("sheet") ? "✓ 已登入 Google。回到「結案 → 時段表」，再按一次「建立 Google 試算表」。" : "✓ 已登入 Google。");
+      b.onclick = () => b.remove(); document.body.appendChild(b); setTimeout(() => b.remove(), 9000);
+    });
   });
 })();

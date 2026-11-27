@@ -33,7 +33,7 @@
 
   function build(sheetsIn, reqs) {
     // 每張表：cells[r][c] = {v, st:{...}}
-    const sheets = sheetsIn.map((s, i) => ({ name: s.name, id: i, rows: s.rows, st: {}, merges: [], cols: {}, rowsH: {}, freeze: 0, grid: true }));
+    const sheets = sheetsIn.map((s, i) => ({ name: s.name, id: i, rows: s.rows, st: {}, merges: [], cols: {}, rowsH: {}, freeze: 0, fcol: 0, grid: true }));
     const byId = (id) => sheets[id] || sheets[0];
     const cellSt = (sh, r, c) => { const k = r + "," + c; return sh.st[k] || (sh.st[k] = {}); };
     const each = (rg, fn) => { const sh = byId(rg.sheetId); for (let r = rg.startRowIndex; r < rg.endRowIndex; r++) for (let c = rg.startColumnIndex; c < rg.endColumnIndex; c++) fn(cellSt(sh, r, c), r, c, sh); };
@@ -54,7 +54,7 @@
         const rg = q.mergeCells.range; byId(rg.sheetId).merges.push(rg);
       } else if (q.updateBorders) {
         const b = q.updateBorders, rg = b.range;
-        const kind = (x) => x && (x.style === "SOLID_MEDIUM" ? "medium" : x.style === "SOLID_THICK" ? "thick" : x.style === "NONE" ? null : "thin");
+        const kind = (x) => x && (x.style === "NONE" ? null : (x.style === "SOLID_MEDIUM" ? "medium" : x.style === "SOLID_THICK" ? "thick" : "thin") + "|" + (argb(colorOf(x.colorStyle || x.color)) || "FF000000"));
         each(rg, (st, r, c, sh) => {
           st.bd = st.bd || {};
           const set = (side, x) => { if (x) st.bd[side] = kind(x); };
@@ -73,6 +73,7 @@
       } else if (q.updateSheetProperties) {
         const p = q.updateSheetProperties.properties, sh = byId(p.sheetId), g = p.gridProperties || {};
         if (g.frozenRowCount !== undefined) sh.freeze = g.frozenRowCount;
+        if (g.frozenColumnCount !== undefined) sh.fcol = g.frozenColumnCount;
         if (g.hideGridlines !== undefined) sh.grid = !g.hideGridlines;
       }
     }
@@ -86,7 +87,7 @@
       const f = st.font || { b: false, sz: 11, name: "Arial" };
       const fontId = idx(fonts, `<font>${f.b ? "<b/>" : ""}<sz val="${f.sz}"/>${f.color ? `<color rgb="${f.color}"/>` : ""}<name val="${X(f.name)}"/></font>`);
       const fillId = st.bg ? idx(fills, `<fill><patternFill patternType="solid"><fgColor rgb="${st.bg}"/><bgColor indexed="64"/></patternFill></fill>`) : 0;
-      const bd = st.bd || {}, side = (s) => bd[s] ? `<${s} style="${bd[s]}"><color rgb="FF000000"/></${s}>` : `<${s}/>`;
+      const bd = st.bd || {}, side = (s) => bd[s] ? `<${s} style="${bd[s].split("|")[0]}"><color rgb="${bd[s].split("|")[1] || "FF000000"}"/></${s}>` : `<${s}/>`;
       const borderId = idx(borders, `<border>${side("left")}${side("right")}${side("top")}${side("bottom")}<diagonal/></border>`);
       let numFmtId = 0;
       if (st.num) { const builtin = { "0.00": 2, "#,##0": 3, "0": 1 }[st.num]; numFmtId = builtin ?? (164 + idx(numFmts, st.num)); }
@@ -118,7 +119,8 @@
         if (cells || ht) data += `<row r="${r + 1}"${ht}>${cells}</row>`;
       }
       const merges = sh.merges.length ? `<mergeCells count="${sh.merges.length}">` + sh.merges.map(m => `<mergeCell ref="${colL(m.startColumnIndex)}${m.startRowIndex + 1}:${colL(m.endColumnIndex - 1)}${m.endRowIndex}"/>`).join("") + "</mergeCells>" : "";
-      const pane = sh.freeze ? `<pane ySplit="${sh.freeze}" topLeftCell="A${sh.freeze + 1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/>` : "";
+      const pane = sh.freeze && sh.fcol ? `<pane xSplit="${sh.fcol}" ySplit="${sh.freeze}" topLeftCell="${colL(sh.fcol)}${sh.freeze + 1}" activePane="bottomRight" state="frozen"/><selection pane="bottomRight"/>`
+        : sh.freeze ? `<pane ySplit="${sh.freeze}" topLeftCell="A${sh.freeze + 1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/>` : "";
       return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"${sh.grid ? "" : ' showGridLines="0"'}${sh.id === 0 ? ' tabSelected="1"' : ""}>${pane}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${data}</sheetData>${merges}<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/></worksheet>`;
     });

@@ -62,9 +62,30 @@ async def main():
         await pg.click('button.mode[data-m="close"]'); await pg.wait_for_timeout(1500)
         await pg.click('.ptabs button[data-t="sheet"]'); await pg.wait_for_timeout(2000); await shot("11_sheet")
         async with pg.expect_download() as dl:
-            await pg.click("#tsMake")
+            await pg.click("#tsXlsx")
         d = await dl.value; await d.save_as(str(OUT / "timesheet.xlsx")); print("download:", d.suggested_filename)
         await shot("12_after_dl")
+        # Google 試算表（假的 Google API，檢查送出的請求）
+        gcalls = []
+        async def gapi(route):
+            rq = route.request; body = rq.post_data or ""
+            gcalls.append((rq.method, rq.url, body))
+            u = rq.url
+            if "/api/google/config" in u: return await route.fulfill(json={"clientId": "x", "ready": True})
+            if "/api/google/refresh" in u: return await route.fulfill(json={"access_token": "at", "expires_in": 3600})
+            if "drive/v3/files" in u and rq.method == "GET": return await route.fulfill(json={"files": []})
+            if "drive/v3/files" in u and "permissions" not in u: return await route.fulfill(json={"id": "F" + str(len(gcalls))})
+            if "fields=sheets" in u: return await route.fulfill(json={"sheets": [{"properties": {"sheetId": 0}}]})
+            return await route.fulfill(json={})
+        await pg.route("**/api/google/**", gapi); await pg.route("https://www.googleapis.com/**", gapi); await pg.route("https://sheets.googleapis.com/**", gapi)
+        await pg.evaluate("window.__tdh.setCfg({gRefresh:'r',gEmail:'a@b.c'})")
+        await pg.click("#tsMake"); await pg.wait_for_timeout(2500); await shot("13_gsheet")
+        import json as _j
+        for m_, u_, b_ in gcalls: print("G", m_, u_[:90], len(b_))
+        fmtreq = [y for x, u, y in gcalls if u.endswith(":batchUpdate") and "addConditionalFormatRule" in y]
+        (OUT / "gsheet_reqs.json").write_text(fmtreq[0] if fmtreq else "")
+        vals = [y for x, u, y in gcalls if "values:batchUpdate" in u]
+        (OUT / "gsheet_vals.json").write_text(vals[0] if vals else "")
         print("errors:", errs[:10])
         await b.close()
 asyncio.run(main())
