@@ -102,7 +102,7 @@ rep("  // ---------- preview ----------", (ROOT/"src/prettysheet.js").read_text(
   }
   // ---------- preview ----------""", 1)
 rep('${sheetLinks[c.id] ? "重新建立 Google 試算表" : "建立 Google 試算表"}</button>', '${sheetLinks[c.id] ? "重新建立 Google 試算表" : "建立 Google 試算表"}</button><button class="ghost" id="tsXlsx" style="margin-top:8px;width:100%">下載 Excel 檔</button>', 1)
-rep('$("tsMake").onclick = () => makeGoogleSheet(c, merge ? buildTourSheet(c) : buildSheet(c, rec, tmap));', '$("tsMake").onclick = () => makeGoogleSheet(c, merge ? buildTourSheet(c) : buildSheet(c, rec, tmap)); $("tsXlsx").onclick = () => makeXlsx(c, merge ? buildTourSheet(c) : buildSheet(c, rec, tmap));', 1)
+rep('$("tsMake").onclick = () => makeGoogleSheet(c, merge ? buildTourSheet(c) : buildSheet(c, rec, tmap));', 'const fresh = async () => { loadTable(c); const m = $("tsMsg"); for (let i = 0; i < 80 && Object.values(tables).includes("loading"); i++) { if (m) m.textContent = "等 Call Time 表格讀取完成…"; await new Promise(r => setTimeout(r, 250)); } return merge ? buildTourSheet(c) : buildSheet(c, recOf(c), tableMap(c)); };\n      $("tsMake").onclick = async () => makeGoogleSheet(c, await fresh()); $("tsXlsx").onclick = async () => makeXlsx(c, await fresh());', 1)   # 按下去時 Call Time 表格可能還在讀 → 等讀完，才不會漏人
 rep("會建立在這個案子資料夾裡的「時段表」資料夾（知道連結的人都能檢視），同名的舊檔會保留，新檔名後面加上時間。", "會建立在你 Google 雲端硬碟的「劇場幫幫 / 時段表」資料夾（知道連結的人都能檢視），樣式和上面的預覽一樣，可以直接編輯：改段數或時段費，金額會自動重算。", 1)
 h = re.sub(r'\$\{c\.tsFolder \? `<div class="note">存放位置：[\s\S]*?</div>` : ""\}', "", h, count=1)
 
