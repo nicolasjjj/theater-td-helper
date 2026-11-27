@@ -159,7 +159,7 @@ out = ROOT / "dist"; out.mkdir(exist_ok=True)
 for a, b in [
     ('c.className = "card" + (selected.has(i.key) ? " sel" : "");', 'c.className = "card" + (selected.has(i.key) ? " sel" : ""); c.dataset.url = i.url || "";'),
     ('const PHASE_TABS = { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };',
-     'const PHASE_TABS = window.__tdh && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"], ["shot", "截圖"]] } : { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };'),
+     'const PHASE_TABS = window.__tdh && window.__tdh.solo && window.__tdh.solo() && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["mine", "我的時段明細"]] } : window.__tdh && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"], ["shot", "截圖"]] } : { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };'),
 ]:
     assert a in h, a[:40]; h = h.replace(a, b)
 # 找人頁：標題、卡片按鈕、只列 20 位常找的 Crew、「詳細資訊」跳到案子看板的 Call Time
@@ -173,8 +173,12 @@ for a, b in [
     ('body.querySelectorAll(".ask").forEach(b => b.onclick = () => openConfirm(i, crewDir[b.dataset.id], draw));',
      '''if (!all.some(p => p.name === q)) { body.insertAdjacentHTML("beforeend", `<div class="bk-new"><button type="button" class="bk-newbtn" id="bkNew">＋ 新增${q ? `「${esc(q)}」為` : "全新的"} Crew</button></div>`);
         body.querySelector("#bkNew").onclick = () => {
+          const srW = sheet.querySelector(".tdh-sx") || sheet.querySelector("#askSearch"); if (srW) srW.style.display = "none";
+          body.innerHTML = `<div class="bk-new"><div class="clabel">新增全新的 Crew</div><div class="bk-newrow"><input id="bkNewName" placeholder="新 Crew 的姓名" value="${esc(q)}" enterkeyhint="done"><button type="button" id="bkNewOk">新增</button></div>
+            <div class="note" style="margin-top:8px">其他資料之後可以到「資料庫 → Crew」補</div><button type="button" class="linkbtn" id="bkNewBack" style="margin-top:10px">← 回到名單</button></div>`;
+          body.scrollTop = 0;
           const box = body.querySelector(".bk-new");
-          box.innerHTML = `<div class="bk-newrow"><input id="bkNewName" placeholder="新 Crew 的姓名" value="${esc(q)}" enterkeyhint="done"><button type="button" id="bkNewOk">新增</button></div><div class="note" style="margin-top:6px">其他資料之後可以到「資料庫 → Crew」補</div>`;
+          body.querySelector("#bkNewBack").onclick = () => { if (srW) srW.style.display = ""; draw(); };
           const inp = box.querySelector("#bkNewName"); inp.focus();
           const go = async () => {
             const nm = inp.value.trim(); if (!nm) { inp.focus(); return; }
@@ -184,6 +188,7 @@ for a, b in [
               crewDirState = null; await loadCrewDir();
               const np = Object.values(crewDir).find(p => p.name === nm);
               toast(`已新增 ${nm}`);
+              if (srW) srW.style.display = "";
               if (np) openConfirm(i, np, draw); else draw();
             } catch (e) { ok.disabled = false; ok.textContent = "新增"; toast("新增失敗：" + ((e && e.message) || e)); }
           };
@@ -207,11 +212,44 @@ for a, b in [
 # 標題、進場前最下面的「回到最上面」
 for a, b in [
     ("<header><h1>進場中</h1>", "<header><h1>每日打卡 / 截圖</h1>"),
-    ('t.textContent = phase === "close" ? "結案" : "進場中";', 't.textContent = phase === "close" ? "時段表生成" : (window.__tdh.ui && window.__tdh.ui() !== "C" ? "每日打卡" : "每日打卡 / 截圖");'),
+    ('t.textContent = phase === "close" ? "結案" : "進場中";', 't.textContent = phase === "close" ? (window.__tdh.solo && window.__tdh.solo() ? "我的時段明細" : "時段表生成") : (window.__tdh.ui && window.__tdh.ui() !== "C" ? "每日打卡" : "每日打卡 / 截圖");'),
     ('let h = `<div class="ptabs">${tabs.map(', 'let h = tabs.length < 2 ? "" : `<div class="ptabs">${tabs.map('),
     ('<div id="list"><div class="state">讀取中…</div></div>\n  </div>', '<div id="list"><div class="state">讀取中…</div></div>\n  <button class="totop" type="button" onclick="window.scrollTo({top:0,behavior:\'smooth\'})" aria-label="回到最上面"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>回到最上面</button>\n  </div>'),
 ]:
     assert a in h, a[:40]; h = h.replace(a, b)
+# 打卡「加入人員」視窗跟 +Crew 一樣的樣子；個人打卡模式的「我的時段明細」
+for a, b in [
+    ("""    sheet.innerHTML = `<div class="sh-in"><b>${dw(d.date)} 加入人員</b>
+      <input id="pSearch" placeholder="搜尋姓名"><div id="pList" class="plist"></div>
+      <div class="sh-actions"><button class="ghost" id="shClose">關閉</button></div></div>`;""",
+     """    sheet.innerHTML = `<div class="sh-in"><div class="sh-top"><b>${dw(d.date)} 加入人員</b><button class="shx" id="shClose" aria-label="關閉">✕</button></div>
+      <input id="pSearch" placeholder="搜尋姓名" enterkeyhint="done"><div class="sh-body"><div class="clabel">點名字加入這一天</div><div id="pList" class="plist"></div></div></div>`;
+    sheet.onclick = (e) => { if (e.target === sheet) closeSheet(); };"""),
+    ("""      const names = crewOrder(c, rec, tmap);
+      h += `<details class="card rates\"""",
+     """      if (ptab === "mine") {
+        let mh = "";
+        try { const sh = giveSheet(c, rec, tmap), me = sh.people.find(p => p.role === "TD"); mh = me && me.total ? crewShotCard(c, sh, me) : ""; } catch (e) {}
+        h += `<div class="mine-card">${mh || `<div class="card note">還沒有打卡紀錄，先到「打卡」記上下班時間。</div>`}</div>
+          ${mh ? `<div class="pvact"><button class="primary" id="mineShot">全螢幕看（方便截圖）</button><button class="ghost" id="mineCopy" style="margin-top:8px">複製文字明細</button></div>` : ""}`;
+      } else {
+      const names = crewOrder(c, rec, tmap);
+      h += `<details class="card rates\""""),
+    ("""    } else if (ptab === "give") {""", """      }
+    } else if (ptab === "give") {"""),
+    ("""    } else if (ptab === "crew") {""", """    } else if (ptab === "crew" || ptab === "mine") {"""),
+    ("""\n    if (ptab === "crew") {\n""", """\n    if (ptab === "crew" || ptab === "mine") {
+      if ($("mineShot")) $("mineShot").onclick = () => { const sh = giveSheet(c, rec, tmap); showShot(crewShotCard(c, sh, sh.people.find(p => p.role === "TD"))); };
+      if ($("mineCopy")) $("mineCopy").onclick = () => { const m = crewMessages(c, rec, tmap, true)[0]; if (m) copyText(m.text, "已複製我的時段明細"); };
+      if (document.querySelector(".rates")) \n"""),
+    ("""  function crewMessages(c, rec, tmap) {
+    const s = buildSheet(c, rec, tmap);
+    return s.people.filter(p => p.role !== "TD").map(p => {""", """  function crewMessages(c, rec, tmap, me) {
+    const s = buildSheet(c, rec, tmap);
+    return s.people.filter(p => me ? p.role === "TD" : p.role !== "TD").map(p => {"""),
+    ("""    $("rateAllBtn").onclick = () => {""", """    if ($("rateAllBtn")) $("rateAllBtn").onclick = () => {"""),
+]:
+    assert h.count(a) == 1, (h.count(a), a[:60]); h = h.replace(a, b)
 # 日間／夜間模式可以手動切換：<html data-theme="light|dark">；沒設定就跟著系統
 h, n = re.subn(r'@media \(prefers-color-scheme: dark\)\{\s*:root\{([^}]*)\}\s*\}', lambda m: "@media (prefers-color-scheme: dark){:root:not([data-theme=light]){" + m.group(1) + "}} :root[data-theme=dark]{" + m.group(1) + "}", h)
 print("theme blocks", n)

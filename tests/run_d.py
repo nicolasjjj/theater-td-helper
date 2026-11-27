@@ -62,6 +62,15 @@ async def main():
         await pg.click("#punchView .tdh-menu"); await pg.wait_for_timeout(600); await shot("d2_drawer")
         await pg.click('.tdh-drawer [data-v="home"]'); await pg.wait_for_timeout(2500)
         await pg.click('.cd:has-text("範例") [data-go="find"]'); await pg.wait_for_timeout(3500); await shot("d2_find")
+        # 個人打卡模式
+        await pg.evaluate("window.__tdh.setCfg({use:'solo'})"); await pg.goto(U + "?ui=D1"); await pg.wait_for_timeout(4500)
+        assert await pg.locator('.tdh-tabbar [data-t="find"]').count() == 0
+        await pg.click('.tdh-tabbar [data-t="live"]'); await pg.wait_for_timeout(3000); await shot("s1_live")
+        await pg.click(".sum.tap"); await pg.wait_for_timeout(900); await shot("s2_mine_pop"); await pg.click("#shotLayer"); await pg.wait_for_timeout(400)
+        await pg.click('.tdh-tabbar [data-t="close"]'); await pg.wait_for_timeout(3000); await shot("s3_close")
+        if await pg.locator("#mineCopy").count(): await pg.click("#mineCopy"); await pg.wait_for_timeout(500)
+        await pg.locator(".tdh-menu:visible").first.click(); await pg.wait_for_timeout(700); await shot("s4_drawer"); await pg.click(".tdh-drawer .sh", position={"x":380,"y":400})
+        await pg.evaluate("window.__tdh.openSettings()"); await pg.wait_for_timeout(800); await pg.click(".tdh-q >> nth=0"); await pg.wait_for_timeout(500); await shot("s5_help")
         print("errors:", errs[:10])
         await b.close()
 try:

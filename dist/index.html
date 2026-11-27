@@ -388,7 +388,7 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.28-0321";</script>
+<script>window.TDH_VERSION="2026.11.28-0349";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
@@ -1415,6 +1415,26 @@
   applyTheme();
   T.applyTheme = applyTheme;
   T.toast = (m) => toast(m);
+  T.solo = () => T.cfg.use === "solo";
+  // 灰色小問號：點一下跳出說明
+  T.help = (text) => `<button type="button" class="tdh-q" data-help="${String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}" aria-label="說明">?</button>`;
+  document.addEventListener("click", (e) => {
+    const q = e.target.closest && e.target.closest(".tdh-q");
+    const old = document.querySelector(".tdh-pop");
+    if (old && !(e.target.closest && e.target.closest(".tdh-pop"))) old.remove();
+    if (!q || (old && old.dataset.for === q.dataset.help)) { if (q) { e.preventDefault(); e.stopPropagation(); } return; }
+    e.preventDefault(); e.stopPropagation();
+    const pop = document.createElement("div"); pop.className = "tdh-pop"; pop.dataset.for = q.dataset.help; pop.textContent = q.dataset.help;
+    document.body.appendChild(pop);
+    const r = q.getBoundingClientRect(), w = Math.min(300, window.innerWidth - 24);
+    pop.style.width = w + "px";
+    pop.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + "px";
+    const below = r.bottom + 8 + pop.offsetHeight < window.innerHeight - 12;
+    pop.style.top = (below ? r.bottom + 8 : r.top - 8 - pop.offsetHeight) + "px";
+    pop.style.setProperty("--ax", (r.left + r.width / 2 - parseFloat(pop.style.left)) + "px");
+    pop.classList.add(below ? "dn" : "up");
+    requestAnimationFrame(() => pop.classList.add("in"));
+  }, true);
   function toast(msg) {
     const b = document.createElement("div"); b.className = "tdh-toast"; b.textContent = msg; document.body.appendChild(b);
     requestAnimationFrame(() => b.classList.add("in")); setTimeout(() => { b.classList.remove("in"); setTimeout(() => b.remove(), 300); }, 1600);
@@ -1478,6 +1498,11 @@
   .tdh-st .tdh-seg button{flex:1;margin:0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:500;padding:8px 0;font-size:14px}
   .tdh-st .tdh-seg button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
   .tdh-toast{position:fixed;left:50%;bottom:calc(var(--tab-h,0px) + 24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:10001;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;transition:all .2s;pointer-events:none;font-family:"Noto Sans TC",sans-serif}
+  .tdh-q,.tdh-ov .tdh-q,.tdh-ov button.tdh-q{display:inline-flex!important;align-items:center;justify-content:center;width:18px!important;height:18px!important;min-width:0!important;min-height:0!important;border-radius:50%!important;border:1.4px solid var(--muted)!important;background:transparent!important;color:var(--muted)!important;font:700 11px/1 -apple-system,sans-serif!important;padding:0!important;margin:0 0 0 6px!important;vertical-align:2px;cursor:pointer;opacity:.75;flex:0 0 auto;box-shadow:none!important;transform:none!important}
+  .tdh-pop{position:fixed;z-index:10050;background:var(--ink);color:var(--bg);font-size:13.5px;line-height:1.65;padding:11px 14px;border-radius:12px;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);opacity:0;transform:translateY(4px);transition:opacity .18s,transform .22s cubic-bezier(.2,.8,.2,1)}
+  .tdh-pop.in{opacity:1;transform:none}
+  .tdh-pop::before{content:"";position:absolute;left:calc(var(--ax) - 6px);width:12px;height:12px;background:inherit;transform:rotate(45deg);border-radius:2px}
+  .tdh-pop.dn::before{top:-5px}.tdh-pop.up::before{bottom:-5px}
   .tdh-sum{font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
   .tdh-sum::-webkit-details-marker{display:none}
   .tdh-sum::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 3px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1);flex:0 0 auto}
@@ -1511,7 +1536,7 @@
         <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場幫幫」</li>
         <li>還沒有劇場資料庫的話，先在 Notion 建一個空白頁面（例如「劇場管理」）再勾選它，下一步可以自動建立</li></ol></details></div>`;
   const whoCard = (c, force) => `<div class="tdh-st" id="tdhWho">${force ? "" : "<h2><b>2</b>你是誰</h2>"}
-        <label class="tdh-lab" for="tdhTd">你的名字</label>
+        <label class="tdh-lab" for="tdhTd">你的名字${T.help("會用在打卡和時段表上，代表「你自己」那一列。")}</label>
         <input id="tdhTd" value="${esc(c.tdName || "")}" placeholder="例如：王小明">
         <label class="tdh-lab">你的職稱（也可以手動填寫）</label>
         <div class="tdh-chips" data-for="tdhRole">${["TD", "ME", "PA", "SM"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
@@ -1531,8 +1556,9 @@
     let body;
     if (force) {
       body = `${whoCard(c, true)}
+        <div class="tdh-st"><h2>使用模式${T.help("「完整版」有找人、打卡、結案和資料庫，適合要管整組人的 TD。「個人打卡」只留下打卡和你自己的時段明細：每天記上下班時間，結案時直接看到自己的段數和金額，可以截圖或複製文字傳給製作方。適合舞監、燈光技術指導（ME）等只需要記自己時段的人。隨時可以切回來，資料不會不見。")}</h2><div class="tdh-seg">${[["", "完整版"], ["solo", "個人打卡"]].map(([v, t]) => `<button type="button" class="${(T.cfg.use || "") === v ? "on" : ""}" data-use-v="${v}">${t}</button>`).join("")}</div></div>
         <div class="tdh-st"><h2>外觀</h2><div class="tdh-seg">${[["", "跟著手機"], ["light", "日間模式"], ["dark", "夜間模式"]].map(([v, t]) => `<button type="button" class="${(T.cfg.theme || "") === v ? "on" : ""}" data-theme-v="${v}">${t}</button>`).join("")}</div></div>
-        <div class="tdh-st"><h2>資料放在</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
+        <div class="tdh-st"><h2>資料放在${T.help("你的案子、Crew、場館、劇團都存在這裡。用 Google 雲端的話，資料是你雲端硬碟裡的一份試算表，你自己也能直接打開來看或修改。")}</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
           <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>
         ${googleCard(true)}
         ${mode === "notion" ? notionCard(c, seen, true) : ""}
@@ -1636,6 +1662,10 @@
     ov.querySelectorAll("[data-ui-v]").forEach(b => b.onclick = () => {
       T.setCfg({ ui: b.dataset.uiV }); try { localStorage.removeItem("tdh.tab"); } catch (e) {} changed = true;
       ov.querySelectorAll("[data-ui-v]").forEach(x => x.classList.toggle("on", x === b)); toast("返回後切換成 " + b.dataset.uiV);
+    });
+    ov.querySelectorAll("[data-use-v]").forEach(b => b.onclick = () => {
+      T.setCfg({ use: b.dataset.useV }); try { localStorage.removeItem("tdh.tab"); } catch (e) {} changed = true;
+      ov.querySelectorAll("[data-use-v]").forEach(x => x.classList.toggle("on", x === b)); toast("關閉設定後切換");
     });
     ov.querySelectorAll("[data-theme-v]").forEach(b => b.onclick = () => {
       T.setCfg({ theme: b.dataset.themeV }); applyTheme();
@@ -2370,12 +2400,23 @@
   button,.card,.chip{-webkit-tap-highlight-color:transparent}
   .tdh-sx{position:relative;display:block}.tdh-sx>input{padding-right:38px!important}
   .tdh-sxc{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:11px;border:0;background:color-mix(in srgb,var(--muted) 45%,var(--bg));color:var(--card);font-size:11px;font-weight:700;line-height:22px;padding:0;cursor:pointer;margin-top:-1px}
-  .casesel{appearance:none;-webkit-appearance:none;font-size:18px!important;font-weight:800;letter-spacing:.01em;padding:14px 46px 14px 16px!important;border-radius:16px!important;border:1.5px solid var(--line)!important;background:var(--card)!important;box-shadow:0 4px 14px -10px rgba(0,0,0,.35);cursor:pointer;margin:2px 0 8px!important;text-overflow:ellipsis;transition:border-color .2s}
+  .casesel{appearance:none;-webkit-appearance:none;font-size:16px!important;font-weight:800;letter-spacing:.01em;padding:9px 40px 9px 14px!important;border-radius:13px!important;border:1.5px solid var(--line)!important;background:var(--card)!important;box-shadow:0 4px 14px -10px rgba(0,0,0,.35);cursor:pointer;margin:2px 0 6px!important;text-overflow:ellipsis;transition:border-color .2s}
   .casesel:focus{outline:none;border-color:var(--accent)!important}
-  .pstick::before{content:"";position:absolute;right:20px;top:24px;width:9px;height:9px;border-right:2.4px solid var(--muted);border-bottom:2.4px solid var(--muted);transform:rotate(45deg);pointer-events:none;z-index:1}
+  .pstick::before{content:"";position:absolute;right:18px;top:20px;width:8px;height:8px;border-right:2.4px solid var(--muted);border-bottom:2.4px solid var(--muted);transform:rotate(45deg);pointer-events:none;z-index:1}
   .more>summary{list-style:none}.more>summary::-webkit-details-marker{display:none}
   .more>summary::before{content:"";flex:0 0 auto;width:6px;height:6px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 2px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
   .more[open]>summary::before{transform:rotate(135deg)}
+  .pstick .sum{padding:10px 14px!important;border-radius:14px!important;margin:0 0 8px!important;align-items:flex-end}
+  .pstick .sum-n{font-size:28px!important}
+  .pstick .sum-l{display:flex;align-items:center}
+  .pstick .sum-r{font-size:11px!important;line-height:1.5!important}
+  .pstick .prog{margin-top:8px}.pstick .prog-t{font-size:11px;margin-bottom:4px}.pstick .prog-b{height:6px}
+  .tdh-drawer [hidden]{display:none!important}
+  .tdh-drawer .donate{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;text-align:left;margin:0 6px 8px;padding:10px 12px;border-radius:12px;border:1px dashed var(--line);background:transparent;color:var(--ink);font:inherit;cursor:pointer;transition:background .2s,transform .12s}
+  .tdh-drawer .donate span{grid-row:span 2;font-size:20px}.tdh-drawer .donate b{font-size:14px}.tdh-drawer .donate small{font-size:11.5px;color:var(--muted)}
+  .tdh-drawer .donate:active{transform:scale(.98);background:var(--sel)}
+  .tdh-solo .day .crew,.tdh-solo .day .crewx{display:none!important}
+  .mine-card{font-size:14px;margin:4px 0 12px}.mine-card .shot-card{box-shadow:0 6px 22px -12px rgba(0,0,0,.35)}
   .sum.tap{flex-wrap:wrap;cursor:pointer;transition:transform .15s}.sum.tap:active{transform:scale(.985)}
   .sum-go{display:inline-flex;align-items:center;gap:4px;margin-left:8px;font-size:11px;padding:1px 8px;border-radius:9px;border:1px solid currentColor;opacity:.9}
   .sum-go::after{content:"";width:5px;height:5px;border-right:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg)}
@@ -2493,6 +2534,8 @@
 
   // ---------- 左側選單（D1、D2） ----------
   let drawer = null;
+  const SOLO = !!(T.cfg && T.cfg.use === "solo") && UI !== "C";
+  const DONATE_URL = "";   // 贊助連結：之後填上就會生效
   function buildDrawer() {
     drawer = document.createElement("div"); drawer.className = "tdh-drawer";
     const main = UI === "D2" ? [["home", "首頁"], ["find", "找人"], ["live", "每日打卡"], ["close", "結案"]] : [];
@@ -2502,15 +2545,17 @@
       <button class="it" data-v="cases">我的案子</button>
       <button class="it db" id="rcTog"><span style="flex:1">最近項目</span><span class="car">${CHEV}</span></button>
       <div class="dbl" id="rcWrap"><div id="rcList"></div></div>
-      <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">${CHEV}</span></button>
-      <div class="dbl" id="dbWrap"><div id="dbList">${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div></div>
+      <button class="it db" id="dbTog" ${SOLO ? "hidden" : ""}><span style="flex:1">資料庫</span><span class="car">${CHEV}</span></button>
+      <div class="dbl" id="dbWrap" ${SOLO ? "hidden" : ""}><div id="dbList">${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div></div>
       </div>
       <div class="sync" id="drSync"></div>
+      <button class="donate" id="drDonate"><span>☕</span><b>支持劇場幫幫</b><small>維護需要時間和成本，喜歡的話請我喝杯咖啡</small></button>
       <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button>${UI !== "D1" ? `<div class="ver">介面 ${UI}（測試）</div>` : ""}</div></div>`;
     document.body.appendChild(drawer);
     drawer.querySelector(".sh").onclick = closeDrawer;
     drawer.querySelectorAll("[data-v]").forEach(b => b.onclick = () => show(b.dataset.v));
     drawer.querySelector("[data-new]").onclick = () => show("cases", { add: true });
+    drawer.querySelector("#drDonate").onclick = () => { if (DONATE_URL) window.open(DONATE_URL, "_blank", "noopener"); else if (T.toast) T.toast("贊助連結準備中，謝謝你！"); };
     [["#dbTog", "#dbWrap"], ["#rcTog", "#rcWrap"]].forEach(([t, l]) => drawer.querySelector(t).onclick = () => { const el = drawer.querySelector(l), on = !el.classList.contains("open"); el.classList.toggle("open", on); drawer.querySelector(t).classList.toggle("open", on); });
     drawer.querySelector("[data-set]").onclick = () => { T.openSettings && T.openSettings(() => openDrawer()); setTimeout(() => drawer.classList.remove("open"), 250); };
     let x0 = null;   // 往左滑關閉
@@ -2632,7 +2677,7 @@
       ["live", "打卡", I('<circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 2.8h5"/>')],
       ["close", "結案", I('<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M9 9v11"/>')],
       ["lists", "名單", I('<path d="M16 19v-1.2a3.8 3.8 0 0 0-3.8-3.8H7.8A3.8 3.8 0 0 0 4 17.8V19"/><circle cx="10" cy="7.5" r="3.5"/><path d="M20 19v-1.2a3.8 3.8 0 0 0-2.8-3.6M15.5 4.2a3.6 3.6 0 0 1 0 6.6"/>')],
-    ] : UI === "D1" ? [["find", "找人", ""], ["live", "打卡", ""], ["close", "結案", ""]] : [];
+    ] : UI === "D1" ? (SOLO ? [["live", "打卡", ""], ["close", "我的明細", ""]] : [["find", "找人", ""], ["live", "打卡", ""], ["close", "結案", ""]]) : [];
     if (TABS.length) {
       const bar = document.createElement("nav"); bar.className = "tdh-tabbar" + (UI === "D1" ? " text" : "");
       bar.innerHTML = `<div>${TABS.map(([k, n, ic]) => `<button type="button" data-t="${k}">${ic}<span>${n}</span></button>`).join("")}</div>`;
@@ -2656,7 +2701,8 @@
     new MutationObserver(tick).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["style", "class"], childList: true });
     let first = UI === "D2" ? "home" : "find"; try { first = localStorage.getItem("tdh.tab") || first; } catch (e) {}
     const ok = UI === "C" ? ["cases", "find", "live", "close", "lists"] : UI === "D1" ? ["find", "live", "close", "cases", "crew", "venue", "troupe"] : ["home", "find", "live", "close", "cases", "crew", "venue", "troupe"];
-    if (!ok.includes(first)) first = UI === "D2" ? "home" : "find";
+    if (SOLO) { const i = ok.indexOf("find"); if (i >= 0) ok.splice(i, 1); document.documentElement.classList.add("tdh-solo"); }
+    if (!ok.includes(first)) first = UI === "D2" ? "home" : SOLO ? "live" : "find";
     setTimeout(() => show(first), 0);
   });
 })();
@@ -3242,8 +3288,12 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
         <div class="clabel" style="margin-top:12px">其他人・點名字確認可以</div><div class="plist">${rest.slice(0, q ? 120 : 20).map(p => chip(p, false)).join("") || `<span class="note">找不到</span>`}</div>`;
       if (!all.some(p => p.name === q)) { body.insertAdjacentHTML("beforeend", `<div class="bk-new"><button type="button" class="bk-newbtn" id="bkNew">＋ 新增${q ? `「${esc(q)}」為` : "全新的"} Crew</button></div>`);
         body.querySelector("#bkNew").onclick = () => {
+          const srW = sheet.querySelector(".tdh-sx") || sheet.querySelector("#askSearch"); if (srW) srW.style.display = "none";
+          body.innerHTML = `<div class="bk-new"><div class="clabel">新增全新的 Crew</div><div class="bk-newrow"><input id="bkNewName" placeholder="新 Crew 的姓名" value="${esc(q)}" enterkeyhint="done"><button type="button" id="bkNewOk">新增</button></div>
+            <div class="note" style="margin-top:8px">其他資料之後可以到「資料庫 → Crew」補</div><button type="button" class="linkbtn" id="bkNewBack" style="margin-top:10px">← 回到名單</button></div>`;
+          body.scrollTop = 0;
           const box = body.querySelector(".bk-new");
-          box.innerHTML = `<div class="bk-newrow"><input id="bkNewName" placeholder="新 Crew 的姓名" value="${esc(q)}" enterkeyhint="done"><button type="button" id="bkNewOk">新增</button></div><div class="note" style="margin-top:6px">其他資料之後可以到「資料庫 → Crew」補</div>`;
+          body.querySelector("#bkNewBack").onclick = () => { if (srW) srW.style.display = ""; draw(); };
           const inp = box.querySelector("#bkNewName"); inp.focus();
           const go = async () => {
             const nm = inp.value.trim(); if (!nm) { inp.focus(); return; }
@@ -3253,6 +3303,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
               crewDirState = null; await loadCrewDir();
               const np = Object.values(crewDir).find(p => p.name === nm);
               toast(`已新增 ${nm}`);
+              if (srW) srW.style.display = "";
               if (np) openConfirm(i, np, draw); else draw();
             } catch (e) { ok.disabled = false; ok.textContent = "新增"; toast("新增失敗：" + ((e && e.message) || e)); }
           };
@@ -3736,7 +3787,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
       `<button class="${cls} ${val === v ? "on" : ""}" data-v="${v === null ? "" : v}">${l.replace("未休滿", "未休滿<br>")}${v ? `<i>+${v}</i>` : ""}</button>`).join("")}</div></div>`;
   };
   let ptab = "punch", scrolledFor = null, clearArm = null, phase = "live";
-  const PHASE_TABS = window.__tdh && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"], ["shot", "截圖"]] } : { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };
+  const PHASE_TABS = window.__tdh && window.__tdh.solo && window.__tdh.solo() && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["mine", "我的時段明細"]] } : window.__tdh && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"], ["shot", "截圖"]] } : { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };
   const todayD = () => { const t = new Date(); t.setHours(0, 0, 0, 0); return t; };
   function dayState(d) {
     if (d.off) return "off";
@@ -3834,19 +3885,26 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
       h += `<button class="shotbtn" id="shotTax"><b>抬頭・統編</b><span>${inf.head || inf.tax ? esc(inf.head) + (inf.tax ? "・" + esc(inf.tax) : "") : "還沒找到，請在「☰ 管理」的劇團或案子裡填寫"}</span></button>
         <button class="shotbtn" id="shotCrew"><b>${window.TEAM()}人員名單</b><span>給製作人：每天預計的${window.TEAM()}人員（含${window.ROLE()}），一張圖看完</span></button>
         <div class="note">點開後會變成全螢幕卡片，直接用手機截圖；點一下畫面就關閉。</div>`;
-    } else if (ptab === "crew") {
+    } else if (ptab === "crew" || ptab === "mine") {
       h += `<details class="card prep" ${prepOpen ? "open" : ""}><summary><b>前置與我的時段費</b><span>${c.tdFlat ? "整筆 $" + money(c.tdFlat) : c.prepSeg ? fmtSeg(c.prepSeg) + " 段" : "未填"}</span></summary>
         <label>前置內容（一行一項）<textarea id="prepText" rows="4" placeholder="技協1段&#10;開會1段">${esc(c.prep)}</textarea></label>
         <div class="row2"><label>前置段數<input id="prepSeg" inputmode="decimal" value="${c.prepSeg ?? ""}"></label>
         <label>${window.ROLE()} 時段費<input id="tdRate" inputmode="numeric" value="${c.tdRate ?? ""}"></label></div>
         <label>這個案子的${window.ROLE()}<input id="tdName" value="${esc(c.tdName || "")}" placeholder="${DEFAULT_TD}（空白就是你）"></label>
         <label>整筆費用（已談好整個案子的總價才填，會取代時段費計算）<input id="tdFlat" inputmode="numeric" value="${c.tdFlat ?? ""}" placeholder="例如 45000"></label></details>`;
+      if (ptab === "mine") {
+        let mh = "";
+        try { const sh = giveSheet(c, rec, tmap), me = sh.people.find(p => p.role === "TD"); mh = me && me.total ? crewShotCard(c, sh, me) : ""; } catch (e) {}
+        h += `<div class="mine-card">${mh || `<div class="card note">還沒有打卡紀錄，先到「打卡」記上下班時間。</div>`}</div>
+          ${mh ? `<div class="pvact"><button class="primary" id="mineShot">全螢幕看（方便截圖）</button><button class="ghost" id="mineCopy" style="margin-top:8px">複製文字明細</button></div>` : ""}`;
+      } else {
       const names = crewOrder(c, rec, tmap);
       h += `<details class="card rates" ${ratesOpen ? "open" : ""}><summary><b>Crew 時段費</b><span>${names.filter(n => rec.rates[n]).length}/${names.length} 人已填</span></summary>
         <div class="row2"><label>全部套用<input id="rateAll" inputmode="numeric" placeholder="例如 850"></label><button class="ghost" id="rateAllBtn">套用到空白的人</button></div>
         ${names.map(n => { const p = crewByName[n]; const last = lastRate(p); return `<div class="rate"><span>${esc(n)}</span>
           <small>${last ? "上次 " + last : ""}</small><input class="rateIn" data-name="${esc(n)}" inputmode="numeric" value="${rec.rates[n] ?? ""}" placeholder="${c.crewRate || last || ""}"></div>`; }).join("") || `<div class="note">還沒有 Crew</div>`}
         <div class="note">存檔時也會寫進每個人在「劇場のCrew」的「時段費紀錄」。</div></details>`;
+      }
     } else if (ptab === "give") {
       const sh = giveSheet(c, rec, tmap), crewP = sh.people;
       if (sh.stops) h += `<div class="note" style="margin:2px 2px 6px">巡演「${esc(c.tour)}」：同一個人跑了好幾站，會合在同一張表裡給他（可在「時段表」取消合併）。</div>`;
@@ -3910,7 +3968,10 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
       document.querySelectorAll(".cmShot").forEach(b => b.onclick = () => showShot(crewShotCard(c, sh, crewP[+b.dataset.i])));
       return;
     }
-    if (ptab === "crew") {
+    if (ptab === "crew" || ptab === "mine") {
+      if ($("mineShot")) $("mineShot").onclick = () => { const sh = giveSheet(c, rec, tmap); showShot(crewShotCard(c, sh, sh.people.find(p => p.role === "TD"))); };
+      if ($("mineCopy")) $("mineCopy").onclick = () => { const m = crewMessages(c, rec, tmap, true)[0]; if (m) copyText(m.text, "已複製我的時段明細"); };
+      if (document.querySelector(".rates")) 
       document.querySelector(".rates").ontoggle = (e) => { ratesOpen = e.target.open; };
       document.querySelector(".prep").ontoggle = (e) => { prepOpen = e.target.open; };
     const prepT = $("prepText"), prepS = $("prepSeg"), tdR = $("tdRate");
@@ -3920,7 +3981,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
     $("tdFlat").onchange = () => { c.tdFlat = num($("tdFlat").value); updateProps(c.id, { "TD整筆費用": c.tdFlat }); render(); };
     tdR.onchange = () => { c.tdRate = num(tdR.value); updateProps(c.id, { "TD時段費": c.tdRate }); render(); };
 
-    $("rateAllBtn").onclick = () => {
+    if ($("rateAllBtn")) $("rateAllBtn").onclick = () => {
       const v = num($("rateAll").value); if (!v) return;
       document.querySelectorAll(".rateIn").forEach(inp => { if (!inp.value) { inp.value = v; setRate(c, rec, inp.dataset.name, v); } });
       saveRec(c); render();
@@ -4104,9 +4165,9 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
       <tfoot><tr><td colspan="2">合計</td><td class="s">${fmtSeg(p.total)}</td><td></td></tr></tfoot></table></div>`;
   }
   // ---------- messages for each crew ----------
-  function crewMessages(c, rec, tmap) {
+  function crewMessages(c, rec, tmap, me) {
     const s = buildSheet(c, rec, tmap);
-    return s.people.filter(p => p.role !== "TD").map(p => {
+    return s.people.filter(p => me ? p.role === "TD" : p.role !== "TD").map(p => {
       const lines = [`${showName(c)}時段明細｜${p.name}`, ""];
       s.allCols.forEach((col, k) => {
         const cell = p.cells[k]; if (!col.d || !cell.text) return;
@@ -4170,9 +4231,9 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
         p.absent = false; saveRec(c); closeSheet(); render(); openEditor(c, rec, d, n, tmap);
       });
     };
-    sheet.innerHTML = `<div class="sh-in"><b>${dw(d.date)} 加入人員</b>
-      <input id="pSearch" placeholder="搜尋姓名"><div id="pList" class="plist"></div>
-      <div class="sh-actions"><button class="ghost" id="shClose">關閉</button></div></div>`;
+    sheet.innerHTML = `<div class="sh-in"><div class="sh-top"><b>${dw(d.date)} 加入人員</b><button class="shx" id="shClose" aria-label="關閉">✕</button></div>
+      <input id="pSearch" placeholder="搜尋姓名" enterkeyhint="done"><div class="sh-body"><div class="clabel">點名字加入這一天</div><div id="pList" class="plist"></div></div></div>`;
+    sheet.onclick = (e) => { if (e.target === sheet) closeSheet(); };
     sheet.classList.add("show");
     $("shClose").onclick = closeSheet;
     $("pSearch").oninput = (e) => draw(e.target.value.trim());
@@ -4912,7 +4973,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
   window.__punch = {
     enter(ph) {
       if (ph && ph !== phase) { phase = ph; ptab = PHASE_TABS[ph][0][0]; window.scrollTo(0, 0); }
-      const t = document.querySelector("#punchView h1"); if (t) t.textContent = phase === "close" ? "時段表生成" : (window.__tdh.ui && window.__tdh.ui() !== "C" ? "每日打卡" : "每日打卡 / 截圖");
+      const t = document.querySelector("#punchView h1"); if (t) t.textContent = phase === "close" ? (window.__tdh.solo && window.__tdh.solo() ? "我的時段明細" : "時段表生成") : (window.__tdh.ui && window.__tdh.ui() !== "C" ? "每日打卡" : "每日打卡 / 截圖");
       if (!loaded && mcp) loadAll(); render();
     },
     refresh() { Object.keys(tables).forEach(k => delete tables[k]); loadAll(); },

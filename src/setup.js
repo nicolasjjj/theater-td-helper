@@ -12,6 +12,26 @@
   applyTheme();
   T.applyTheme = applyTheme;
   T.toast = (m) => toast(m);
+  T.solo = () => T.cfg.use === "solo";
+  // 灰色小問號：點一下跳出說明
+  T.help = (text) => `<button type="button" class="tdh-q" data-help="${String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}" aria-label="說明">?</button>`;
+  document.addEventListener("click", (e) => {
+    const q = e.target.closest && e.target.closest(".tdh-q");
+    const old = document.querySelector(".tdh-pop");
+    if (old && !(e.target.closest && e.target.closest(".tdh-pop"))) old.remove();
+    if (!q || (old && old.dataset.for === q.dataset.help)) { if (q) { e.preventDefault(); e.stopPropagation(); } return; }
+    e.preventDefault(); e.stopPropagation();
+    const pop = document.createElement("div"); pop.className = "tdh-pop"; pop.dataset.for = q.dataset.help; pop.textContent = q.dataset.help;
+    document.body.appendChild(pop);
+    const r = q.getBoundingClientRect(), w = Math.min(300, window.innerWidth - 24);
+    pop.style.width = w + "px";
+    pop.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + "px";
+    const below = r.bottom + 8 + pop.offsetHeight < window.innerHeight - 12;
+    pop.style.top = (below ? r.bottom + 8 : r.top - 8 - pop.offsetHeight) + "px";
+    pop.style.setProperty("--ax", (r.left + r.width / 2 - parseFloat(pop.style.left)) + "px");
+    pop.classList.add(below ? "dn" : "up");
+    requestAnimationFrame(() => pop.classList.add("in"));
+  }, true);
   function toast(msg) {
     const b = document.createElement("div"); b.className = "tdh-toast"; b.textContent = msg; document.body.appendChild(b);
     requestAnimationFrame(() => b.classList.add("in")); setTimeout(() => { b.classList.remove("in"); setTimeout(() => b.remove(), 300); }, 1600);
@@ -73,6 +93,11 @@
   .tdh-st .tdh-seg button{flex:1;margin:0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:500;padding:8px 0;font-size:14px}
   .tdh-st .tdh-seg button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
   .tdh-toast{position:fixed;left:50%;bottom:calc(var(--tab-h,0px) + 24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:10001;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;transition:all .2s;pointer-events:none;font-family:"Noto Sans TC",sans-serif}
+  .tdh-q,.tdh-ov .tdh-q,.tdh-ov button.tdh-q{display:inline-flex!important;align-items:center;justify-content:center;width:18px!important;height:18px!important;min-width:0!important;min-height:0!important;border-radius:50%!important;border:1.4px solid var(--muted)!important;background:transparent!important;color:var(--muted)!important;font:700 11px/1 -apple-system,sans-serif!important;padding:0!important;margin:0 0 0 6px!important;vertical-align:2px;cursor:pointer;opacity:.75;flex:0 0 auto;box-shadow:none!important;transform:none!important}
+  .tdh-pop{position:fixed;z-index:10050;background:var(--ink);color:var(--bg);font-size:13.5px;line-height:1.65;padding:11px 14px;border-radius:12px;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);opacity:0;transform:translateY(4px);transition:opacity .18s,transform .22s cubic-bezier(.2,.8,.2,1)}
+  .tdh-pop.in{opacity:1;transform:none}
+  .tdh-pop::before{content:"";position:absolute;left:calc(var(--ax) - 6px);width:12px;height:12px;background:inherit;transform:rotate(45deg);border-radius:2px}
+  .tdh-pop.dn::before{top:-5px}.tdh-pop.up::before{bottom:-5px}
   .tdh-sum{font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
   .tdh-sum::-webkit-details-marker{display:none}
   .tdh-sum::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 3px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1);flex:0 0 auto}
@@ -106,7 +131,7 @@
         <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場幫幫」</li>
         <li>還沒有劇場資料庫的話，先在 Notion 建一個空白頁面（例如「劇場管理」）再勾選它，下一步可以自動建立</li></ol></details></div>`;
   const whoCard = (c, force) => `<div class="tdh-st" id="tdhWho">${force ? "" : "<h2><b>2</b>你是誰</h2>"}
-        <label class="tdh-lab" for="tdhTd">你的名字</label>
+        <label class="tdh-lab" for="tdhTd">你的名字${T.help("會用在打卡和時段表上，代表「你自己」那一列。")}</label>
         <input id="tdhTd" value="${esc(c.tdName || "")}" placeholder="例如：王小明">
         <label class="tdh-lab">你的職稱（也可以手動填寫）</label>
         <div class="tdh-chips" data-for="tdhRole">${["TD", "ME", "PA", "SM"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
@@ -126,8 +151,9 @@
     let body;
     if (force) {
       body = `${whoCard(c, true)}
+        <div class="tdh-st"><h2>使用模式${T.help("「完整版」有找人、打卡、結案和資料庫，適合要管整組人的 TD。「個人打卡」只留下打卡和你自己的時段明細：每天記上下班時間，結案時直接看到自己的段數和金額，可以截圖或複製文字傳給製作方。適合舞監、燈光技術指導（ME）等只需要記自己時段的人。隨時可以切回來，資料不會不見。")}</h2><div class="tdh-seg">${[["", "完整版"], ["solo", "個人打卡"]].map(([v, t]) => `<button type="button" class="${(T.cfg.use || "") === v ? "on" : ""}" data-use-v="${v}">${t}</button>`).join("")}</div></div>
         <div class="tdh-st"><h2>外觀</h2><div class="tdh-seg">${[["", "跟著手機"], ["light", "日間模式"], ["dark", "夜間模式"]].map(([v, t]) => `<button type="button" class="${(T.cfg.theme || "") === v ? "on" : ""}" data-theme-v="${v}">${t}</button>`).join("")}</div></div>
-        <div class="tdh-st"><h2>資料放在</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
+        <div class="tdh-st"><h2>資料放在${T.help("你的案子、Crew、場館、劇團都存在這裡。用 Google 雲端的話，資料是你雲端硬碟裡的一份試算表，你自己也能直接打開來看或修改。")}</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
           <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>
         ${googleCard(true)}
         ${mode === "notion" ? notionCard(c, seen, true) : ""}
@@ -231,6 +257,10 @@
     ov.querySelectorAll("[data-ui-v]").forEach(b => b.onclick = () => {
       T.setCfg({ ui: b.dataset.uiV }); try { localStorage.removeItem("tdh.tab"); } catch (e) {} changed = true;
       ov.querySelectorAll("[data-ui-v]").forEach(x => x.classList.toggle("on", x === b)); toast("返回後切換成 " + b.dataset.uiV);
+    });
+    ov.querySelectorAll("[data-use-v]").forEach(b => b.onclick = () => {
+      T.setCfg({ use: b.dataset.useV }); try { localStorage.removeItem("tdh.tab"); } catch (e) {} changed = true;
+      ov.querySelectorAll("[data-use-v]").forEach(x => x.classList.toggle("on", x === b)); toast("關閉設定後切換");
     });
     ov.querySelectorAll("[data-theme-v]").forEach(b => b.onclick = () => {
       T.setCfg({ theme: b.dataset.themeV }); applyTheme();

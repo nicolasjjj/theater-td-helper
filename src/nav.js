@@ -35,12 +35,23 @@
   button,.card,.chip{-webkit-tap-highlight-color:transparent}
   .tdh-sx{position:relative;display:block}.tdh-sx>input{padding-right:38px!important}
   .tdh-sxc{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:11px;border:0;background:color-mix(in srgb,var(--muted) 45%,var(--bg));color:var(--card);font-size:11px;font-weight:700;line-height:22px;padding:0;cursor:pointer;margin-top:-1px}
-  .casesel{appearance:none;-webkit-appearance:none;font-size:18px!important;font-weight:800;letter-spacing:.01em;padding:14px 46px 14px 16px!important;border-radius:16px!important;border:1.5px solid var(--line)!important;background:var(--card)!important;box-shadow:0 4px 14px -10px rgba(0,0,0,.35);cursor:pointer;margin:2px 0 8px!important;text-overflow:ellipsis;transition:border-color .2s}
+  .casesel{appearance:none;-webkit-appearance:none;font-size:16px!important;font-weight:800;letter-spacing:.01em;padding:9px 40px 9px 14px!important;border-radius:13px!important;border:1.5px solid var(--line)!important;background:var(--card)!important;box-shadow:0 4px 14px -10px rgba(0,0,0,.35);cursor:pointer;margin:2px 0 6px!important;text-overflow:ellipsis;transition:border-color .2s}
   .casesel:focus{outline:none;border-color:var(--accent)!important}
-  .pstick::before{content:"";position:absolute;right:20px;top:24px;width:9px;height:9px;border-right:2.4px solid var(--muted);border-bottom:2.4px solid var(--muted);transform:rotate(45deg);pointer-events:none;z-index:1}
+  .pstick::before{content:"";position:absolute;right:18px;top:20px;width:8px;height:8px;border-right:2.4px solid var(--muted);border-bottom:2.4px solid var(--muted);transform:rotate(45deg);pointer-events:none;z-index:1}
   .more>summary{list-style:none}.more>summary::-webkit-details-marker{display:none}
   .more>summary::before{content:"";flex:0 0 auto;width:6px;height:6px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 2px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
   .more[open]>summary::before{transform:rotate(135deg)}
+  .pstick .sum{padding:10px 14px!important;border-radius:14px!important;margin:0 0 8px!important;align-items:flex-end}
+  .pstick .sum-n{font-size:28px!important}
+  .pstick .sum-l{display:flex;align-items:center}
+  .pstick .sum-r{font-size:11px!important;line-height:1.5!important}
+  .pstick .prog{margin-top:8px}.pstick .prog-t{font-size:11px;margin-bottom:4px}.pstick .prog-b{height:6px}
+  .tdh-drawer [hidden]{display:none!important}
+  .tdh-drawer .donate{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;text-align:left;margin:0 6px 8px;padding:10px 12px;border-radius:12px;border:1px dashed var(--line);background:transparent;color:var(--ink);font:inherit;cursor:pointer;transition:background .2s,transform .12s}
+  .tdh-drawer .donate span{grid-row:span 2;font-size:20px}.tdh-drawer .donate b{font-size:14px}.tdh-drawer .donate small{font-size:11.5px;color:var(--muted)}
+  .tdh-drawer .donate:active{transform:scale(.98);background:var(--sel)}
+  .tdh-solo .day .crew,.tdh-solo .day .crewx{display:none!important}
+  .mine-card{font-size:14px;margin:4px 0 12px}.mine-card .shot-card{box-shadow:0 6px 22px -12px rgba(0,0,0,.35)}
   .sum.tap{flex-wrap:wrap;cursor:pointer;transition:transform .15s}.sum.tap:active{transform:scale(.985)}
   .sum-go{display:inline-flex;align-items:center;gap:4px;margin-left:8px;font-size:11px;padding:1px 8px;border-radius:9px;border:1px solid currentColor;opacity:.9}
   .sum-go::after{content:"";width:5px;height:5px;border-right:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg)}
@@ -158,6 +169,8 @@
 
   // ---------- 左側選單（D1、D2） ----------
   let drawer = null;
+  const SOLO = !!(T.cfg && T.cfg.use === "solo") && UI !== "C";
+  const DONATE_URL = "";   // 贊助連結：之後填上就會生效
   function buildDrawer() {
     drawer = document.createElement("div"); drawer.className = "tdh-drawer";
     const main = UI === "D2" ? [["home", "首頁"], ["find", "找人"], ["live", "每日打卡"], ["close", "結案"]] : [];
@@ -167,15 +180,17 @@
       <button class="it" data-v="cases">我的案子</button>
       <button class="it db" id="rcTog"><span style="flex:1">最近項目</span><span class="car">${CHEV}</span></button>
       <div class="dbl" id="rcWrap"><div id="rcList"></div></div>
-      <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">${CHEV}</span></button>
-      <div class="dbl" id="dbWrap"><div id="dbList">${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div></div>
+      <button class="it db" id="dbTog" ${SOLO ? "hidden" : ""}><span style="flex:1">資料庫</span><span class="car">${CHEV}</span></button>
+      <div class="dbl" id="dbWrap" ${SOLO ? "hidden" : ""}><div id="dbList">${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div></div>
       </div>
       <div class="sync" id="drSync"></div>
+      <button class="donate" id="drDonate"><span>☕</span><b>支持劇場幫幫</b><small>維護需要時間和成本，喜歡的話請我喝杯咖啡</small></button>
       <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button>${UI !== "D1" ? `<div class="ver">介面 ${UI}（測試）</div>` : ""}</div></div>`;
     document.body.appendChild(drawer);
     drawer.querySelector(".sh").onclick = closeDrawer;
     drawer.querySelectorAll("[data-v]").forEach(b => b.onclick = () => show(b.dataset.v));
     drawer.querySelector("[data-new]").onclick = () => show("cases", { add: true });
+    drawer.querySelector("#drDonate").onclick = () => { if (DONATE_URL) window.open(DONATE_URL, "_blank", "noopener"); else if (T.toast) T.toast("贊助連結準備中，謝謝你！"); };
     [["#dbTog", "#dbWrap"], ["#rcTog", "#rcWrap"]].forEach(([t, l]) => drawer.querySelector(t).onclick = () => { const el = drawer.querySelector(l), on = !el.classList.contains("open"); el.classList.toggle("open", on); drawer.querySelector(t).classList.toggle("open", on); });
     drawer.querySelector("[data-set]").onclick = () => { T.openSettings && T.openSettings(() => openDrawer()); setTimeout(() => drawer.classList.remove("open"), 250); };
     let x0 = null;   // 往左滑關閉
@@ -297,7 +312,7 @@
       ["live", "打卡", I('<circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 2.8h5"/>')],
       ["close", "結案", I('<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M9 9v11"/>')],
       ["lists", "名單", I('<path d="M16 19v-1.2a3.8 3.8 0 0 0-3.8-3.8H7.8A3.8 3.8 0 0 0 4 17.8V19"/><circle cx="10" cy="7.5" r="3.5"/><path d="M20 19v-1.2a3.8 3.8 0 0 0-2.8-3.6M15.5 4.2a3.6 3.6 0 0 1 0 6.6"/>')],
-    ] : UI === "D1" ? [["find", "找人", ""], ["live", "打卡", ""], ["close", "結案", ""]] : [];
+    ] : UI === "D1" ? (SOLO ? [["live", "打卡", ""], ["close", "我的明細", ""]] : [["find", "找人", ""], ["live", "打卡", ""], ["close", "結案", ""]]) : [];
     if (TABS.length) {
       const bar = document.createElement("nav"); bar.className = "tdh-tabbar" + (UI === "D1" ? " text" : "");
       bar.innerHTML = `<div>${TABS.map(([k, n, ic]) => `<button type="button" data-t="${k}">${ic}<span>${n}</span></button>`).join("")}</div>`;
@@ -321,7 +336,8 @@
     new MutationObserver(tick).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["style", "class"], childList: true });
     let first = UI === "D2" ? "home" : "find"; try { first = localStorage.getItem("tdh.tab") || first; } catch (e) {}
     const ok = UI === "C" ? ["cases", "find", "live", "close", "lists"] : UI === "D1" ? ["find", "live", "close", "cases", "crew", "venue", "troupe"] : ["home", "find", "live", "close", "cases", "crew", "venue", "troupe"];
-    if (!ok.includes(first)) first = UI === "D2" ? "home" : "find";
+    if (SOLO) { const i = ok.indexOf("find"); if (i >= 0) ok.splice(i, 1); document.documentElement.classList.add("tdh-solo"); }
+    if (!ok.includes(first)) first = UI === "D2" ? "home" : SOLO ? "live" : "find";
     setTimeout(() => show(first), 0);
   });
 })();
