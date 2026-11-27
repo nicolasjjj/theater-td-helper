@@ -388,7 +388,7 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.27-1551";</script>
+<script>window.TDH_VERSION="2026.11.27-1602";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
@@ -3778,18 +3778,18 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
     const gColor = (g) => { const a = GC[g.group] || ["#6B7280"]; return a[((g.week || 1) - 1) % a.length]; };
     const FONT = "Noto Sans TC";
     const nDay = s.allCols.length;
-    const C = { name: 0, rate: 1, prep: 2, day0: 3 };
+    const C = { pad: 0, name: 1, rate: 2, prep: 3, day0: 4 };   // 最前面留一欄空白，文字不貼邊
     C.dEnd = C.day0 + nDay; C.total = C.dEnd; C.pay = C.dEnd + 1; C.send = C.dEnd + 2; C.note = C.dEnd + 3;
     const W = C.note + 1, row = () => Array(W).fill("");
     const CW = Array(W).fill(72);
-    CW[C.name] = 118; CW[C.rate] = 64; CW[C.prep] = 104; CW[C.total] = 70; CW[C.pay] = 92; CW[C.send] = 92; CW[C.note] = 170;
+    CW[C.pad] = 18; CW[C.name] = 118; CW[C.rate] = 64; CW[C.prep] = 104; CW[C.total] = 70; CW[C.pay] = 92; CW[C.send] = 92; CW[C.note] = 170;
     s.allCols.forEach((col, k) => { CW[C.day0 + k] = col.d.slot ? 64 : 72; });
     const expRef = `'${EXP_TAB}'!G${2 + EXP_ROWS + 1}`;
     const lead = window.TDN();
 
     const rows = [];
     const R = { title: 0, gap: 1, grp: 2, date: 3 };
-    const t0 = row(); t0[0] = s.title; rows.push(t0);
+    const t0 = row(); t0[C.name] = s.title; rows.push(t0);
     rows.push(row());
     const g1 = row(), g2 = row();
     g1[C.name] = "人員"; g1[C.rate] = "時段費"; g1[C.prep] = "前置";
@@ -3832,11 +3832,11 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
     });
     const last = rows.length;
     const ft = row(), sumCol = (c) => `=SUM(${colL(c)}${personStart + 1}:${colL(c)}${last})`;
-    ft[C.name] = "總計"; ft[C.total] = sumCol(C.total); ft[C.pay] = sumCol(C.pay); ft[C.send] = sumCol(C.send);
+    ft[C.dEnd - 1 >= C.day0 ? C.dEnd - 1 : C.prep] = "總計"; ft[C.total] = sumCol(C.total); ft[C.pay] = sumCol(C.pay); ft[C.send] = sumCol(C.send);
     rows.push(ft);
     rows.push(row());
-    const legR = rows.length; const lg = row(); lg[0] = "午+ 午餐　　晚+ 晚餐　　超+ 22:00 後　　空白：當天沒來或未填　　淺綠色格子是段數，改了會自動重算"; rows.push(lg);
-    const ruleR = rows.length; const ru = row(); ru[0] = ruleLines(s.late).join("\n"); rows.push(ru);
+    const legR = rows.length; const lg = row(); lg[C.name] = "午+ 午餐　　晚+ 晚餐　　超+ 22:00 後　　空白：當天沒來或未填　　淺綠色格子是段數，改了會自動重算"; rows.push(lg);
+    const ruleR = rows.length; const ru = row(); ru[C.name] = ruleLines(s.late).join("\n"); rows.push(ru);
 
     // 支出明細表
     const rows2 = [["", `${s.short}・支出明細`, "", "", "", "", "", ""], ["", "發票日期", "廠商", "內容", "單據類型", "發票號碼", "金額", "備註"]];
@@ -3859,7 +3859,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
         // 全表：置中、上下置中、自動換行、白底
         fmt(G(0, rows.length, 0, W), { horizontalAlignment: "CENTER", verticalAlignment: "MIDDLE", wrapStrategy: "WRAP", backgroundColorStyle: { rgbColor: rgb(P.white) }, textFormat: TF() }, "horizontalAlignment,verticalAlignment,wrapStrategy,backgroundColorStyle,textFormat"),
         // 標題：一行
-        merge(G(R.title, R.title + 1, 0, W)), al(G(R.title, R.title + 1, 0, W), "LEFT"),
+        merge(G(R.title, R.title + 1, C.name, W)), al(G(R.title, R.title + 1, C.name, W), "LEFT"),
         tx(G(R.title, R.title + 1, 0, W), { fontSize: 15, bold: true }),
         rowH(R.title, R.title + 1, 40), rowH(R.gap, R.gap + 1, 8),
         // 表頭：深色底白字
@@ -3880,12 +3880,12 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
         bg(G(last, last + 1, 0, W), P.totRow),
         tx(G(last, last + 1, 0, W), { fontSize: 12, bold: true }),
         tx(G(last, last + 1, C.send, C.send + 1), { fontSize: 12, bold: true, color: P.red }),
-        al(G(last, last + 1, C.name, C.name + 1), "LEFT"),
+        al(G(last, last + 1, C.prep, C.dEnd), "RIGHT"),
         rowH(last, last + 1, 36),
         { updateBorders: { range: G(last, last + 1, 0, W), top: line(P.ink, "SOLID_MEDIUM"), bottom: line(P.ink, "SOLID_MEDIUM") } },
         rowH(last + 1, last + 2, 10),
         // 說明
-        merge(G(legR, legR + 1, 0, W)), merge(G(ruleR, ruleR + 1, 0, W)),
+        merge(G(legR, legR + 1, C.name, W)), merge(G(ruleR, ruleR + 1, C.name, W)),
         fmt(G(legR, ruleR + 1, 0, W), { horizontalAlignment: "LEFT", verticalAlignment: "MIDDLE" }, "horizontalAlignment,verticalAlignment"),
         tx(G(legR, legR + 1, 0, W), { color: P.warn, fontSize: 9 }),
         tx(G(ruleR, ruleR + 1, 0, W), { color: P.muted, fontSize: 9 }),
