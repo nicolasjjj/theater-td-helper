@@ -1,4 +1,4 @@
-name = "theater-td-helper"
+name = "theater-helper"
 main = "worker/worker.js"
 compatibility_date = "2025-09-01"
 

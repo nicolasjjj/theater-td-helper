@@ -1,4 +1,4 @@
-// 劇場TD小幫手｜Cloudflare Worker
+// 劇場幫幫｜Cloudflare Worker
 // /api/v1/*  → 轉送到 Notion 官方 API（瀏覽器不能直接呼叫 Notion，所以需要這個轉接站）
 // 其他路徑   → 網頁檔案（dist/）
 // 這裡不儲存任何資料，也不記錄金鑰。

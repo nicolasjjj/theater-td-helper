@@ -1,4 +1,4 @@
-// 劇場TD小幫手｜獨立版的 Notion 連線層
+// 劇場幫幫｜獨立版的 Notion 連線層
 // 把網頁原本透過 Claude 呼叫的 Notion 工具（notion-query-data-sources / notion-fetch / notion-update-page），
 // 改成直接呼叫 Notion 官方 API（經過同網域的 /api 轉接站）。網頁本體的程式完全不用改。
 (() => {
@@ -57,14 +57,18 @@
     return schemas[dbId];
   }
 
+  // 新建立的資料庫用「負責人」稱呼；網頁內部仍用舊欄位名（TD姓名…），在這裡互相轉換
+  const ALIAS = { "負責人姓名": "TD姓名", "負責人時段費": "TD時段費", "負責人整筆費用": "TD整筆費用" };
+  const LEAD = ["TD", "負責人"];
   // ---------- 一列資料 → 原本網頁看得懂的格式 ----------
   function flat(page) {
     const o = { url: purl(page.id) };
-    for (const [k, p] of Object.entries(page.properties || {})) {
+    for (const [k0, p] of Object.entries(page.properties || {})) {
+      const k = ALIAS[k0] || k0;
       switch (p.type) {
         case "title": case "rich_text": o[k] = plain(p[p.type]); break;
         case "number": o[k] = p.number; break;
-        case "select": o[k] = p.select ? p.select.name : null; break;
+        case "select": o[k] = p.select ? (k === "職位" && LEAD.includes(p.select.name) ? "TD" : p.select.name) : null; break;
         case "status": o[k] = p.status ? p.status.name : null; break;
         case "multi_select": o[k] = JSON.stringify((p.multi_select || []).map(x => x.name)); break;
         case "relation": o[k] = JSON.stringify((p.relation || []).map(x => purl(x.id))); break;
@@ -91,7 +95,11 @@
     const and = [], sorts = [];
     const has = (n, t) => sch[n] && (!t || sch[n].type === t);
     if (db === "cases") {
-      if (has("職位", "select")) and.push({ property: "職位", select: { equals: "TD" } });
+      if (has("職位", "select")) {
+        const ops = ((sch["職位"].select || {}).options || []).map(o => o.name).filter(n => LEAD.includes(n));
+        const f = (ops.length ? ops : ["TD"]).map(n => ({ property: "職位", select: { equals: n } }));
+        and.push(f.length === 1 ? f[0] : { or: f });
+      }
       if (has("進場日期", "date")) {
         if (key === "DONE") { and.push({ property: "進場日期", date: { on_or_before: isoDay(today) } }); sorts.push({ property: "進場日期", direction: "descending" }); }
         else { and.push({ property: "進場日期", date: { on_or_after: isoDay(weekAgo) } }); sorts.push({ property: "進場日期", direction: "ascending" }); }
@@ -147,7 +155,9 @@
     const sch = dbId ? await schemaOf(dbId) : {};
     const out = {};
     const chunks = (s) => { const a = []; s = String(s ?? ""); for (let i = 0; i < s.length; i += 1900) a.push({ type: "text", text: { content: s.slice(i, i + 1900) } }); return a; };
-    for (const [k, v] of Object.entries(props)) {
+    const back = Object.fromEntries(Object.entries(ALIAS).map(([a, b]) => [b, a]));
+    for (const [k0, v] of Object.entries(props)) {
+      const k = !sch[k0] && back[k0] && sch[back[k0]] ? back[k0] : k0;
       const t = (sch[k] || page.properties[k] || {}).type;
       const list = Array.isArray(v) ? v : typeof v === "string" && v.startsWith("[") ? (() => { try { return JSON.parse(v); } catch (e) { return [v]; } })() : v == null ? [] : [v];
       switch (t) {
@@ -268,10 +278,10 @@
     for (let i = 1; i <= 3; i++) st.push([`卸車缺${i}`, "purple"]);
     const rel = (db) => ({ relation: { database_id: db, type: "dual_property", dual_property: {} } });
     const cases = await mk("劇場の案子", "🎪", {
-      "案名": { title: {} }, "職位": { select: { options: [{ name: "TD", color: "blue" }, { name: "Crew", color: "yellow" }] } },
+      "案名": { title: {} }, "職位": { select: { options: [{ name: "負責人", color: "blue" }, { name: "Crew", color: "yellow" }] } },
       "劇團": rel(troupe), "進場日期": { date: {} }, "進場地點": rel(venue), "裝車時間": { date: {} }, "裝車地點": { rich_text: {} },
       "人力分配": { rich_text: {} }, "Crew 狀態": { multi_select: { options: st.map(([name, color]) => ({ name, color })) } },
-      "問過的人": rel(crew), "摳的人": rel(crew), "TD姓名": { rich_text: {} }, "TD時段費": { number: { format: "number" } }, "TD整筆費用": { number: { format: "number" } },
+      "問過的人": rel(crew), "摳的人": rel(crew), "負責人姓名": { rich_text: {} }, "負責人時段費": { number: { format: "number" } }, "負責人整筆費用": { number: { format: "number" } },
       "Crew時段費": { number: { format: "number" } }, "前置": { rich_text: {} }, "前置段數": { number: { format: "number" } }, "打卡": { rich_text: {} },
       "時段表資料夾": { url: {} }, "巡演": { select: { options: [] } },
     });
@@ -293,7 +303,7 @@
     const rows = [row("裝車", "")].concat([1, 2, 3, 4, 5].map(i => row(`Day ${i}`, ""))).concat([row("拆台", ""), row("卸車", "")]);
     await nfetch("/pages", { method: "POST", body: {
       parent: { database_id: cases }, icon: { type: "emoji", emoji: "📋" },
-      properties: { "案名": { title: T("（範例）複製這頁當新案子") }, "職位": { select: { name: "TD" } },
+      properties: { "案名": { title: T("（範例）複製這頁當新案子") }, "職位": { select: { name: "負責人" } },
         "進場日期": { date: { start: isoDay(d0), end: isoDay(d1) } }, "裝車時間": { date: { start: isoDay(dl) } },
         "人力分配": { rich_text: T("全程2、裝拆2") }, "Crew 狀態": { multi_select: [{ name: "全程缺2" }, { name: "裝拆缺2" }] } },
       children: [

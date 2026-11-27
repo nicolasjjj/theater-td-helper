@@ -1,7 +1,11 @@
-// 劇場TD小幫手｜第一次設定（Notion 金鑰、找資料庫、預設 TD）
+// 劇場幫幫｜第一次設定（Notion 金鑰、找資料庫、你的名字和職稱）
 (() => {
   const T = window.__tdh;
-  window.TDN = () => (T.cfg.tdName || "").trim() || "TD";
+  window.TDN = () => (T.cfg.tdName || "").trim() || "我";
+  window.ROLE = () => (T.cfg.role || "").trim() || "負責人";
+  window.TEAM = () => (T.cfg.team || "").trim() || "舞台組";
+  const ios = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
   const need = () => !T.cfg.token || !T.cfg.db || !["cases", "crew", "troupe", "venue"].every(k => T.cfg.db[k]);
 
   const css = `
@@ -17,6 +21,8 @@
   .tdh-st input{width:100%;box-sizing:border-box;border:1.5px solid #d9d4cb;border-radius:12px;padding:12px;font-size:16px;margin-top:8px;background:#fbfaf7}
   .tdh-res{margin-top:10px;font-size:14px;line-height:1.8}.tdh-res .ok{color:#2f7a4f}.tdh-res .no{color:#b0741f}
   .tdh-err{color:#b3261e;font-size:14px;margin-top:8px}
+  .tdh-tip{background:#fff4dc;border:1.5px solid #e9c77a;border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:14px;line-height:1.7;color:#5a4518}
+  .tdh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.tdh-st .tdh-chips button{margin:0;padding:6px 12px;font-size:14px;font-weight:500}
   .tdh-gear{flex:0 0 40px;border:0;background:transparent;font-size:17px;color:#6e685f;cursor:pointer;border-radius:9px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -26,25 +32,32 @@
     const c = T.cfg, ov = document.createElement("div"); ov.className = "tdh-ov";
     const seen = (() => { try { return localStorage.getItem("tdh.seen") === "1"; } catch (e) { return false; } })();
     ov.innerHTML = `<div class="tdh-in">
-      <h1>劇場TD小幫手</h1><div class="sub">${force ? "設定" : "連接你的 Notion，就可以開始使用"}</div>
+      <h1>劇場幫幫</h1><div class="sub">${force ? "設定" : "連接你的 Notion，就可以開始使用"}</div>
+      ${ios && !standalone && !force ? `<div class="tdh-tip"><b>📱 iPhone 請先加到主畫面再設定</b><br>Safari 和主畫面的捷徑各自存設定，在這裡設定好，從主畫面打開還要再設定一次。<br>做法：按下方的「分享」<span style="font-size:16px">⎋</span> →「加入主畫面」→ 從主畫面打開「劇場幫幫」再設定。<br><button type="button" class="ghost" id="tdhTipOk" style="margin-top:8px;padding:6px 12px;font-size:13px">我只要在 Safari 用，繼續</button></div>` : ""}
       <div class="tdh-st"><h2><b>1</b>貼上 Notion API 權杖</h2>
         <div style="font-size:14px;color:#6e685f">還沒有權杖？看下面的「怎麼取得權杖」。</div>
         <input id="tdhTok" type="password" autocomplete="off" placeholder="ntn_ 開頭的一串字" value="${c.token ? c.token.replace(/"/g, "") : ""}">
         <button id="tdhGo">連線並尋找資料庫</button>
         <div class="tdh-res" id="tdhRes"></div><div class="tdh-err" id="tdhErr"></div></div>
-      <div class="tdh-st" id="tdhStep4" style="display:none"><h2><b>2</b>你的名字</h2>
-        <div style="font-size:14px;color:#6e685f">大部分案子的 TD 是誰？（案子裡「TD姓名」空白時就用這個）</div>
+      <div class="tdh-st" id="tdhStep4" style="${force && !need() ? "" : "display:none"}"><h2><b>2</b>你是誰</h2>
+        <div style="font-size:14px;color:#6e685f">你的名字（案子裡沒有另外指定負責人時，就用這個）</div>
         <input id="tdhTd" value="${(c.tdName || "").replace(/"/g, "")}" placeholder="例如：王小明">
+        <div style="font-size:14px;color:#6e685f;margin-top:12px">你的職稱（畫面和時段表上會這樣稱呼你）</div>
+        <div class="tdh-chips" data-for="tdhRole">${["TD", "燈光TD", "音響TD", "SM", "製作人", "執行製作"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
+        <input id="tdhRole" value="${(c.role || "").replace(/"/g, "")}" placeholder="例如：TD、燈光TD、SM、製作人">
+        <div style="font-size:14px;color:#6e685f;margin-top:12px">你帶的組別（例如「舞台組人員名單」）</div>
+        <div class="tdh-chips" data-for="tdhTeam">${["舞台組", "燈光組", "音響組", "前台組", "製作組"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
+        <input id="tdhTeam" value="${(c.team || "").replace(/"/g, "")}" placeholder="例如：舞台組">
         <button id="tdhSave">開始使用</button></div>
       <details class="tdh-st" ${seen || force ? "" : "open"}><summary style="font-weight:700;font-size:16px;cursor:pointer">怎麼取得權杖（第一次使用約 5 分鐘）</summary>
         <h2 style="margin-top:12px"><b>A</b>建立 Notion 連接</h2><ol>
         <li>按下面按鈕打開 Notion 的「開發人員連接」頁面（手機請用瀏覽器開）</li>
-        <li>按「＋ 新連接」：名稱填「劇場TD小幫手」，驗證方式選「API 權杖」，按「建立連接」</li>
+        <li>按「＋ 新連接」：名稱填「劇場幫幫」，驗證方式選「API 權杖」，按「建立連接」</li>
         <li>點進剛建立的連接，找到「API 權杖」→ 複製（開頭是 ntn_）</li></ol>
         <a class="btn" href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener">打開 Notion 開發人員連接</a>
         <h2 style="margin-top:16px"><b>B</b>讓權杖看得到你的頁面</h2><ol>
         <li>在同一個連接設定裡打開「內容存取」，勾選要放劇場資料的頁面</li>
-        <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場TD小幫手」</li>
+        <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場幫幫」</li>
         <li>還沒有劇場資料庫的話，先在 Notion 建一個空白頁面（例如「劇場管理」）再勾選它，下一步可以自動建立</li></ol></details>
       ${force ? `<div class="tdh-st"><button class="ghost" id="tdhClose">關閉</button> <button class="ghost" id="tdhOut">清除權杖（登出）</button></div>` : ""}
       <div style="font-size:12px;color:#8a847a;line-height:1.6;margin-top:8px">權杖只存在這個瀏覽器裡，資料直接在你的 Notion 讀寫，不會存到別的地方。請用 Safari 或 Chrome 打開，LINE、Notion 裡面的內建瀏覽器不會記住設定。</div>
@@ -85,8 +98,10 @@
         });
       } catch (e) { $("tdhErr").textContent = "讀取頁面失敗：" + (e.message || e); }
     }
+    ov.querySelectorAll(".tdh-chips").forEach(box => box.querySelectorAll("button").forEach(b => b.onclick = () => { $(box.dataset.for).value = b.textContent; }));
+    if ($("tdhTipOk")) $("tdhTipOk").onclick = () => $("tdhTipOk").parentNode.remove();
     $("tdhSave").onclick = () => {
-      T.setCfg({ db: found, tdName: $("tdhTd").value.trim() });
+      T.setCfg({ db: found || T.cfg.db, tdName: $("tdhTd").value.trim(), role: $("tdhRole").value.trim(), team: $("tdhTeam").value.trim() });
       try { localStorage.setItem("tdh.seen", "1"); } catch (e) {}
       location.reload();
     };
