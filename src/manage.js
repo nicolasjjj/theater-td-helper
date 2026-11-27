@@ -26,7 +26,18 @@
   .mg-f label{display:block;font-size:13px;color:#6e685f;margin:12px 2px 4px}
   .mg-f input,.mg-f select,.mg-f textarea{width:100%;box-sizing:border-box;border:1.5px solid #ddd7cc;border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;background:#fff;color:#1d1b18}
   .mg-f textarea{min-height:72px}
-  .mg-f .two{display:flex;gap:8px}.mg-f .two>div{flex:1;min-width:0}
+  .mg-f .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.mg-f .two>div{min-width:0}
+  .mg-f input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;display:block;min-height:46px;text-align:left}
+  .mg-f input::-webkit-date-and-time-value{text-align:left}
+  .mg-ck{display:flex;align-items:center;gap:10px;margin:14px 2px 0;font-size:15px;cursor:pointer}.mg-ck input{width:20px;height:20px;margin:0;flex:0 0 20px;accent-color:#2f5d50}
+  .mg-tagrow{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed #ece8df}.mg-tagrow:last-child{border-bottom:0}
+  .mg-tagrow>span{flex:0 0 40px;font-size:14px;color:#6e685f;padding-top:12px}.mg-tagrow>div{flex:1}
+  .mg-tag{display:inline-block;border:1.5px solid #ddd7cc;border-radius:8px;padding:5px 10px;margin:6px 6px 0 0;font:inherit;font-size:14px;background:#fff;color:#6e685f;cursor:pointer}
+  .mg-tag.on{font-weight:700}
+  .mg-tag.on.c-blue{background:#e3ecf7;border-color:#9db8dc;color:#2c5282}.mg-tag.on.c-yellow{background:#fbf1d6;border-color:#e2c674;color:#7a5a00}
+  .mg-tag.on.c-green{background:#e4f2e8;border-color:#93c8a3;color:#23784b}.mg-tag.on.c-orange{background:#fbe8d8;border-color:#e6aa75;color:#9a4f0f}
+  .mg-tag.on.c-gray{background:#ecebe8;border-color:#bdb8ae;color:#4a463f}.mg-tag.on.c-purple{background:#efe6f6;border-color:#c0a3d8;color:#5f3d82}
+  .mg-tag.on.c-default{background:#2f5d50;border-color:#2f5d50;color:#fff}
   .mg-card{background:#fff;border:1.5px solid #e6e1d8;border-radius:16px;padding:4px 14px 14px;margin-bottom:12px}
   .mg-card h3{font-size:15px;margin:12px 0 0}
   .mg-note{font-size:12.5px;color:#7a746b;margin-top:6px;line-height:1.6}
@@ -40,7 +51,7 @@
   .mg-act{display:flex;gap:8px;margin-top:14px}.mg-act button{flex:1;border:0;border-radius:12px;padding:13px;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
   .mg-act .pri{background:#2f5d50;color:#fff}.mg-act .sec{background:#ece8df;color:#1d1b18}.mg-act .dan{background:#fdecea;color:#b3261e}
   .mg-err{color:#b3261e;font-size:14px;margin-top:8px}
-  .mg-btn{border:0;background:transparent;font-size:17px;color:#6e685f;cursor:pointer;border-radius:9px;flex:0 0 40px}
+  .mg-btn{border:0;background:transparent;font-size:23px;line-height:1;color:#6e685f;cursor:pointer;border-radius:9px;flex:0 0 44px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
@@ -60,7 +71,7 @@
     if (ov) return;
     tab = startTab || "cases"; q = "";
     ov = document.createElement("div"); ov.className = "mg";
-    ov.innerHTML = `<div class="mg-top"><div class="mg-row"><h1>管理</h1><button class="mg-x" id="mgX" aria-label="關閉">✕</button></div>
+    ov.innerHTML = `<div class="mg-top"><div class="mg-row"><h1>劇場の資料庫</h1><button class="mg-x" id="mgX" aria-label="關閉">✕</button></div>
       <div class="mg-tabs">${Object.entries(K).map(([k, n]) => `<button data-k="${k}">${n}</button>`).join("")}</div></div>
       <div class="mg-body" id="mgBody"></div>`;
     document.body.appendChild(ov);
@@ -91,9 +102,9 @@
     if (k === "cases") {
       const t = today();
       const st = (r) => r["進場日期"] ? (r["進場日期"].end || r["進場日期"].start) : "";
-      const live = rows.filter(r => !r["封存"] && (!st(r) || st(r) >= t)).sort((a, b) => String((a["進場日期"] || {}).start || "9").localeCompare(String((b["進場日期"] || {}).start || "9")));
-      const past = rows.filter(r => !r["封存"] && st(r) && st(r) < t).sort((a, b) => st(b).localeCompare(st(a)));
-      const arc = rows.filter(r => r["封存"]).sort((a, b) => st(b).localeCompare(st(a)));
+      const live = rows.filter(r => !st(r) || st(r) >= t).sort((a, b) => String((a["進場日期"] || {}).start || "9").localeCompare(String((b["進場日期"] || {}).start || "9")));
+      const past = rows.filter(r => st(r) && st(r) < t).sort((a, b) => st(b).localeCompare(st(a)));
+      const years = [...new Set(past.map(r => st(r).slice(0, 4)))];
       const item = (r) => {
         const d = r["進場日期"], v = (r["進場地點"] || []).map(id => nameOf("venue", id)).filter(Boolean).join("、");
         const need = (r["Crew 狀態"] || []).filter(x => /缺/.test(x));
@@ -101,8 +112,7 @@
         return `<button class="mg-it" data-id="${r.id}"><b>${esc(r["案名"] || "（未命名）")}</b><small>${d ? md(d.start) + (d.end && d.end !== d.start ? " – " + md(d.end) : "") : "還沒填日期"}${v ? "・" + esc(v) : ""}${r["職位"] === "Crew" ? "・我是 Crew" : ""}</small>${tags}</button>`;
       };
       h += live.length ? `<div class="mg-sec">進行中、還沒開始</div>` + live.map(item).join("") : `<div class="mg-empty">還沒有案子，按下面的「＋ 新增案子」。</div>`;
-      if (past.length) h += `<div class="mg-sec">已經結束（做完可以封存，列表會比較清爽）</div>` + past.map(item).join("");
-      if (arc.length) h += `<details><summary class="mg-sec" style="cursor:pointer">已封存（${arc.length}）</summary>${arc.map(item).join("")}</details>`;
+      if (past.length) h += `<div class="mg-sec">已經結束</div>` + years.map(y => { const ys = past.filter(r => st(r).startsWith(y)); return `<details ${q ? "open" : ""}><summary class="mg-sec" style="cursor:pointer;font-size:15px;color:#1d1b18">${y} 年（${ys.length}）</summary>${ys.map(item).join("")}</details>`; }).join("");
     } else {
       rows.sort((a, b) => String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
       h += rows.length ? rows.map(r => {
@@ -153,7 +163,7 @@
       h += `</div>`;
     }
     h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="pri" id="mgSave">${isNew ? "新增" : "儲存"}</button></div>`;
-    if (!isNew) h += `<div class="mg-act">${k === "cases" ? `<button class="sec" id="mgArc">${r["封存"] ? "取消封存" : "封存這個案子"}</button>` : ""}<button class="dan" id="mgDel">刪除</button></div>`;
+    if (!isNew) h += `<div class="mg-act"><button class="dan" id="mgDel">刪除</button></div>`;
     h += `</div>`;
     $("mgBody").innerHTML = h; $("mgBody").scrollTop = 0;
     $("mgBack").onclick = () => list();
@@ -189,20 +199,21 @@
       ${has("cases", "劇團") ? selectHtml("c_troupe", "劇團", tOpts, (r["劇團"] || [])[0] || "", "新增劇團…").replace("<select ", '<select data-kind="troupe" ') : ""}
       <div class="two"><div>${inp("c_s", "進場日期", d.start, 'type="date"')}</div><div>${inp("c_e", "最後一天", d.end || d.start, 'type="date"')}</div></div>
       ${has("cases", "進場地點") ? selectHtml("c_venue", "演出場館", vOpts, (r["進場地點"] || [])[0] || "", "新增場館…").replace("<select ", '<select data-kind="venue" ') : ""}
-      <div class="two"><div>${inp("c_l", "裝車日期（沒有就空白）", ld.start, 'type="date"')}</div><div>${has("cases", "裝車地點") ? inp("c_lp", "裝車地點", r["裝車地點"]) : ""}</div></div>
-      ${has("cases", "職位") ? `<label>我在這個案子是</label><div><button type="button" class="mg-chip ${r["職位"] !== "Crew" ? "on" : ""}" data-role="負責人">${esc(window.ROLE())}（負責人）</button><button type="button" class="mg-chip ${r["職位"] === "Crew" ? "on" : ""}" data-role="Crew">Crew</button></div><div class="mg-note">選 Crew 的案子不會出現在主畫面。</div>` : ""}
-      ${has("cases", "巡演") ? inp("c_tour", "巡演名稱（同一個巡演的每一站填一樣的名字，時段表可以合併）", r["巡演"]) : ""}
+      <div class="two"><div>${inp("c_l", "裝車日期（沒有就空白）", ld.start, 'type="date"')}</div><div>${has("cases", "裝車地點") ? inp("c_lp", "裝車地點（沒有就空白）", r["裝車地點"]) : ""}</div></div>
+      ${has("cases", "負責人姓名") ? `<label class="mg-ck"><input type="checkbox" id="c_subOn" ${r["負責人姓名"] ? "checked" : ""}>這一檔我請人代班</label>
+        <div id="c_subBox" style="${r["負責人姓名"] ? "" : "display:none"}">${inp("c_td", "代班的人是誰", r["負責人姓名"], 'placeholder="例如：王小明"')}</div>` : ""}
+      ${has("cases", "巡演") ? `<label class="mg-ck"><input type="checkbox" id="c_tourOn" ${r["巡演"] ? "checked" : ""}>這是巡演</label>
+        <div id="c_tourBox" style="${r["巡演"] ? "" : "display:none"}">${inp("c_tour", "巡演名稱（每一站都填一樣的名字，結案時可以合併成一張時段表）", r["巡演"], 'placeholder="例如：2026午後的信"')}</div>` : ""}
       </div>
-      <div class="mg-card"><h3>要找幾個人</h3>
-      ${has("cases", "人力分配") ? inp("c_plan", "人力分配（寫給自己看的，例如：全程2、裝拆2）", r["人力分配"]) : ""}
-      <label>還缺幾個人（主畫面「找人」會照這個顯示）</label>
-      <div id="c_need">${NEEDS().map(n => `<div class="mg-step"><span>${n}</span><span><button type="button" data-n="${n}" data-d="-1">−</button><b id="n_${n}">${cnt(n)}</b><button type="button" data-n="${n}" data-d="1">＋</button></span></div>`).join("")}</div>
-      <div><button type="button" class="mg-chip ${st.includes("全部完成") ? "on" : ""}" id="c_done">✓ 人都找齊了</button><button type="button" class="mg-chip ${st.includes("等待製作確認") ? "on" : ""}" id="c_wait">等待製作確認</button></div>
+      <div class="mg-card"><h3>這檔要找幾個人</h3>
+      ${has("cases", "人力分配") ? inp("c_plan", "人力分配", r["人力分配"], 'placeholder="例如：全程1帶2 / 裝2天+拆台1帶4"') : ""}
+      <label>還缺的人（可複選，主畫面「找人」會照這個顯示）</label>
+      <div id="c_need">${T.NEED_KINDS.map(([kind, n, col]) => `<div class="mg-tagrow"><span>${kind}</span><div>${Array.from({ length: n }, (_, i) => `${kind}缺${i + 1}`).map(tg => `<button type="button" class="mg-tag c-${col} ${st.includes(tg) ? "on" : ""}" data-tag="${tg}">${tg}</button>`).join("")}</div></div>`).join("")}
+        <div class="mg-tagrow"><span>其他</span><div><button type="button" class="mg-tag c-default ${st.includes("全部完成") ? "on" : ""}" data-tag="全部完成">人都找齊了</button><button type="button" class="mg-tag c-gray ${st.includes("等待製作確認") ? "on" : ""}" data-tag="等待製作確認">人數尚未確認</button></div></div></div>
       </div>
       <div class="mg-card"><h3>費用</h3>
       <div class="two"><div>${inp("c_tdr", `${esc(window.ROLE())}時段費`, r["負責人時段費"], 'inputmode="numeric"')}</div><div>${inp("c_cr", "Crew 時段費（預設）", r["Crew時段費"], 'inputmode="numeric"')}</div></div>
       ${inp("c_flat", "整筆費用（談好總價才填）", r["負責人整筆費用"], 'inputmode="numeric"')}
-      ${inp("c_td", `這個案子的${esc(window.ROLE())}（空白就是你：${esc(window.TDN())}）`, r["負責人姓名"])}
       </div>`;
     if (isNew) h += `<div class="mg-note" style="margin:0 4px 10px">新增後會自動建立每一天的 Call Time 排班表，之後在主畫面「找人」選人就會填進去。</div>`;
     else if (content) {
@@ -215,9 +226,8 @@
     return h;
   }
   function bindCase(r, isNew) {
-    ov.querySelectorAll("[data-role]").forEach(b => b.onclick = () => ov.querySelectorAll("[data-role]").forEach(x => x.classList.toggle("on", x === b)));
-    ov.querySelectorAll("#c_need button").forEach(b => b.onclick = () => { const el = $("n_" + b.dataset.n); el.textContent = Math.max(0, +el.textContent + +b.dataset.d); if (+b.dataset.d > 0) $("c_done").classList.remove("on"); });
-    ["c_done", "c_wait"].forEach(x => $(x).onclick = () => $(x).classList.toggle("on"));
+    ov.querySelectorAll("#c_need .mg-tag").forEach(b => b.onclick = () => b.classList.toggle("on"));
+    [["c_subOn", "c_subBox", "c_td"], ["c_tourOn", "c_tourBox", "c_tour"]].forEach(([ck, box, input]) => { if ($(ck)) $(ck).onchange = () => { $(box).style.display = $(ck).checked ? "" : "none"; if ($(ck).checked) $(input).focus(); }; });
     $("c_s").onchange = () => { if (!$("c_e").value || $("c_e").value < $("c_s").value) $("c_e").value = $("c_s").value; };
     const tbl = $("c_tbl");
     if (tbl) {
@@ -248,16 +258,13 @@
       if ($("c_venue")) vals["進場地點"] = $("c_venue").value && $("c_venue").value !== "__new" ? [$("c_venue").value] : [];
       if ($("c_lp")) vals["裝車地點"] = $("c_lp").value.trim();
       if ($("c_plan")) vals["人力分配"] = $("c_plan").value.trim();
-      if ($("c_tour")) vals["巡演"] = $("c_tour").value.trim() || null;
-      const role = ov.querySelector("[data-role].on"); if (role) vals["職位"] = role.dataset.role;
-      const tags = [];
-      if ($("c_done").classList.contains("on")) tags.push("全部完成");
-      else NEEDS().forEach(n => { const c = +$("n_" + n).textContent; if (c > 0) tags.push(`${n}缺${c}`); });
-      if ($("c_wait").classList.contains("on")) tags.push("等待製作確認");
+      if ($("c_tour")) vals["巡演"] = $("c_tourOn").checked ? ($("c_tour").value.trim() || null) : null;
+      if (!id) vals["職位"] = "負責人";
+      const tags = [...ov.querySelectorAll("#c_need .mg-tag.on")].map(b => b.dataset.tag);
       if (!tags.length) tags.push("尚未開始");
       vals["Crew 狀態"] = tags;
       vals["負責人時段費"] = num($("c_tdr").value); vals["Crew時段費"] = num($("c_cr").value); vals["負責人整筆費用"] = num($("c_flat").value);
-      vals["負責人姓名"] = $("c_td").value.trim() || null;
+      if ($("c_td")) vals["負責人姓名"] = $("c_subOn").checked ? ($("c_td").value.trim() || null) : null;
       if (!id) content = { notes: ["抬頭：", "統編："], table: T.callRows(s, e > s ? e : s, l) };
       else if ($("c_tbl")) content = { notes: $("c_notes").value.split("\n"), table: [...$("c_tbl").querySelectorAll(".r")].map(x => [x.children[0].value.trim(), x.children[1].value.trim()]).filter(x => x[0] || x[1]) };
     } else {

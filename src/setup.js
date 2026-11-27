@@ -24,6 +24,7 @@
   .tdh-st p{font-size:14px;color:#6e685f;margin:0;line-height:1.6}
   .tdh-st a.btn,.tdh-st button{display:inline-block;border:0;border-radius:999px;padding:11px 18px;font-size:15px;font-weight:600;background:#2f5d50;color:#fff;text-decoration:none;margin-top:10px;cursor:pointer}
   .tdh-st button.ghost{background:#ece8df;color:#1d1b18}
+  .tdh-st button.danger{background:#b3261e;color:#fff}
   .tdh-st button.big{display:block;width:100%;text-align:center;padding:14px;font-size:17px;border-radius:14px}
   .tdh-st input{width:100%;box-sizing:border-box;border:1.5px solid #d9d4cb;border-radius:12px;padding:12px;font-size:16px;margin-top:8px;background:#fbfaf7}
   .tdh-res{margin-top:10px;font-size:14px;line-height:1.8}.tdh-res .ok,.tdh-st .ok{color:#2f7a4f}.tdh-res .no,.tdh-st .no{color:#b0741f}
@@ -31,7 +32,7 @@
   .tdh-tip{background:#fff4dc;border:1.5px solid #e9c77a;border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:14px;line-height:1.7;color:#5a4518}
   .tdh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.tdh-st .tdh-chips button{margin:0;padding:6px 12px;font-size:14px;font-weight:500}
   .tdh-rec{display:inline-block;font-size:12px;background:#2f5d50;color:#fff;border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:2px}
-  .tdh-gear{flex:0 0 40px;border:0;background:transparent;font-size:17px;color:#6e685f;cursor:pointer;border-radius:9px}
+  .tdh-gear{flex:0 0 44px;border:0;background:transparent;font-size:23px;line-height:1;color:#6e685f;cursor:pointer;border-radius:9px}
   .tdh-foot{font-size:12px;color:#8a847a;line-height:1.6;margin-top:8px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -62,10 +63,10 @@
         <p>你的名字（案子沒有另外指定負責人時，就用這個）</p>
         <input id="tdhTd" value="${esc(c.tdName || "")}" placeholder="例如：王小明">
         <p style="margin-top:12px">你的職稱（畫面和時段表上會這樣稱呼你）</p>
-        <div class="tdh-chips" data-for="tdhRole">${["TD", "燈光TD", "音響TD", "SM", "製作人", "執行製作"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
-        <input id="tdhRole" value="${esc(c.role || "")}" placeholder="例如：TD、燈光TD、SM、製作人">
+        <div class="tdh-chips" data-for="tdhRole">${["TD", "ME", "PA", "SM"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
+        <input id="tdhRole" value="${esc(c.role || "")}" placeholder="例如：TD、ME、PA、SM">
         <p style="margin-top:12px">你帶的組別（例如「舞台組人員名單」）</p>
-        <div class="tdh-chips" data-for="tdhTeam">${["舞台組", "燈光組", "音響組", "前台組", "製作組"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
+        <div class="tdh-chips" data-for="tdhTeam">${["舞台組", "燈光組", "音響組", "舞監組", "製作組"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
         <input id="tdhTeam" value="${esc(c.team || "")}" placeholder="例如：舞台組">
         <button id="tdhSave" class="big">${force ? "儲存" : "開始使用"}</button></div>`;
 
@@ -77,10 +78,11 @@
     let body;
     if (force) {
       body = `${whoCard(c, true)}
-        <div class="tdh-st"><h2>資料放在</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p></div>
+        <div class="tdh-st"><h2>資料放在</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
+          <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>
         ${googleCard(true)}
         ${mode === "notion" ? notionCard(c, seen, true) : ""}
-        <div class="tdh-st"><button class="ghost" id="tdhClose">關閉</button> <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button> <button class="ghost" id="tdhOut">登出並清除設定</button></div>`;
+        <div class="tdh-st"><button class="ghost" id="tdhClose">關閉</button> <button class="danger" id="tdhOut">登出並清除設定</button></div>`;
     } else if (resume === "google" || (mode === "google" && T.cfg.gRefresh && !T.cfg.gData)) {
       body = `${googleCard(false)}<div id="tdhWhoBox" style="display:none">${whoCard(c, false)}</div>`;
     } else if (mode === "notion" || resume === "notion") {
@@ -89,7 +91,7 @@
       body = whoCard(c, false);
     } else body = chooseCard();
     ov.innerHTML = `<div class="tdh-in">
-      <h1>劇場幫幫</h1><div class="sub">${force ? "設定" : "給劇場人的排班、找人、時段表小幫手"}</div>
+      ${force ? `<h1 style="margin-bottom:18px">設定</h1>` : `<h1>劇場幫幫</h1><div class="sub">給劇場人的排班、找人、時段表小幫手</div>`}
       ${ios && !standalone && !force ? `<div class="tdh-tip"><b>📱 iPhone 請先加到主畫面再設定</b><br>Safari 和主畫面的捷徑各自存設定，在這裡設定好，從主畫面打開還要再設定一次。<br>做法：按下方的「分享」→「加入主畫面」→ 從主畫面打開「劇場幫幫」再設定。<br><button type="button" class="ghost" id="tdhTipOk" style="margin-top:8px;padding:6px 12px;font-size:13px;border:0;border-radius:999px;background:#f3e3bd">我只要在 Safari 用，繼續</button></div>` : ""}
       ${body}
       <div class="tdh-foot">設定只存在這個瀏覽器裡；資料直接存在你自己的 Google 雲端或 Notion，不會經過別的地方保存。請用 Safari 或 Chrome 打開，LINE、Notion 裡面的內建瀏覽器不會記住設定。</div>

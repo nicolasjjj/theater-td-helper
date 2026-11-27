@@ -35,8 +35,7 @@ async def main():
         await pg.fill('[id="f_姓名"]', "陳小米"); await pg.fill('[id="f_時段費"]', "900"); await pg.click("#mgSave"); await pg.wait_for_timeout(1500)
         await pg.click('.mg-tabs button[data-k="cases"]'); await pg.wait_for_timeout(800); await pg.click(".mg-add"); await pg.wait_for_timeout(600)
         await pg.fill("#c_name", "新的戲"); await pg.fill("#c_s", "2026-12-20"); await pg.fill("#c_e", "2026-12-21")
-        await pg.click('#c_need button[data-n="全程"][data-d="1"]'); await pg.click("#mgSave"); await pg.wait_for_timeout(2500)
-        await pg.click('.mg-it:has-text("範例")'); await pg.wait_for_timeout(800); await pg.click("#mgArc"); await pg.wait_for_timeout(2500)
+        await pg.click('#c_need [data-tag="全程缺1"]'); await pg.click("#mgSave"); await pg.wait_for_timeout(2500)
         await pg.screenshot(path=str(OUT / "n5_manage.png"))
         await pg.click("#mgX"); await pg.wait_for_timeout(5000); await pg.screenshot(path=str(OUT / "n6_app.png"))
         cases_db = [d for d in fk.dbs.values() if d["title"][0]["plain_text"] == "劇場の案子"][0]["id"]
