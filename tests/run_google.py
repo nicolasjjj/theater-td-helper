@@ -63,13 +63,13 @@ async def main():
         print("P3"); await pg.check("#c_tourOn"); print("P4", await pg.evaluate("[document.querySelector('#c_tourOn').checked, document.querySelector('#c_tourBox').style.display, typeof document.querySelector('#c_tourOn').onchange]")); await pg.fill("#c_tour", "2026午後的信")
         await shot("g06_caseform")
         await pg.click("#mgSave"); await pg.wait_for_timeout(1200); await shot("g07_cases")
-        await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(1200); await pg.click('#mgEdit'); await pg.wait_for_timeout(1200); await pg.evaluate("document.querySelector('#c_tblBox').scrollIntoView()"); await shot("g08_table")
-        await pg.click("#mgBack"); await pg.wait_for_timeout(400)
+        await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(1200); await pg.click('#mgHAct'); await pg.wait_for_timeout(1200); await pg.evaluate("document.querySelector('#c_tblBox').scrollIntoView()"); await shot("g08_table")
+        await pg.click("#mgCancel"); await pg.wait_for_timeout(1200); await pg.click("#mgHBack"); await pg.wait_for_timeout(600)
         await pg.click('.tdh-tabbar [data-t="find"]'); await pg.wait_for_timeout(4000); await shot("g09_app")
         # 看表格
         btns = pg.locator(".tblBtn")
         print("tblBtn", await btns.count())
-        if await btns.count(): await btns.first.click(); await pg.wait_for_timeout(2500); await shot("g10_table"); await pg.mouse.click(195, 830); await pg.wait_for_timeout(400)
+        if await btns.count(): await btns.first.click(); await pg.wait_for_timeout(2500); await shot("g10_table"); await pg.click(".mg #mgHBack"); await pg.wait_for_timeout(2500)
         # 加入/編輯：陳小米 全程 → 寫進 Call Time 排班表
         card = pg.locator('.card:has-text("午後的信")').first
         await card.locator(".bookBar").click(); await pg.wait_for_selector('.pchip:has-text("陳小米")', timeout=15000); await pg.wait_for_timeout(500)

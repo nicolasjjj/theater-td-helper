@@ -34,7 +34,7 @@ async def main():
         await pg.fill("#tdhTok", "ntn_test"); await pg.click("#tdhGo"); await pg.wait_for_timeout(1500); await shot("02_found")
         await pg.fill("#tdhTd", "王大明"); await pg.click("#tdhSave"); await pg.wait_for_timeout(4000); await shot("03_find")
         # 看表格
-        await pg.click(".tblBtn"); await pg.wait_for_timeout(2500); await shot("04_table"); await pg.mouse.click(195, 830); await pg.wait_for_timeout(400)
+        await pg.click(".tblBtn"); await pg.wait_for_timeout(3000); await shot("04_detail"); await pg.click(".mg #mgHBack"); await pg.wait_for_timeout(2500)
         # 加入/編輯 → 陳小米 只有某幾天 → Day1, Day2
         await pg.click(".bookBar"); await pg.wait_for_selector('.pchip:has-text("陳小米")', timeout=15000); await pg.wait_for_timeout(500)
         await shot("045_book")

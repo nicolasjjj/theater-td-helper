@@ -388,7 +388,7 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.27-2349";</script>
+<script>window.TDH_VERSION="2026.11.28-0028";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
@@ -1467,8 +1467,6 @@
     let body;
     if (force) {
       body = `${whoCard(c, true)}
-        <div class="tdh-st"><h2>介面版本（比較用）</h2><div class="tdh-seg">${["D1", "D2", "C"].map(v => `<button type="button" class="${(T.ui ? T.ui() : "D1") === v ? "on" : ""}" data-ui-v="${v}">${v}</button>`).join("")}</div>
-          <p style="margin-top:8px">D1：下方找人／打卡／結案＋左上選單　D2：首頁是手上的案子＋左上選單　C：下方五個分頁</p></div>
         <div class="tdh-st"><h2>外觀</h2><div class="tdh-seg">${[["", "跟著手機"], ["light", "日間模式"], ["dark", "夜間模式"]].map(([v, t]) => `<button type="button" class="${(T.cfg.theme || "") === v ? "on" : ""}" data-theme-v="${v}">${t}</button>`).join("")}</div></div>
         <div class="tdh-st"><h2>資料放在</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
           <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>
@@ -1706,6 +1704,8 @@
   .mg-nadd{border:1px dashed var(--line);background:transparent;color:var(--accent);border-radius:8px;width:30px;height:28px;font-size:16px;font-weight:700;cursor:pointer}
   .mg-pick{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.mg-pick .mg-tag{font-size:14px;padding:6px 12px}.mg-pick .mg-tag.unk{border-style:dashed}
   .mg .mg-add{left:auto;right:max(18px,calc(50% - 262px));transform:none;width:58px;height:58px;max-width:none;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+  .mg-row .mg-edit{flex:0 0 auto}.mg-row h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mg-row .tdh-back{margin-left:-8px}
+  .mg-kvs a{color:var(--accent)}.mg-row h1.item{font-size:19px}
   .mg-bhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
   .mg-edit{border:0;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:8px 18px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .mg-btitle{font-size:20px;font-weight:700;margin:6px 2px 4px;line-height:1.4}
@@ -1755,14 +1755,16 @@
     const D = T.ui && T.ui() !== "C";   // D 框架：左上角是選單，不放齒輪
     const title = o.only ? (o.only === "cases" ? "我的案子" : K[o.only]) : section === "cases" ? "我的案子" : "名單";
     ov = document.createElement("div"); ov.className = "mg embed" + (D ? " d" : "");
-    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row">${D ? `<span id="mgMenu"></span>` : ""}<h1>${title}</h1>${D ? "" : `<button class="mg-gear" id="mgGear" aria-label="設定"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></button>`}</div>
+    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row">${D ? `<span id="mgMenu"></span>` : ""}<button class="tdh-back" id="mgHBack" aria-label="返回" hidden><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="mgTitle">${title}</h1><button class="mg-edit" id="mgHAct" hidden>編輯</button>${D ? "" : `<button class="mg-gear" id="mgGear" aria-label="設定"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></button>`}</div>
       ${tabs.length > 1 ? `<div class="mg-tabs">${tabs.map(k => `<button data-k="${k}">${K[k]}</button>`).join("")}</div>` : ""}</div>
       </div></div><div class="mg-body" id="mgScroll"><div class="mg-in" id="mgBody"></div></div>`;
     document.body.appendChild(ov);
     document.documentElement.style.overflow = "hidden";
-    if ($("mgMenu") && T.menuButton) $("mgMenu").replaceWith(T.menuButton());
+    if ($("mgMenu") && T.menuButton) { const mb = T.menuButton(); mb.id = "mgMenuBtn"; $("mgMenu").replaceWith(mb); }
+    listTitle = title;
     if ($("mgGear")) $("mgGear").onclick = () => T.openSettings && T.openSettings();
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.onclick = () => { tab = b.dataset.k; q = ""; sub = ""; list(); });
+    scrollCT = o.scrollTo === "ct"; backTo = o.from || null;
     if (o.caseId) { tab = "cases"; loadKind("cases").then(() => Promise.all([loadKind("venue"), loadKind("troupe"), loadKind("crew")])).then(() => edit("cases", o.caseId)).catch(() => list()); }
     else { list().then(() => { if (o.add) edit(tab, null); }); }
   }
@@ -1778,7 +1780,16 @@
 
   // ---------- 列表 ----------
   let sub = "";   // Crew：居住地區、場館：地區 的篩選頁籤
+  // 標題列：列表時是「選單＋頁面名稱」，看板／編輯時是「← 項目名稱」
+  let listTitle = "";
+  function head(itemTitle, onBack, act) {
+    const mb = $("mgMenuBtn"), bk = $("mgHBack"), tabs = ov.querySelector(".mg-tabs"), ab = $("mgHAct");
+    if (itemTitle) { if (mb) mb.hidden = true; bk.hidden = false; bk.onclick = onBack; $("mgTitle").textContent = itemTitle; $("mgTitle").classList.add("item"); if (tabs) tabs.hidden = true; }
+    else { if (mb) mb.hidden = false; bk.hidden = true; $("mgTitle").textContent = listTitle; $("mgTitle").classList.remove("item"); if (tabs) tabs.hidden = false; }
+    ab.hidden = !act; if (act) { ab.textContent = act.label; ab.onclick = act.fn; }
+  }
   async function list(force) {
+    head(null);
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.classList.toggle("on", b.dataset.k === tab));
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
     busy("讀取中…");
@@ -1893,12 +1904,11 @@
   }
 
   async function edit(k, id, mode) {
-    if (k === "cases" && id && mode !== "edit") return caseBoard(id);
+    if (id && mode !== "edit") return k === "cases" ? caseBoard(id) : itemBoard(k, id);
     const r = id ? data[k].find(x => x.id === id) : {};
     const isNew = !id;
-    if (!isNew) { const old = ov.querySelector(".mg-add"); if (old) old.remove(); }
-    const back = k === "cases" ? `<div class="mg-bhead"><button class="mg-back" id="mgBack">‹ 取消編輯</button></div>` : `<button class="mg-back" id="mgBack">‹ 返回${k === "cases" ? "我的案子" : K[k] + "列表"}</button>`;
-    let h = isNew ? `<div class="mg-f">` : back + `<div class="mg-f">`;
+    if (!isNew) { const old = ov.querySelector(".mg-add"); if (old) old.remove(); head("編輯・" + (r[T.SCHEMA[k].fields[0][0]] || ""), () => edit(k, id)); }
+    let h = `<div class="mg-f">`;
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
@@ -1927,12 +1937,9 @@
       $("mgCancel").onclick = () => { md.classList.remove("in"); setTimeout(() => md.remove(), 180); };
       md.onclick = (e) => { if (e.target === md) $("mgCancel").onclick(); };
     } else {
-      h += k === "cases"
-        ? `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="ghost2" id="mgCancel">取消</button><button class="pri" id="mgSave">儲存</button></div><div class="mg-act" style="margin-top:28px"><button class="red" id="mgDel">刪除整個案子</button></div></div>`
-        : `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="pri" id="mgSave">儲存</button></div><div class="mg-act"><button class="dan" id="mgDel">刪除</button></div></div>`;
+      h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="ghost2" id="mgCancel">取消</button><button class="pri" id="mgSave">儲存</button></div><div class="mg-act" style="margin-top:28px"><button class="red" id="mgDel">${k === "cases" ? "刪除整個案子" : "刪除這筆" + K[k]}</button></div></div>`;
       $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
-      $("mgBack").onclick = () => (k === "cases" ? caseBoard(id) : list());
-      if ($("mgCancel") && k === "cases") $("mgCancel").onclick = () => caseBoard(id);
+      $("mgCancel").onclick = () => edit(k, id);
     }
     // 「清除資料」：點兩下才清（第一下變成「再點一次清除」）
     ov.querySelectorAll("[data-clear]").forEach(btn => {
@@ -1975,6 +1982,11 @@
       } catch (e) { ct.err = String(e.message || e); }
     } else ct.rows = T.callRows(d.start, d.end, ld.start).map(x => ({ key: "", a: x[0], b: "" }));
     ct.rows.forEach(x => { ct.orig[x.key] = x.a + "\u0001" + x.b; });
+    if (d.start) ct.rows.forEach(x => {   // 「Day 1」這類標籤 → 照進場日期換成「12/14 (一)」
+      const m = String(x.a).match(/^day\s*(\d+)$/i); if (!m) return;
+      const dt = new Date(d.start + "T00:00:00"); dt.setDate(dt.getDate() + +m[1] - 1);
+      x.a = `${dt.getMonth() + 1}/${dt.getDate()} (${"日一二三四五六"[dt.getDay()]})`;
+    });
   }
   // ---------- 案子看板（只看，按「編輯」才改） ----------
   async function caseBoard(id) {
@@ -1989,9 +2001,10 @@
     const d = r["進場日期"] || {}, ld = r["裝車時間"] || {}, stt = r["Crew 狀態"] || [];
     const kv = (k, v) => v ? `<div class="kv"><span>${k}</span><b>${v}</b></div>` : "";
     const known = new Set(crewNames());
-    let h = `<div class="mg-bhead"><button class="mg-back" id="mgBack">‹ 返回我的案子</button><button class="mg-edit" id="mgEdit">編輯</button></div>
-      <div class="mg-btitle">${esc(tr ? `${tr["劇團名稱"]}《${r["案名"]}》` : r["案名"] || "（未命名）")}</div>
-      <div class="mg-h">基本資料</div><div class="mg-card mg-kvs">
+    const ttl = tr ? `${tr["劇團名稱"]}《${r["案名"]}》` : r["案名"] || "（未命名）";
+    head(ttl, () => { if (backTo) { const b = backTo; backTo = null; T.showTab(b); } else list(); }, { label: "編輯", fn: () => edit("cases", id, "edit") });
+    rememberRecent(id, ttl);
+    let h = `<div class="mg-h" style="margin-top:4px">基本資料</div><div class="mg-card mg-kvs">
         ${kv("進場日期", d.start ? esc(md(d.start) + (d.end && d.end !== d.start ? " – " + md(d.end) : "")) : "")}
         ${kv("裝車", ld.start ? esc(md(ld.start) + (r["裝車地點"] ? "・" + r["裝車地點"] : "")) : "")}
         ${kv("演出場館", esc(vn))}
@@ -2005,11 +2018,40 @@
         ${kv("筆記", r["人力分配"] ? esc(r["人力分配"]) : "<i>沒有填</i>")}
         <div class="kv"><span>還缺</span><b>${stt.includes("全部完成") ? `<span class="mg-tag on c-default">人都找齊了</span>` : stt.filter(x => /缺/.test(x)).map(x => { const kd = (T.NEED_KINDS.find(n => x.startsWith(n[0])) || [0, 0, "gray"])[2]; return `<span class="mg-tag on c-${kd}">${esc(x)}</span>`; }).join(" ") || "<i>沒有填</i>"}${stt.includes("等待製作確認") ? ` <span class="mg-tag on c-gray">人數尚未確認</span>` : ""}</b></div>
       </div>
-      <div class="mg-h">${esc(window.TEAM())}人員 Call Time</div>
+      <div class="mg-h" id="ctSec">${esc(window.TEAM())}人員 Call Time</div>
       ${ct.err ? `<div class="mg-note">讀不到 Call Time 表格：${esc(ct.err)}</div>` : ct.rows.length ? `<table class="mg-ct ro"><tbody>${ct.rows.map(x => `<tr><td>${esc(x.a)}</td><td><div class="mg-names">${splitNames(x.b).map(n => `<span class="mg-nm${known.size && !known.has(n) ? " unk" : ""}">${esc(n)}</span>`).join("") || `<span class="mg-none">—</span>`}</div></td></tr>`).join("")}</tbody></table>` : `<div class="mg-empty" style="margin:0">還沒有 Call Time 表格</div>`}`;
     $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
-    $("mgBack").onclick = () => list();
-    $("mgEdit").onclick = () => edit("cases", id, "edit");
+    if (scrollCT) { scrollCT = false; const el = $("ctSec"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }
+  }
+  let scrollCT = false, backTo = null;
+  function rememberRecent(id, title) {
+    try { const a = JSON.parse(localStorage.getItem("tdh.recent") || "[]").filter(x => x.id !== id); a.unshift({ id, title }); localStorage.setItem("tdh.recent", JSON.stringify(a.slice(0, 6))); } catch (e) {}
+  }
+  // ---------- Crew／場館／劇團 看板 ----------
+  async function itemBoard(k, id) {
+    const old = ov.querySelector(".mg-add"); if (old) old.remove();
+    const r = (data[k] || []).find(x => x.id === id); if (!r) return list();
+    const tf = T.SCHEMA[k].fields[0][0];
+    head(r[tf] || "（未命名）", () => list(), { label: "編輯", fn: () => edit(k, id, "edit") });
+    const kv = (a, v) => v ? `<div class="kv"><span>${a}</span><b>${v}</b></div>` : "";
+    const HIDE = { venue: [] };
+    let rows = "";
+    for (const [name, type] of T.SCHEMA[k].fields) {
+      if (name === tf || type === "content" || !has(k, name)) continue;
+      const v = r[name]; if (v === null || v === undefined || v === "") continue;
+      if (name === "電話") rows += kv(name, `<a href="tel:${esc(String(v).replace(/[^\d+]/g, ""))}">${esc(v)}</a>`);
+      else if (type === "url") rows += kv(name, `<a href="${esc(v)}" target="_blank" rel="noopener">打開連結 ↗</a>`);
+      else if (name === "時段費") rows += kv(name, "$" + esc(v));
+      else rows += kv(name, esc(v).replace(/\n/g, "<br>"));
+    }
+    // 相關案子
+    if (!data.cases) await loadKind("cases");
+    const rel = (data.cases || []).filter(c => (k === "crew" ? [...(c["摳的人"] || []), ...(c["問過的人"] || [])] : k === "venue" ? (c["進場地點"] || []) : (c["劇團"] || [])).includes(id))
+      .sort((a, b) => String((b["進場日期"] || {}).start || "").localeCompare(String((a["進場日期"] || {}).start || "")));
+    let h = `<div class="mg-h" style="margin-top:4px">資料</div><div class="mg-card mg-kvs">${rows || `<div class="kv"><b><i>還沒有填其他資料，按右上角「編輯」補上</i></b></div>`}</div>`;
+    if (rel.length) h += `<div class="mg-h">${k === "crew" ? "合作過的案子" : "相關案子"}（${rel.length}）</div>` + rel.slice(0, 12).map(c => `<button class="mg-it" data-cid="${c.id}"><b>${esc(c["案名"] || "")}</b><small>${c["進場日期"] ? md(c["進場日期"].start) : ""}</small></button>`).join("");
+    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
+    $("mgBody").querySelectorAll("[data-cid]").forEach(b => b.onclick = () => T.showTab && T.showTab("cases", { caseId: b.dataset.cid }));
   }
   // 案子表單
   const NEEDS = () => T.NEED_KINDS.map(x => x[0]);
@@ -2173,7 +2215,7 @@
       dirty = true;
       const md = ov.querySelector(".mg-modal"); if (md) md.remove();
       await loadKind(k, true);
-      if (id && k === "cases") caseBoard(id); else list();
+      if (id) edit(k, id); else list();
     } catch (e) { errEl.textContent = "儲存失敗：" + ((e && e.message) || e); btn.disabled = false; btn.textContent = id ? "儲存" : "新增"; }
   }
 
@@ -2191,12 +2233,14 @@
 (() => {
   const T = window.__tdh;
   const UIS = ["D1", "D2", "C"];
-  try { const u = new URLSearchParams(location.search).get("ui"); if (u && UIS.includes(u.toUpperCase())) { T.setCfg({ ui: u.toUpperCase() }); localStorage.removeItem("tdh.tab"); history.replaceState(null, "", location.pathname + location.hash); } } catch (e) {}
-  const ui = () => (UIS.includes(T.cfg.ui) ? T.cfg.ui : "D1");
+  // 正式介面是 D1；?ui=C／D2 只給測試比較用（只在這個分頁有效）
+  try { const u = new URLSearchParams(location.search).get("ui"); if (u && UIS.includes(u.toUpperCase())) { sessionStorage.setItem("tdh.ui", u.toUpperCase()); localStorage.removeItem("tdh.tab"); history.replaceState(null, "", location.pathname + location.hash); } } catch (e) {}
+  const ui = () => { let u = ""; try { u = sessionStorage.getItem("tdh.ui") || ""; } catch (e) {} return UIS.includes(u) ? u : "D1"; };
   T.ui = ui;
   const UI = ui();
   const I = (d, w = 24) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const MENU = I('<path d="M4 7h16M4 12h16M4 17h10"/>', 26);
+  const CHEV = I('<path d="M9 6l6 6-6 6"/>', 16);
 
   const css = `
   .tdh-toprow{display:none!important}
@@ -2225,8 +2269,9 @@
   .tdh-drawer .it{display:flex;align-items:center;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left;padding:11px 10px;border-radius:10px;cursor:pointer}
   .tdh-drawer .it.on{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:700}
   .tdh-drawer .sp{flex:1}
-  .tdh-drawer .db .car{color:var(--muted);transition:transform .15s}.tdh-drawer .db.open .car{transform:rotate(180deg)}
-  .tdh-drawer .it.sub{font-size:15px;padding:9px 10px 9px 26px;color:var(--muted)}.tdh-drawer .it.sub.on{color:var(--accent)}
+  .tdh-drawer .db .car{display:inline-flex;color:var(--muted);transition:transform .2s ease}.tdh-drawer .db.open .car{transform:rotate(90deg)}
+  .tdh-drawer .it.sub{font-size:14.5px;padding:6px 10px 6px 22px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.tdh-drawer .it.sub.on{color:var(--accent);font-weight:700}
+  .tdh-drawer .dbl{margin-bottom:6px}.tdh-drawer .none{font-size:13px;color:var(--muted);padding:4px 22px 6px}
   .tdh-drawer .ic{display:inline-flex;margin-right:10px;color:var(--muted)}
   .tdh-drawer .foot{border-top:1px solid var(--line);padding-top:8px}
   .tdh-drawer .ver{font-size:11px;color:var(--muted);margin:6px 10px 0}
@@ -2279,6 +2324,7 @@
     }), 60);
   }
   function show(view, opt = {}) {
+    const prev = cur;
     cur = view;
     try { localStorage.setItem("tdh.tab", view); } catch (e) {}
     document.querySelectorAll(".tdh-tabbar button").forEach(b => b.classList.toggle("on", b.dataset.t === view));
@@ -2287,8 +2333,8 @@
     if (view === "home") { if (T.closeManage && T.closeManage("home")) return; openHome(); return; }
     closeHome();
     if (fb()) fb().hidden = true;
-    if (UI === "C") { T.openManage({ section: view === "lists" ? "lists" : "cases", caseId: opt.caseId }); return; }
-    T.openManage({ only: view, caseId: opt.caseId, add: opt.add });
+    if (UI === "C") { T.openManage({ section: view === "lists" ? "lists" : "cases", caseId: opt.caseId, scrollTo: opt.scrollTo, from: opt.caseId && prev !== view ? prev : null }); return; }
+    T.openManage({ only: view, caseId: opt.caseId, add: opt.add, scrollTo: opt.scrollTo, from: opt.caseId && prev !== view ? prev : null });
   }
   T.showTab = (v, opt) => show(v === "lists" && UI !== "C" ? "crew" : v, opt);
   T.currentTab = () => cur;
@@ -2302,15 +2348,17 @@
       <button class="new" data-new="1">＋ 新增案子</button>
       ${main.map(([v, t]) => `<button class="it" data-v="${v}">${t}</button>`).join("")}
       <button class="it" data-v="cases">我的案子</button>
-      <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">▾</span></button>
+      <button class="it db" id="rcTog"><span style="flex:1">最近項目</span><span class="car">${CHEV}</span></button>
+      <div class="dbl" id="rcList" hidden></div>
+      <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">${CHEV}</span></button>
       <div class="dbl" id="dbList" hidden>${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div>
       <div class="sp"></div>
-      <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button><div class="ver">介面 ${UI}</div></div></div>`;
+      <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button>${UI !== "D1" ? `<div class="ver">介面 ${UI}（測試）</div>` : ""}</div></div>`;
     document.body.appendChild(drawer);
     drawer.querySelector(".sh").onclick = closeDrawer;
     drawer.querySelectorAll("[data-v]").forEach(b => b.onclick = () => show(b.dataset.v));
     drawer.querySelector("[data-new]").onclick = () => show("cases", { add: true });
-    drawer.querySelector("#dbTog").onclick = () => { const l = drawer.querySelector("#dbList"); l.hidden = !l.hidden; drawer.querySelector("#dbTog").classList.toggle("open", !l.hidden); };
+    [["#dbTog", "#dbList"], ["#rcTog", "#rcList"]].forEach(([t, l]) => drawer.querySelector(t).onclick = () => { const el = drawer.querySelector(l); el.hidden = !el.hidden; drawer.querySelector(t).classList.toggle("open", !el.hidden); });
     drawer.querySelector("[data-set]").onclick = () => { T.openSettings && T.openSettings(() => openDrawer()); setTimeout(() => drawer.classList.remove("open"), 250); };
     let x0 = null;   // 往左滑關閉
     drawer.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
@@ -2320,6 +2368,10 @@
     if (!drawer) buildDrawer();
     drawer.querySelectorAll(".it[data-v]").forEach(b => b.classList.toggle("on", b.dataset.v === cur));
     if (["troupe", "crew", "venue"].includes(cur)) { drawer.querySelector("#dbList").hidden = false; drawer.querySelector("#dbTog").classList.add("open"); }
+    let rc = []; try { rc = JSON.parse(localStorage.getItem("tdh.recent") || "[]"); } catch (e) {}   // 最近看過的案子
+    const rl = drawer.querySelector("#rcList");
+    rl.innerHTML = rc.length ? rc.map(x => `<button class="it sub" data-rc="${esc(x.id)}">${esc(x.title)}</button>`).join("") : `<div class="none">還沒有看過的案子</div>`;
+    rl.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => show("cases", { caseId: b.dataset.rc }));
     requestAnimationFrame(() => drawer.classList.add("open"));
   }
   function closeDrawer() { if (drawer) drawer.classList.remove("open"); }
@@ -2447,7 +2499,7 @@
   <div class="modes"><button class="mode on" data-m="find">進場前</button><button class="mode" data-m="live">進場中</button><button class="mode" data-m="close">結案</button></div>
   <div id="findView">
   <header>
-    <h1>Call人訊息複製 / 編輯人員名單</h1>
+    <h1>Call人訊息複製</h1>
     <button class="icon-btn" id="refresh">重新整理</button>
   </header>
   <div class="sub" id="fresh">從「劇場の案子」讀取中…</div>
@@ -2652,7 +2704,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
         c.innerHTML = `<div class="check"></div>
           <div class="meta">${i.tags.map(t => `<span class="tag ${i.kind === "全程" ? "w" : i.kind === "裝車" ? "l" : "s"}">${t}</span>`).join("")}
           <span class="case"></span></div><pre></pre><div class="info"></div>
-          <div class="cardBtns"><button class="tblBtn">看表格</button><button class="bookBar"></button></div>`;
+          <div class="cardBtns"><button class="tblBtn">詳細資訊</button><button class="bookBar"></button></div>`;
         c.querySelector(".case").textContent = i.title;
         c.querySelector("pre").textContent = i.text;
         fillInfo(c.querySelector(".info"), i);
@@ -2662,7 +2714,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
           if (e.target.closest("a")) return;
           if (e.target.closest(".askBtn")) { e.stopPropagation(); openAsk(i); return; }
           if (e.target.closest(".bookBar")) { e.stopPropagation(); openBook(i); return; }
-          if (e.target.closest(".tblBtn")) { e.stopPropagation(); openTable(i); return; }
+          if (e.target.closest(".tblBtn")) { e.stopPropagation(); const T2 = window.__tdh, m = String(i.url || "").replace(/-/g, "").match(/[0-9a-f]{32}/i); if (T2 && T2.showTab && m) T2.showTab("cases", { caseId: m[0].toLowerCase(), scrollTo: "ct" }); else openTable(i); return; }
           if (e.target.closest(".infoTog")) { e.stopPropagation(); openInfo.has(i.key) ? openInfo.delete(i.key) : openInfo.add(i.key); fillInfo(c.querySelector(".info"), i); return; }
           selected.has(i.key) ? selected.delete(i.key) : selected.add(i.key);
           render();
@@ -2731,12 +2783,12 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
   const list = (a) => a.length ? `${a.join("、")}（${a.length}）` : "—";
   function fillInfo(el, i) {
     const esc = (s) => String(s).replace(/[&<>]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
-    let html = `<div class="planrow"><b>人力分配</b>　<span>${i.plan ? esc(i.plan) : "—"}</span></div>`;
+    let html = "";
     el.innerHTML = html;
   }
   // 卡片最下面：確定人選（Call Time 表格裡已經排的人）
   function fillBook(el, i) {
-    el.innerHTML = `<div class="bk-h"><span>加入 / 編輯</span><i>›</i></div>`;
+    el.innerHTML = `<div class="bk-h"><span>+ Crew</span></div>`;
   }
 
   // ---------- 問過的人 ----------
@@ -3018,7 +3070,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
         `<div class="bk-g"><span class="gt g-${g || "na"}">${g || "未排進表格"}</span><div class="plist">${a.map(p => `<button class="pchip ask on g-${g || "na"}" data-id="${p.id}">${esc(p.name)}</button>`).join("")}</div></div>`).join("");
       body.innerHTML = `<div class="tdrow"><span>${window.ROLE()}</span><input id="tdIn" value="${esc(i.td || window.TDN())}" enterkeyhint="done"><button id="tdSave">更換</button></div>
         <div class="clabel">已確定（${yes.length}）・點名字可修改或取消</div>${gHtml || `<div class="note">還沒有</div>`}
-        <div class="clabel" style="margin-top:12px">其他人・點名字確認可以</div><div class="plist">${rest.slice(0, 120).map(p => chip(p, false)).join("") || `<span class="note">找不到</span>`}</div>`;
+        <div class="clabel" style="margin-top:12px">其他人・點名字確認可以</div><div class="plist">${rest.slice(0, q ? 120 : 20).map(p => chip(p, false)).join("") || `<span class="note">找不到</span>`}</div>`;
       body.querySelectorAll(".ask").forEach(b => b.onclick = () => openConfirm(i, crewDir[b.dataset.id], draw));
       const tdIn = body.querySelector("#tdIn");
       tdIn.onkeydown = (e) => { if (e.key === "Enter") tdIn.blur(); };

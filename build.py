@@ -121,7 +121,7 @@ rep('if (c === "needs_reauth") return', 'if (c === "google_login") return "Googl
 # 不一定用 Notion：畫面上的字改成中性的說法
 for a, b in [
     ("還沒設定 Notion，請到「名單」頁右上角的 ⚙︎ 設定。", "還沒設定好，請到「名單」頁右上角的 ⚙︎ 設定。"),
-    ("<h1>缺人訊息</h1>", "<h1>Call人訊息複製 / 編輯人員名單</h1>"),
+    ("<h1>缺人訊息</h1>", "<h1>Call人訊息複製 / 編輯人員名單</h1>"),   # 之後再改成「Call人訊息複製」
     ("・來自「劇場の案子」`", "・來自${window.__tdh.cfg.mode === \"google\" ? \"你的 Google 雲端\" : \" Notion「劇場の案子」\"}`"),
     ('toast("已記錄到 Notion")', 'toast("已記錄")'),
     ("表格有幾列沒寫進去，請到 Notion 確認", "表格有幾列沒寫進去，請到「☰ 管理」確認排班表"),
@@ -160,6 +160,16 @@ for a, b in [
     ('c.className = "card" + (selected.has(i.key) ? " sel" : "");', 'c.className = "card" + (selected.has(i.key) ? " sel" : ""); c.dataset.url = i.url || "";'),
     ('const PHASE_TABS = { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };',
      'const PHASE_TABS = window.__tdh && window.__tdh.ui && window.__tdh.ui() !== "C" ? { live: [["punch", "每日打卡"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"], ["shot", "截圖"]] } : { live: [["punch", "每日打卡"], ["shot", "截圖"]], close: [["crew", "時段費"], ["sheet", "時段表"], ["give", "給 Crew"]] };'),
+]:
+    assert a in h, a[:40]; h = h.replace(a, b)
+# 找人頁：標題、卡片按鈕、只列 20 位常找的 Crew、「詳細資訊」跳到案子看板的 Call Time
+for a, b in [
+    ("<h1>Call人訊息複製 / 編輯人員名單</h1>", "<h1>Call人訊息複製</h1>"),
+    ('let html = `<div class="planrow"><b>人力分配</b>　<span>${i.plan ? esc(i.plan) : "—"}</span></div>`;', 'let html = "";'),
+    ('el.innerHTML = `<div class="bk-h"><span>加入 / 編輯</span><i>›</i></div>`;', 'el.innerHTML = `<div class="bk-h"><span>+ Crew</span></div>`;'),
+    ('<button class="tblBtn">看表格</button>', '<button class="tblBtn">詳細資訊</button>'),
+    ('if (e.target.closest(".tblBtn")) { e.stopPropagation(); openTable(i); return; }', 'if (e.target.closest(".tblBtn")) { e.stopPropagation(); const T2 = window.__tdh, m = String(i.url || "").replace(/-/g, "").match(/[0-9a-f]{32}/i); if (T2 && T2.showTab && m) T2.showTab("cases", { caseId: m[0].toLowerCase(), scrollTo: "ct" }); else openTable(i); return; }'),
+    ('${rest.slice(0, 120).map(p => chip(p, false)).join("")', '${rest.slice(0, q ? 120 : 20).map(p => chip(p, false)).join("")'),
 ]:
     assert a in h, a[:40]; h = h.replace(a, b)
 # 標題、進場前最下面的「回到最上面」

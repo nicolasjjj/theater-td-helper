@@ -38,7 +38,7 @@ async def main():
         await pg.fill("#c_name", "新的戲"); await pg.fill("#c_s", "2026-12-20"); await pg.fill("#c_e", "2026-12-21")
         await pg.click('#c_need [data-tag="全程缺1"]'); await pg.click("#mgSave"); await pg.wait_for_timeout(2500)
         await pg.screenshot(path=str(OUT / "n5_manage.png"))
-        await pg.click('.mg-it:has-text("範例")'); await pg.wait_for_timeout(2500); await pg.click('#mgEdit'); await pg.wait_for_timeout(2500)
+        await pg.click('.mg-it:has-text("範例")'); await pg.wait_for_timeout(2500); await pg.click('#mgHAct'); await pg.wait_for_timeout(2500)
         await pg.evaluate("document.querySelector('#c_tblBox').scrollIntoView()"); await pg.screenshot(path=str(OUT / "n7_case_notion.png"))
         print("ct rows:", await pg.evaluate("document.querySelectorAll('.mg-ct tr').length"))
         await pg.click('[data-add="1"]'); await pg.wait_for_timeout(500); await pg.screenshot(path=str(OUT / "n8_picker.png")); await pg.click('#pkList [data-n="陳小米"]'); await pg.click("#pkOk"); await pg.wait_for_timeout(400); await pg.click("#mgSave"); await pg.wait_for_timeout(2500)

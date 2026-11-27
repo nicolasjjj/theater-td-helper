@@ -90,6 +90,8 @@
   .mg-nadd{border:1px dashed var(--line);background:transparent;color:var(--accent);border-radius:8px;width:30px;height:28px;font-size:16px;font-weight:700;cursor:pointer}
   .mg-pick{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.mg-pick .mg-tag{font-size:14px;padding:6px 12px}.mg-pick .mg-tag.unk{border-style:dashed}
   .mg .mg-add{left:auto;right:max(18px,calc(50% - 262px));transform:none;width:58px;height:58px;max-width:none;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+  .mg-row .mg-edit{flex:0 0 auto}.mg-row h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mg-row .tdh-back{margin-left:-8px}
+  .mg-kvs a{color:var(--accent)}.mg-row h1.item{font-size:19px}
   .mg-bhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
   .mg-edit{border:0;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:8px 18px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .mg-btitle{font-size:20px;font-weight:700;margin:6px 2px 4px;line-height:1.4}
@@ -139,14 +141,16 @@
     const D = T.ui && T.ui() !== "C";   // D 框架：左上角是選單，不放齒輪
     const title = o.only ? (o.only === "cases" ? "我的案子" : K[o.only]) : section === "cases" ? "我的案子" : "名單";
     ov = document.createElement("div"); ov.className = "mg embed" + (D ? " d" : "");
-    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row">${D ? `<span id="mgMenu"></span>` : ""}<h1>${title}</h1>${D ? "" : `<button class="mg-gear" id="mgGear" aria-label="設定"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></button>`}</div>
+    ov.innerHTML = `<div class="mg-top"><div><div class="mg-row">${D ? `<span id="mgMenu"></span>` : ""}<button class="tdh-back" id="mgHBack" aria-label="返回" hidden><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="mgTitle">${title}</h1><button class="mg-edit" id="mgHAct" hidden>編輯</button>${D ? "" : `<button class="mg-gear" id="mgGear" aria-label="設定"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></button>`}</div>
       ${tabs.length > 1 ? `<div class="mg-tabs">${tabs.map(k => `<button data-k="${k}">${K[k]}</button>`).join("")}</div>` : ""}</div>
       </div></div><div class="mg-body" id="mgScroll"><div class="mg-in" id="mgBody"></div></div>`;
     document.body.appendChild(ov);
     document.documentElement.style.overflow = "hidden";
-    if ($("mgMenu") && T.menuButton) $("mgMenu").replaceWith(T.menuButton());
+    if ($("mgMenu") && T.menuButton) { const mb = T.menuButton(); mb.id = "mgMenuBtn"; $("mgMenu").replaceWith(mb); }
+    listTitle = title;
     if ($("mgGear")) $("mgGear").onclick = () => T.openSettings && T.openSettings();
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.onclick = () => { tab = b.dataset.k; q = ""; sub = ""; list(); });
+    scrollCT = o.scrollTo === "ct"; backTo = o.from || null;
     if (o.caseId) { tab = "cases"; loadKind("cases").then(() => Promise.all([loadKind("venue"), loadKind("troupe"), loadKind("crew")])).then(() => edit("cases", o.caseId)).catch(() => list()); }
     else { list().then(() => { if (o.add) edit(tab, null); }); }
   }
@@ -162,7 +166,16 @@
 
   // ---------- 列表 ----------
   let sub = "";   // Crew：居住地區、場館：地區 的篩選頁籤
+  // 標題列：列表時是「選單＋頁面名稱」，看板／編輯時是「← 項目名稱」
+  let listTitle = "";
+  function head(itemTitle, onBack, act) {
+    const mb = $("mgMenuBtn"), bk = $("mgHBack"), tabs = ov.querySelector(".mg-tabs"), ab = $("mgHAct");
+    if (itemTitle) { if (mb) mb.hidden = true; bk.hidden = false; bk.onclick = onBack; $("mgTitle").textContent = itemTitle; $("mgTitle").classList.add("item"); if (tabs) tabs.hidden = true; }
+    else { if (mb) mb.hidden = false; bk.hidden = true; $("mgTitle").textContent = listTitle; $("mgTitle").classList.remove("item"); if (tabs) tabs.hidden = false; }
+    ab.hidden = !act; if (act) { ab.textContent = act.label; ab.onclick = act.fn; }
+  }
   async function list(force) {
+    head(null);
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.classList.toggle("on", b.dataset.k === tab));
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
     busy("讀取中…");
@@ -277,12 +290,11 @@
   }
 
   async function edit(k, id, mode) {
-    if (k === "cases" && id && mode !== "edit") return caseBoard(id);
+    if (id && mode !== "edit") return k === "cases" ? caseBoard(id) : itemBoard(k, id);
     const r = id ? data[k].find(x => x.id === id) : {};
     const isNew = !id;
-    if (!isNew) { const old = ov.querySelector(".mg-add"); if (old) old.remove(); }
-    const back = k === "cases" ? `<div class="mg-bhead"><button class="mg-back" id="mgBack">‹ 取消編輯</button></div>` : `<button class="mg-back" id="mgBack">‹ 返回${k === "cases" ? "我的案子" : K[k] + "列表"}</button>`;
-    let h = isNew ? `<div class="mg-f">` : back + `<div class="mg-f">`;
+    if (!isNew) { const old = ov.querySelector(".mg-add"); if (old) old.remove(); head("編輯・" + (r[T.SCHEMA[k].fields[0][0]] || ""), () => edit(k, id)); }
+    let h = `<div class="mg-f">`;
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
@@ -311,12 +323,9 @@
       $("mgCancel").onclick = () => { md.classList.remove("in"); setTimeout(() => md.remove(), 180); };
       md.onclick = (e) => { if (e.target === md) $("mgCancel").onclick(); };
     } else {
-      h += k === "cases"
-        ? `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="ghost2" id="mgCancel">取消</button><button class="pri" id="mgSave">儲存</button></div><div class="mg-act" style="margin-top:28px"><button class="red" id="mgDel">刪除整個案子</button></div></div>`
-        : `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="pri" id="mgSave">儲存</button></div><div class="mg-act"><button class="dan" id="mgDel">刪除</button></div></div>`;
+      h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="ghost2" id="mgCancel">取消</button><button class="pri" id="mgSave">儲存</button></div><div class="mg-act" style="margin-top:28px"><button class="red" id="mgDel">${k === "cases" ? "刪除整個案子" : "刪除這筆" + K[k]}</button></div></div>`;
       $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
-      $("mgBack").onclick = () => (k === "cases" ? caseBoard(id) : list());
-      if ($("mgCancel") && k === "cases") $("mgCancel").onclick = () => caseBoard(id);
+      $("mgCancel").onclick = () => edit(k, id);
     }
     // 「清除資料」：點兩下才清（第一下變成「再點一次清除」）
     ov.querySelectorAll("[data-clear]").forEach(btn => {
@@ -359,6 +368,11 @@
       } catch (e) { ct.err = String(e.message || e); }
     } else ct.rows = T.callRows(d.start, d.end, ld.start).map(x => ({ key: "", a: x[0], b: "" }));
     ct.rows.forEach(x => { ct.orig[x.key] = x.a + "\u0001" + x.b; });
+    if (d.start) ct.rows.forEach(x => {   // 「Day 1」這類標籤 → 照進場日期換成「12/14 (一)」
+      const m = String(x.a).match(/^day\s*(\d+)$/i); if (!m) return;
+      const dt = new Date(d.start + "T00:00:00"); dt.setDate(dt.getDate() + +m[1] - 1);
+      x.a = `${dt.getMonth() + 1}/${dt.getDate()} (${"日一二三四五六"[dt.getDay()]})`;
+    });
   }
   // ---------- 案子看板（只看，按「編輯」才改） ----------
   async function caseBoard(id) {
@@ -373,9 +387,10 @@
     const d = r["進場日期"] || {}, ld = r["裝車時間"] || {}, stt = r["Crew 狀態"] || [];
     const kv = (k, v) => v ? `<div class="kv"><span>${k}</span><b>${v}</b></div>` : "";
     const known = new Set(crewNames());
-    let h = `<div class="mg-bhead"><button class="mg-back" id="mgBack">‹ 返回我的案子</button><button class="mg-edit" id="mgEdit">編輯</button></div>
-      <div class="mg-btitle">${esc(tr ? `${tr["劇團名稱"]}《${r["案名"]}》` : r["案名"] || "（未命名）")}</div>
-      <div class="mg-h">基本資料</div><div class="mg-card mg-kvs">
+    const ttl = tr ? `${tr["劇團名稱"]}《${r["案名"]}》` : r["案名"] || "（未命名）";
+    head(ttl, () => { if (backTo) { const b = backTo; backTo = null; T.showTab(b); } else list(); }, { label: "編輯", fn: () => edit("cases", id, "edit") });
+    rememberRecent(id, ttl);
+    let h = `<div class="mg-h" style="margin-top:4px">基本資料</div><div class="mg-card mg-kvs">
         ${kv("進場日期", d.start ? esc(md(d.start) + (d.end && d.end !== d.start ? " – " + md(d.end) : "")) : "")}
         ${kv("裝車", ld.start ? esc(md(ld.start) + (r["裝車地點"] ? "・" + r["裝車地點"] : "")) : "")}
         ${kv("演出場館", esc(vn))}
@@ -389,11 +404,40 @@
         ${kv("筆記", r["人力分配"] ? esc(r["人力分配"]) : "<i>沒有填</i>")}
         <div class="kv"><span>還缺</span><b>${stt.includes("全部完成") ? `<span class="mg-tag on c-default">人都找齊了</span>` : stt.filter(x => /缺/.test(x)).map(x => { const kd = (T.NEED_KINDS.find(n => x.startsWith(n[0])) || [0, 0, "gray"])[2]; return `<span class="mg-tag on c-${kd}">${esc(x)}</span>`; }).join(" ") || "<i>沒有填</i>"}${stt.includes("等待製作確認") ? ` <span class="mg-tag on c-gray">人數尚未確認</span>` : ""}</b></div>
       </div>
-      <div class="mg-h">${esc(window.TEAM())}人員 Call Time</div>
+      <div class="mg-h" id="ctSec">${esc(window.TEAM())}人員 Call Time</div>
       ${ct.err ? `<div class="mg-note">讀不到 Call Time 表格：${esc(ct.err)}</div>` : ct.rows.length ? `<table class="mg-ct ro"><tbody>${ct.rows.map(x => `<tr><td>${esc(x.a)}</td><td><div class="mg-names">${splitNames(x.b).map(n => `<span class="mg-nm${known.size && !known.has(n) ? " unk" : ""}">${esc(n)}</span>`).join("") || `<span class="mg-none">—</span>`}</div></td></tr>`).join("")}</tbody></table>` : `<div class="mg-empty" style="margin:0">還沒有 Call Time 表格</div>`}`;
     $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
-    $("mgBack").onclick = () => list();
-    $("mgEdit").onclick = () => edit("cases", id, "edit");
+    if (scrollCT) { scrollCT = false; const el = $("ctSec"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }
+  }
+  let scrollCT = false, backTo = null;
+  function rememberRecent(id, title) {
+    try { const a = JSON.parse(localStorage.getItem("tdh.recent") || "[]").filter(x => x.id !== id); a.unshift({ id, title }); localStorage.setItem("tdh.recent", JSON.stringify(a.slice(0, 6))); } catch (e) {}
+  }
+  // ---------- Crew／場館／劇團 看板 ----------
+  async function itemBoard(k, id) {
+    const old = ov.querySelector(".mg-add"); if (old) old.remove();
+    const r = (data[k] || []).find(x => x.id === id); if (!r) return list();
+    const tf = T.SCHEMA[k].fields[0][0];
+    head(r[tf] || "（未命名）", () => list(), { label: "編輯", fn: () => edit(k, id, "edit") });
+    const kv = (a, v) => v ? `<div class="kv"><span>${a}</span><b>${v}</b></div>` : "";
+    const HIDE = { venue: [] };
+    let rows = "";
+    for (const [name, type] of T.SCHEMA[k].fields) {
+      if (name === tf || type === "content" || !has(k, name)) continue;
+      const v = r[name]; if (v === null || v === undefined || v === "") continue;
+      if (name === "電話") rows += kv(name, `<a href="tel:${esc(String(v).replace(/[^\d+]/g, ""))}">${esc(v)}</a>`);
+      else if (type === "url") rows += kv(name, `<a href="${esc(v)}" target="_blank" rel="noopener">打開連結 ↗</a>`);
+      else if (name === "時段費") rows += kv(name, "$" + esc(v));
+      else rows += kv(name, esc(v).replace(/\n/g, "<br>"));
+    }
+    // 相關案子
+    if (!data.cases) await loadKind("cases");
+    const rel = (data.cases || []).filter(c => (k === "crew" ? [...(c["摳的人"] || []), ...(c["問過的人"] || [])] : k === "venue" ? (c["進場地點"] || []) : (c["劇團"] || [])).includes(id))
+      .sort((a, b) => String((b["進場日期"] || {}).start || "").localeCompare(String((a["進場日期"] || {}).start || "")));
+    let h = `<div class="mg-h" style="margin-top:4px">資料</div><div class="mg-card mg-kvs">${rows || `<div class="kv"><b><i>還沒有填其他資料，按右上角「編輯」補上</i></b></div>`}</div>`;
+    if (rel.length) h += `<div class="mg-h">${k === "crew" ? "合作過的案子" : "相關案子"}（${rel.length}）</div>` + rel.slice(0, 12).map(c => `<button class="mg-it" data-cid="${c.id}"><b>${esc(c["案名"] || "")}</b><small>${c["進場日期"] ? md(c["進場日期"].start) : ""}</small></button>`).join("");
+    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
+    $("mgBody").querySelectorAll("[data-cid]").forEach(b => b.onclick = () => T.showTab && T.showTab("cases", { caseId: b.dataset.cid }));
   }
   // 案子表單
   const NEEDS = () => T.NEED_KINDS.map(x => x[0]);
@@ -557,7 +601,7 @@
       dirty = true;
       const md = ov.querySelector(".mg-modal"); if (md) md.remove();
       await loadKind(k, true);
-      if (id && k === "cases") caseBoard(id); else list();
+      if (id) edit(k, id); else list();
     } catch (e) { errEl.textContent = "儲存失敗：" + ((e && e.message) || e); btn.disabled = false; btn.textContent = id ? "儲存" : "新增"; }
   }
 

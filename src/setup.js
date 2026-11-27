@@ -122,8 +122,6 @@
     let body;
     if (force) {
       body = `${whoCard(c, true)}
-        <div class="tdh-st"><h2>介面版本（比較用）</h2><div class="tdh-seg">${["D1", "D2", "C"].map(v => `<button type="button" class="${(T.ui ? T.ui() : "D1") === v ? "on" : ""}" data-ui-v="${v}">${v}</button>`).join("")}</div>
-          <p style="margin-top:8px">D1：下方找人／打卡／結案＋左上選單　D2：首頁是手上的案子＋左上選單　C：下方五個分頁</p></div>
         <div class="tdh-st"><h2>外觀</h2><div class="tdh-seg">${[["", "跟著手機"], ["light", "日間模式"], ["dark", "夜間模式"]].map(([v, t]) => `<button type="button" class="${(T.cfg.theme || "") === v ? "on" : ""}" data-theme-v="${v}">${t}</button>`).join("")}</div></div>
         <div class="tdh-st"><h2>資料放在</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
           <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>

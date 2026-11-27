@@ -6,12 +6,14 @@
 (() => {
   const T = window.__tdh;
   const UIS = ["D1", "D2", "C"];
-  try { const u = new URLSearchParams(location.search).get("ui"); if (u && UIS.includes(u.toUpperCase())) { T.setCfg({ ui: u.toUpperCase() }); localStorage.removeItem("tdh.tab"); history.replaceState(null, "", location.pathname + location.hash); } } catch (e) {}
-  const ui = () => (UIS.includes(T.cfg.ui) ? T.cfg.ui : "D1");
+  // 正式介面是 D1；?ui=C／D2 只給測試比較用（只在這個分頁有效）
+  try { const u = new URLSearchParams(location.search).get("ui"); if (u && UIS.includes(u.toUpperCase())) { sessionStorage.setItem("tdh.ui", u.toUpperCase()); localStorage.removeItem("tdh.tab"); history.replaceState(null, "", location.pathname + location.hash); } } catch (e) {}
+  const ui = () => { let u = ""; try { u = sessionStorage.getItem("tdh.ui") || ""; } catch (e) {} return UIS.includes(u) ? u : "D1"; };
   T.ui = ui;
   const UI = ui();
   const I = (d, w = 24) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const MENU = I('<path d="M4 7h16M4 12h16M4 17h10"/>', 26);
+  const CHEV = I('<path d="M9 6l6 6-6 6"/>', 16);
 
   const css = `
   .tdh-toprow{display:none!important}
@@ -40,8 +42,9 @@
   .tdh-drawer .it{display:flex;align-items:center;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left;padding:11px 10px;border-radius:10px;cursor:pointer}
   .tdh-drawer .it.on{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:700}
   .tdh-drawer .sp{flex:1}
-  .tdh-drawer .db .car{color:var(--muted);transition:transform .15s}.tdh-drawer .db.open .car{transform:rotate(180deg)}
-  .tdh-drawer .it.sub{font-size:15px;padding:9px 10px 9px 26px;color:var(--muted)}.tdh-drawer .it.sub.on{color:var(--accent)}
+  .tdh-drawer .db .car{display:inline-flex;color:var(--muted);transition:transform .2s ease}.tdh-drawer .db.open .car{transform:rotate(90deg)}
+  .tdh-drawer .it.sub{font-size:14.5px;padding:6px 10px 6px 22px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.tdh-drawer .it.sub.on{color:var(--accent);font-weight:700}
+  .tdh-drawer .dbl{margin-bottom:6px}.tdh-drawer .none{font-size:13px;color:var(--muted);padding:4px 22px 6px}
   .tdh-drawer .ic{display:inline-flex;margin-right:10px;color:var(--muted)}
   .tdh-drawer .foot{border-top:1px solid var(--line);padding-top:8px}
   .tdh-drawer .ver{font-size:11px;color:var(--muted);margin:6px 10px 0}
@@ -94,6 +97,7 @@
     }), 60);
   }
   function show(view, opt = {}) {
+    const prev = cur;
     cur = view;
     try { localStorage.setItem("tdh.tab", view); } catch (e) {}
     document.querySelectorAll(".tdh-tabbar button").forEach(b => b.classList.toggle("on", b.dataset.t === view));
@@ -102,8 +106,8 @@
     if (view === "home") { if (T.closeManage && T.closeManage("home")) return; openHome(); return; }
     closeHome();
     if (fb()) fb().hidden = true;
-    if (UI === "C") { T.openManage({ section: view === "lists" ? "lists" : "cases", caseId: opt.caseId }); return; }
-    T.openManage({ only: view, caseId: opt.caseId, add: opt.add });
+    if (UI === "C") { T.openManage({ section: view === "lists" ? "lists" : "cases", caseId: opt.caseId, scrollTo: opt.scrollTo, from: opt.caseId && prev !== view ? prev : null }); return; }
+    T.openManage({ only: view, caseId: opt.caseId, add: opt.add, scrollTo: opt.scrollTo, from: opt.caseId && prev !== view ? prev : null });
   }
   T.showTab = (v, opt) => show(v === "lists" && UI !== "C" ? "crew" : v, opt);
   T.currentTab = () => cur;
@@ -117,15 +121,17 @@
       <button class="new" data-new="1">＋ 新增案子</button>
       ${main.map(([v, t]) => `<button class="it" data-v="${v}">${t}</button>`).join("")}
       <button class="it" data-v="cases">我的案子</button>
-      <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">▾</span></button>
+      <button class="it db" id="rcTog"><span style="flex:1">最近項目</span><span class="car">${CHEV}</span></button>
+      <div class="dbl" id="rcList" hidden></div>
+      <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">${CHEV}</span></button>
       <div class="dbl" id="dbList" hidden>${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div>
       <div class="sp"></div>
-      <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button><div class="ver">介面 ${UI}</div></div></div>`;
+      <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button>${UI !== "D1" ? `<div class="ver">介面 ${UI}（測試）</div>` : ""}</div></div>`;
     document.body.appendChild(drawer);
     drawer.querySelector(".sh").onclick = closeDrawer;
     drawer.querySelectorAll("[data-v]").forEach(b => b.onclick = () => show(b.dataset.v));
     drawer.querySelector("[data-new]").onclick = () => show("cases", { add: true });
-    drawer.querySelector("#dbTog").onclick = () => { const l = drawer.querySelector("#dbList"); l.hidden = !l.hidden; drawer.querySelector("#dbTog").classList.toggle("open", !l.hidden); };
+    [["#dbTog", "#dbList"], ["#rcTog", "#rcList"]].forEach(([t, l]) => drawer.querySelector(t).onclick = () => { const el = drawer.querySelector(l); el.hidden = !el.hidden; drawer.querySelector(t).classList.toggle("open", !el.hidden); });
     drawer.querySelector("[data-set]").onclick = () => { T.openSettings && T.openSettings(() => openDrawer()); setTimeout(() => drawer.classList.remove("open"), 250); };
     let x0 = null;   // 往左滑關閉
     drawer.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
@@ -135,6 +141,10 @@
     if (!drawer) buildDrawer();
     drawer.querySelectorAll(".it[data-v]").forEach(b => b.classList.toggle("on", b.dataset.v === cur));
     if (["troupe", "crew", "venue"].includes(cur)) { drawer.querySelector("#dbList").hidden = false; drawer.querySelector("#dbTog").classList.add("open"); }
+    let rc = []; try { rc = JSON.parse(localStorage.getItem("tdh.recent") || "[]"); } catch (e) {}   // 最近看過的案子
+    const rl = drawer.querySelector("#rcList");
+    rl.innerHTML = rc.length ? rc.map(x => `<button class="it sub" data-rc="${esc(x.id)}">${esc(x.title)}</button>`).join("") : `<div class="none">還沒有看過的案子</div>`;
+    rl.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => show("cases", { caseId: b.dataset.rc }));
     requestAnimationFrame(() => drawer.classList.add("open"));
   }
   function closeDrawer() { if (drawer) drawer.classList.remove("open"); }
