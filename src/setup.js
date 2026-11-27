@@ -14,26 +14,33 @@
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
   const css = `
-  .tdh-ov{position:fixed;inset:0;z-index:9999;background:#f4f1ea;overflow:auto;-webkit-overflow-scrolling:touch;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;color:#1d1b18}
+  :root{--tdh-field:#fbfaf7;--tdh-field-bd:#ddd7cc;--tdh-soft:#ece8df;--tdh-dan-bg:#fdecea;--tdh-dan:#b3261e;--tdh-tip-bg:#fff4dc;--tdh-tip-bd:#e9c77a;--tdh-tip-ink:#5a4518;--tdh-ok:#2f7a4f;--tdh-no:#b0741f;
+    --tg-blue:#e3ecf7;--tg-blue-bd:#9db8dc;--tg-blue-ink:#2c5282;--tg-yellow:#fbf1d6;--tg-yellow-bd:#e2c674;--tg-yellow-ink:#7a5a00;--tg-green:#e4f2e8;--tg-green-bd:#93c8a3;--tg-green-ink:#23784b;
+    --tg-orange:#fbe8d8;--tg-orange-bd:#e6aa75;--tg-orange-ink:#9a4f0f;--tg-gray:#ecebe8;--tg-gray-bd:#bdb8ae;--tg-gray-ink:#4a463f;--tg-purple:#efe6f6;--tg-purple-bd:#c0a3d8;--tg-purple-ink:#5f3d82}
+  @media (prefers-color-scheme: dark){:root{--tdh-field:#1c1b19;--tdh-field-bd:#403c36;--tdh-soft:#302d29;--tdh-dan-bg:#3a1714;--tdh-dan:#ff8a80;--tdh-tip-bg:#33270f;--tdh-tip-bd:#8a6a2a;--tdh-tip-ink:#f0d9a0;--tdh-ok:#5fe39a;--tdh-no:#ffb04d;
+    --tg-blue:#1f2c3d;--tg-blue-bd:#3d5a80;--tg-blue-ink:#9cc0ea;--tg-yellow:#352c16;--tg-yellow-bd:#7a6428;--tg-yellow-ink:#e7c66a;--tg-green:#16301f;--tg-green-bd:#2e6b45;--tg-green-ink:#7fd6a0;
+    --tg-orange:#3a2414;--tg-orange-bd:#8a5428;--tg-orange-ink:#f0a868;--tg-gray:#2c2a27;--tg-gray-bd:#55514a;--tg-gray-ink:#cfc9bf;--tg-purple:#2c2137;--tg-purple-bd:#6a4f86;--tg-purple-ink:#cfb2ea}}
+  .tdh-ov{color-scheme:light dark;position:fixed;inset:0;z-index:9999;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;color:var(--ink)}
   .tdh-in{max-width:520px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) 18px 60px}
-  .tdh-in h1{font-size:26px;margin:0 0 4px}.tdh-in .sub{color:#6e685f;font-size:14px;margin-bottom:20px;line-height:1.6}
-  .tdh-st{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .tdh-st summary::marker{color:#2f5d50}.tdh-st h2{font-size:17px;margin:0 0 8px;display:flex;gap:8px;align-items:center}
-  .tdh-st h2 b{display:inline-flex;width:24px;height:24px;border-radius:12px;background:#2f5d50;color:#fff;font-size:13px;align-items:center;justify-content:center}
-  .tdh-st ol{margin:6px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:#3a362f}
-  .tdh-st p{font-size:14px;color:#6e685f;margin:0;line-height:1.6}
-  .tdh-st a.btn,.tdh-st button{display:inline-block;border:0;border-radius:999px;padding:11px 18px;font-size:15px;font-weight:600;background:#2f5d50;color:#fff;text-decoration:none;margin-top:10px;cursor:pointer}
-  .tdh-st button.ghost{background:#ece8df;color:#1d1b18}
+  .tdh-in h1{font-size:26px;margin:0 0 4px}.tdh-in .sub{color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.6}
+  .tdh-st{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .tdh-st summary::marker{color:var(--accent)}.tdh-st h2{font-size:17px;margin:0 0 8px;display:flex;gap:8px;align-items:center}
+  .tdh-st h2 b{display:inline-flex;width:24px;height:24px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-size:13px;align-items:center;justify-content:center}
+  .tdh-st ol{margin:6px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:var(--ink)}
+  .tdh-st p{font-size:14px;color:var(--muted);margin:0;line-height:1.6}
+  .tdh-st a.btn,.tdh-st button{display:inline-block;border:0;border-radius:999px;padding:11px 18px;font-size:15px;font-weight:600;background:var(--accent);color:var(--accent-ink);text-decoration:none;margin-top:10px;cursor:pointer}
+  .tdh-st button.ghost{background:var(--tdh-soft);color:var(--ink)}
+  .tdh-end{display:flex;gap:10px}.tdh-end button{flex:1;margin:0!important;padding:12px 8px!important;font-size:15px;border-radius:12px!important}
   .tdh-st button.danger{background:#b3261e;color:#fff}
   .tdh-st button.big{display:block;width:100%;text-align:center;padding:14px;font-size:17px;border-radius:14px}
-  .tdh-st input{width:100%;box-sizing:border-box;border:1.5px solid #d9d4cb;border-radius:12px;padding:12px;font-size:16px;margin-top:8px;background:#fbfaf7}
-  .tdh-res{margin-top:10px;font-size:14px;line-height:1.8}.tdh-res .ok,.tdh-st .ok{color:#2f7a4f}.tdh-res .no,.tdh-st .no{color:#b0741f}
-  .tdh-err{color:#b3261e;font-size:14px;margin-top:8px}
-  .tdh-tip{background:#fff4dc;border:1.5px solid #e9c77a;border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:14px;line-height:1.7;color:#5a4518}
+  .tdh-st input{width:100%;box-sizing:border-box;border:1.5px solid var(--tdh-field-bd);border-radius:12px;padding:12px;font-size:16px;margin-top:8px;background:var(--tdh-field)}
+  .tdh-res{margin-top:10px;font-size:14px;line-height:1.8}.tdh-res .ok,.tdh-st .ok{color:var(--tdh-ok)}.tdh-res .no,.tdh-st .no{color:var(--tdh-no)}
+  .tdh-err{color:var(--tdh-dan);font-size:14px;margin-top:8px}
+  .tdh-tip{background:var(--tdh-tip-bg);border:1.5px solid var(--tdh-tip-bd);border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:14px;line-height:1.7;color:var(--tdh-tip-ink)}
   .tdh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.tdh-st .tdh-chips button{margin:0;padding:6px 12px;font-size:14px;font-weight:500}
-  .tdh-rec{display:inline-block;font-size:12px;background:#2f5d50;color:#fff;border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:2px}
-  .tdh-gear{flex:0 0 44px;border:0;background:transparent;font-size:23px;line-height:1;color:#6e685f;cursor:pointer;border-radius:9px}
-  .tdh-foot{font-size:12px;color:#8a847a;line-height:1.6;margin-top:8px}
+  .tdh-rec{display:inline-block;font-size:12px;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+  .tdh-gear{flex:0 0 44px;border:0;background:transparent;font-size:23px;line-height:1;color:var(--muted);cursor:pointer;border-radius:9px}
+  .tdh-foot{font-size:12px;color:var(--muted);line-height:1.6;margin-top:8px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
@@ -82,7 +89,7 @@
           <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>
         ${googleCard(true)}
         ${mode === "notion" ? notionCard(c, seen, true) : ""}
-        <div class="tdh-st"><button class="ghost" id="tdhClose">關閉</button> <button class="danger" id="tdhOut">登出並清除設定</button></div>`;
+        <div class="tdh-st tdh-end"><button class="ghost" id="tdhClose">關閉</button><button class="danger" id="tdhOut">登出並清除設定</button></div>`;
     } else if (resume === "google" || (mode === "google" && T.cfg.gRefresh && !T.cfg.gData)) {
       body = `${googleCard(false)}<div id="tdhWhoBox" style="display:none">${whoCard(c, false)}</div>`;
     } else if (mode === "notion" || resume === "notion") {

@@ -1,57 +1,60 @@
 // 劇場幫幫｜管理畫面：不用打開 Notion 或試算表，就能新增、編輯案子、人員、場館、劇團，以及封存做完的案子
 (() => {
   const T = window.__tdh;
-  const K = { cases: "案子", crew: "人員", venue: "場館", troupe: "劇團" };
+  const K = { cases: "案子", crew: "Crew", venue: "場館", troupe: "劇團" };
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const WK = "日一二三四五六";
   const md = (iso) => { if (!iso) return ""; const d = new Date(iso + "T00:00:00"); return `${d.getMonth() + 1}/${d.getDate()}(${WK[d.getDay()]})`; };
   const today = () => T.isoDay(new Date());
 
   const css = `
-  .mg{position:fixed;inset:0;z-index:9000;background:#f4f1ea;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;color:#1d1b18}
-  .mg-top{padding:calc(12px + env(safe-area-inset-top)) 16px 8px;background:#f4f1ea;border-bottom:1px solid #e6e1d8}
+  .mg{color-scheme:light dark;position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;color:var(--ink)}
+  .mg-top{padding:calc(12px + env(safe-area-inset-top)) 16px 8px;background:var(--bg);border-bottom:1px solid var(--line)}
   .mg-row{display:flex;align-items:center;gap:8px}.mg-row h1{flex:1;font-size:20px;margin:0}
-  .mg-x{border:0;background:#ece8df;border-radius:999px;width:36px;height:36px;font-size:18px;cursor:pointer}
-  .mg-tabs{display:flex;gap:6px;margin-top:10px}.mg-tabs button{flex:1;border:1px solid #e6e1d8;background:#fff;border-radius:999px;padding:8px 0;font:inherit;font-size:15px;color:#6e685f;cursor:pointer}
-  .mg-tabs button.on{background:#1f1d1a;color:#fff;border-color:#1f1d1a;font-weight:700}
+  .mg-x{border:0;background:var(--tdh-soft);border-radius:999px;width:36px;height:36px;font-size:18px;cursor:pointer}
+  .mg-tabs{display:flex;gap:6px;margin-top:10px}.mg-tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 0;font:inherit;font-size:15px;color:var(--muted);cursor:pointer}
+  .mg-tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
   .mg-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 14px calc(90px + env(safe-area-inset-bottom))}
-  .mg-search{width:100%;box-sizing:border-box;border:1.5px solid #e6e1d8;border-radius:12px;padding:10px 12px;font-size:16px;background:#fff;margin-bottom:10px}
-  .mg-sec{font-size:13px;color:#7a746b;margin:14px 4px 6px;font-weight:600}
-  .mg-it{display:block;width:100%;text-align:left;background:#fff;border:1.5px solid #e6e1d8;border-radius:14px;padding:11px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer}
-  .mg-it b{font-size:16px;display:block}.mg-it small{color:#7a746b;font-size:13px;display:block;margin-top:2px;line-height:1.5}
-  .mg-it .tg{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin:4px 4px 0 0;background:#e3ecf7;color:#2c5282}
-  .mg-it .tg.ok{background:#eef8f2;color:#23784b}.mg-it .tg.w{background:#fff4e5;color:#b25d00}
-  .mg-add{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));border:0;border-radius:14px;background:#2f5d50;color:#fff;font:inherit;font-size:17px;font-weight:700;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
-  .mg-empty{text-align:center;color:#7a746b;padding:30px 10px;font-size:14px;line-height:1.7}
-  .mg-f label{display:block;font-size:13px;color:#6e685f;margin:12px 2px 4px}
-  .mg-f input,.mg-f select,.mg-f textarea{width:100%;box-sizing:border-box;border:1.5px solid #ddd7cc;border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;background:#fff;color:#1d1b18}
+  .mg-search{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;background:var(--card);margin-bottom:10px}
+  .mg-sec{font-size:13px;color:var(--muted);margin:14px 4px 6px;font-weight:600}
+  .mg-it{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer}
+  .mg-it b{font-size:16px;display:block}.mg-it small{color:var(--muted);font-size:13px;display:block;margin-top:2px;line-height:1.5}
+  .mg-it .tg{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin:4px 4px 0 0;background:var(--tg-blue);color:var(--tg-blue-ink)}
+  .mg-it .tg.ok{background:var(--tg-green);color:var(--tg-green-ink)}.mg-it .tg.w{background:var(--tg-orange);color:var(--tg-orange-ink)}
+  .mg-add{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:17px;font-weight:700;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+  .mg-empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px;line-height:1.7}
+  .mg-f label{display:block;font-size:13px;color:var(--muted);margin:12px 2px 4px}
+  .mg-f input,.mg-f select,.mg-f textarea{width:100%;box-sizing:border-box;border:1.5px solid var(--tdh-field-bd);border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;background:var(--card);color:var(--ink)}
   .mg-f textarea{min-height:72px}
   .mg-f .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.mg-f .two>div{min-width:0}
   .mg-f input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;display:block;min-height:46px;text-align:left}
   .mg-f input::-webkit-date-and-time-value{text-align:left}
-  .mg-ck{display:flex;align-items:center;gap:10px;margin:14px 2px 0;font-size:15px;cursor:pointer}.mg-ck input{width:20px;height:20px;margin:0;flex:0 0 20px;accent-color:#2f5d50}
-  .mg-tagrow{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed #ece8df}.mg-tagrow:last-child{border-bottom:0}
-  .mg-tagrow>span{flex:0 0 40px;font-size:14px;color:#6e685f;padding-top:12px}.mg-tagrow>div{flex:1}
-  .mg-tag{display:inline-block;border:1.5px solid #ddd7cc;border-radius:8px;padding:5px 10px;margin:6px 6px 0 0;font:inherit;font-size:14px;background:#fff;color:#6e685f;cursor:pointer}
+  .mg-f label.mg-ck{display:flex;align-items:center;gap:8px;margin:14px 2px 0;font-size:15px;color:var(--ink);cursor:pointer}.mg-f .mg-ck input[type=checkbox]{width:17px;height:17px;min-height:0;padding:0;margin:0;flex:0 0 17px;border:0;border-radius:4px;accent-color:var(--accent)}
+  .mg-tagrow{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line)}.mg-tagrow:last-child{border-bottom:0}
+  .mg-tagrow>span{flex:0 0 40px;font-size:14px;color:var(--muted);padding-top:12px}.mg-tagrow>div{flex:1}
+  .mg-tag{display:inline-block;border:1.5px solid var(--tdh-field-bd);border-radius:8px;padding:5px 10px;margin:6px 6px 0 0;font:inherit;font-size:14px;background:var(--card);color:var(--muted);cursor:pointer}
   .mg-tag.on{font-weight:700}
-  .mg-tag.on.c-blue{background:#e3ecf7;border-color:#9db8dc;color:#2c5282}.mg-tag.on.c-yellow{background:#fbf1d6;border-color:#e2c674;color:#7a5a00}
-  .mg-tag.on.c-green{background:#e4f2e8;border-color:#93c8a3;color:#23784b}.mg-tag.on.c-orange{background:#fbe8d8;border-color:#e6aa75;color:#9a4f0f}
-  .mg-tag.on.c-gray{background:#ecebe8;border-color:#bdb8ae;color:#4a463f}.mg-tag.on.c-purple{background:#efe6f6;border-color:#c0a3d8;color:#5f3d82}
-  .mg-tag.on.c-default{background:#2f5d50;border-color:#2f5d50;color:#fff}
-  .mg-card{background:#fff;border:1.5px solid #e6e1d8;border-radius:16px;padding:4px 14px 14px;margin-bottom:12px}
+  .mg-tag.on.c-blue{background:var(--tg-blue);border-color:var(--tg-blue-bd);color:var(--tg-blue-ink)}.mg-tag.on.c-yellow{background:var(--tg-yellow);border-color:var(--tg-yellow-bd);color:var(--tg-yellow-ink)}
+  .mg-tag.on.c-green{background:var(--tg-green);border-color:var(--tg-green-bd);color:var(--tg-green-ink)}.mg-tag.on.c-orange{background:var(--tg-orange);border-color:var(--tg-orange-bd);color:var(--tg-orange-ink)}
+  .mg-tag.on.c-gray{background:var(--tg-gray);border-color:var(--tg-gray-bd);color:var(--tg-gray-ink)}.mg-tag.on.c-purple{background:var(--tg-purple);border-color:var(--tg-purple-bd);color:var(--tg-purple-ink)}
+  .mg-tag.on.c-default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .mg-card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:4px 14px 14px;margin-bottom:12px}
   .mg-card h3{font-size:15px;margin:12px 0 0}
-  .mg-note{font-size:12.5px;color:#7a746b;margin-top:6px;line-height:1.6}
-  .mg-step{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #ece8df;font-size:15px}
+  .mg-note{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .mg-step{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15px}
   .mg-step:last-child{border-bottom:0}.mg-step span{display:flex;align-items:center;gap:10px}
-  .mg-step button{width:34px;height:34px;border-radius:10px;border:1.5px solid #ddd7cc;background:#fbfaf7;font-size:18px;cursor:pointer}
+  .mg-step button{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--tdh-field-bd);background:var(--tdh-field);font-size:18px;cursor:pointer}
   .mg-step b{min-width:22px;text-align:center;font-size:17px}
-  .mg-chip{display:inline-block;border:1.5px solid #ddd7cc;border-radius:999px;padding:7px 13px;margin:6px 6px 0 0;font:inherit;font-size:14px;background:#fff;cursor:pointer}
-  .mg-chip.on{background:#2f5d50;border-color:#2f5d50;color:#fff}
-  .mg-tbl .r{display:flex;gap:6px;margin-top:6px}.mg-tbl .r input:first-child{flex:0 0 38%}.mg-tbl .r button{flex:0 0 38px;border:0;background:#f3efe7;border-radius:10px;font-size:16px;cursor:pointer}
+  .mg-chip{display:inline-block;border:1.5px solid var(--tdh-field-bd);border-radius:999px;padding:7px 13px;margin:6px 6px 0 0;font:inherit;font-size:14px;background:var(--card);cursor:pointer}
+  .mg-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .mg-tbl .r{display:flex;gap:6px;margin-top:6px}.mg-tbl .r input:first-child{flex:0 0 38%}.mg-tbl .r button{flex:0 0 38px;border:0;background:var(--tdh-soft);border-radius:10px;font-size:16px;cursor:pointer}
   .mg-act{display:flex;gap:8px;margin-top:14px}.mg-act button{flex:1;border:0;border-radius:12px;padding:13px;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
-  .mg-act .pri{background:#2f5d50;color:#fff}.mg-act .sec{background:#ece8df;color:#1d1b18}.mg-act .dan{background:#fdecea;color:#b3261e}
-  .mg-err{color:#b3261e;font-size:14px;margin-top:8px}
-  .mg-btn{border:0;background:transparent;font-size:23px;line-height:1;color:#6e685f;cursor:pointer;border-radius:9px;flex:0 0 44px}
+  .mg-act .pri{background:var(--accent);color:var(--accent-ink)}.mg-act .sec{background:var(--tdh-soft);color:var(--ink)}.mg-act .dan{background:var(--tdh-dan-bg);color:var(--tdh-dan)}
+  .mg-sub{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .mg-sub button{flex:0 0 auto;border:1.5px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:6px 13px;font:inherit;font-size:14px;cursor:pointer}
+  .mg-sub button.on{border-color:var(--accent);color:var(--accent);font-weight:700}
+  .mg-err{color:var(--tdh-dan);font-size:14px;margin-top:8px}
+  .mg-btn{border:0;background:transparent;font-size:23px;line-height:1;color:var(--muted);cursor:pointer;border-radius:9px;flex:0 0 44px}
   `;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
@@ -77,7 +80,7 @@
     document.body.appendChild(ov);
     document.documentElement.style.overflow = "hidden";
     $("mgX").onclick = close;
-    ov.querySelectorAll(".mg-tabs button").forEach(b => b.onclick = () => { tab = b.dataset.k; q = ""; list(); });
+    ov.querySelectorAll(".mg-tabs button").forEach(b => b.onclick = () => { tab = b.dataset.k; q = ""; sub = ""; list(); });
     list();
   }
   function close() {
@@ -88,6 +91,7 @@
   function fail(e) { $("mgBody").innerHTML = `<div class="mg-empty">讀取失敗：${esc((e && e.message) || e)}<br><button class="mg-chip" id="mgRetry">再試一次</button></div>`; $("mgRetry").onclick = () => list(true); }
 
   // ---------- 列表 ----------
+  let sub = "";   // Crew：居住地區、場館：地區 的篩選頁籤
   async function list(force) {
     ov.querySelectorAll(".mg-tabs button").forEach(b => b.classList.toggle("on", b.dataset.k === tab));
     const old = ov.querySelector(".mg-add"); if (old) old.remove();
@@ -95,10 +99,33 @@
     try {
       await loadKind(tab, force);
       if (tab === "cases") await Promise.all([loadKind("venue"), loadKind("troupe")]);
+      if (tab === "crew") await loadKind("cases");
     } catch (e) { return fail(e); }
-    const k = tab, title = T.SCHEMA[k].fields[0][0];
-    const rows = data[k].filter(r => !q || JSON.stringify(r).includes(q));
-    let h = `<input class="mg-search" id="mgQ" placeholder="搜尋${K[k]}" value="${esc(q)}">`;
+    const k = tab;
+    // 搜尋框只建立一次，打字（含注音組字）時只更新下面的結果，不會跳掉
+    $("mgBody").innerHTML = `<input class="mg-search" id="mgQ" placeholder="搜尋${K[k]}" value="${esc(q)}"><div id="mgSubTabs"></div><div id="mgList"></div>`;
+    const qi = $("mgQ"); let composing = false;
+    qi.addEventListener("compositionstart", () => { composing = true; });
+    qi.addEventListener("compositionend", () => { composing = false; q = qi.value.trim(); results(); });
+    qi.addEventListener("input", () => { if (composing) return; q = qi.value.trim(); results(); });
+    results();
+    const add = document.createElement("button"); add.className = "mg-add"; add.textContent = `＋ 新增${K[k]}`; add.onclick = () => edit(k, null); ov.appendChild(add);
+  }
+  function results() {
+    const k = tab, title = T.SCHEMA[k].fields[0][0], box = $("mgList"); if (!box) return;
+    let rows = data[k].filter(r => !q || JSON.stringify(r).includes(q));
+    let h = "";
+    if (k === "crew" || k === "venue") {   // 地區頁籤
+      const key = k === "crew" ? "居住地區" : "地區";
+      const areas = [...new Set(data[k].map(r => r[key]).filter(Boolean))];
+      const order = (T.SCHEMA[k].fields.find(f => f[0] === key) || [])[2] || [];
+      areas.sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+      if (sub && !areas.includes(sub) && sub !== "__none") sub = "";
+      const none = data[k].some(r => !r[key]);
+      $("mgSubTabs").innerHTML = areas.length ? `<div class="mg-sub">${[["", "全部"]].concat(areas.map(a => [a, a])).concat(none ? [["__none", "未分類"]] : []).map(([v, t]) => `<button data-v="${esc(v)}" class="${sub === v ? "on" : ""}">${esc(t)}</button>`).join("")}</div>` : "";
+      $("mgSubTabs").querySelectorAll("button").forEach(b => b.onclick = () => { sub = b.dataset.v; results(); });
+      if (sub) rows = rows.filter(r => sub === "__none" ? !r[key] : r[key] === sub);
+    } else $("mgSubTabs").innerHTML = "";
     if (k === "cases") {
       const t = today();
       const st = (r) => r["進場日期"] ? (r["進場日期"].end || r["進場日期"].start) : "";
@@ -109,22 +136,25 @@
         const d = r["進場日期"], v = (r["進場地點"] || []).map(id => nameOf("venue", id)).filter(Boolean).join("、");
         const need = (r["Crew 狀態"] || []).filter(x => /缺/.test(x));
         const tags = (r["Crew 狀態"] || []).includes("全部完成") ? `<span class="tg ok">人都找齊了</span>` : need.map(x => `<span class="tg w">${esc(x)}</span>`).join("");
-        return `<button class="mg-it" data-id="${r.id}"><b>${esc(r["案名"] || "（未命名）")}</b><small>${d ? md(d.start) + (d.end && d.end !== d.start ? " – " + md(d.end) : "") : "還沒填日期"}${v ? "・" + esc(v) : ""}${r["職位"] === "Crew" ? "・我是 Crew" : ""}</small>${tags}</button>`;
+        return `<button class="mg-it" data-id="${r.id}"><b>${esc(r["案名"] || "（未命名）")}</b><small>${d ? md(d.start) + (d.end && d.end !== d.start ? " – " + md(d.end) : "") : "還沒填日期"}${v ? "・" + esc(v) : ""}</small>${tags}</button>`;
       };
-      h += live.length ? `<div class="mg-sec">進行中、還沒開始</div>` + live.map(item).join("") : `<div class="mg-empty">還沒有案子，按下面的「＋ 新增案子」。</div>`;
-      if (past.length) h += `<div class="mg-sec">已經結束</div>` + years.map(y => { const ys = past.filter(r => st(r).startsWith(y)); return `<details ${q ? "open" : ""}><summary class="mg-sec" style="cursor:pointer;font-size:15px;color:#1d1b18">${y} 年（${ys.length}）</summary>${ys.map(item).join("")}</details>`; }).join("");
+      h += live.length ? `<div class="mg-sec">進行中、還沒開始</div>` + live.map(item).join("") : `<div class="mg-empty">${q ? "找不到符合的案子" : "還沒有案子，按下面的「＋ 新增案子」。"}</div>`;
+      if (past.length) h += `<div class="mg-sec">已經結束</div>` + years.map(y => { const ys = past.filter(r => st(r).startsWith(y)); return `<details ${q ? "open" : ""}><summary class="mg-sec" style="cursor:pointer;font-size:15px;color:var(--ink)">${y} 年（${ys.length}）</summary>${ys.map(item).join("")}</details>`; }).join("");
     } else {
-      rows.sort((a, b) => String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
+      if (k === "crew") {   // 常出現的人排前面：被排進或問過的案子數
+        const freq = {};
+        (data.cases || []).forEach(c => new Set([...(c["摳的人"] || []), ...(c["問過的人"] || [])]).forEach(id => { freq[id] = (freq[id] || 0) + 1; }));
+        rows.sort((a, b) => (freq[b.id] || 0) - (freq[a.id] || 0) || String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
+        rows.forEach(r => { r._n = freq[r.id] || 0; });
+      } else rows.sort((a, b) => String(a[title]).localeCompare(String(b[title]), "zh-Hant"));
       h += rows.length ? rows.map(r => {
-        const sub = k === "crew" ? [r["時段費"] ? "$" + r["時段費"] : "", r["居住地區"], r["電話"]].filter(Boolean).join("・")
+        const sub2 = k === "crew" ? [r["時段費"] ? "$" + r["時段費"] : "", r["居住地區"], r["電話"], r._n ? `合作 ${r._n} 檔` : ""].filter(Boolean).join("・")
           : k === "venue" ? [r["地區"], r["地址"]].filter(Boolean).join("・") : [r["抬頭"], r["統編"]].filter(Boolean).join("・");
-        return `<button class="mg-it" data-id="${r.id}"><b>${esc(r[title] || "（未命名）")}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
-      }).join("") : `<div class="mg-empty">${q ? "找不到符合的" + K[k] : "還沒有" + K[k] + "，按下面的「＋ 新增" + K[k] + "」。"}</div>`;
+        return `<button class="mg-it" data-id="${r.id}"><b>${esc(r[title] || "（未命名）")}</b>${sub2 ? `<small>${esc(sub2)}</small>` : ""}</button>`;
+      }).join("") : `<div class="mg-empty">${q || sub ? "找不到符合的" + K[k] : "還沒有" + K[k] + "，按下面的「＋ 新增" + K[k] + "」。"}</div>`;
     }
-    $("mgBody").innerHTML = h;
-    $("mgBody").querySelectorAll(".mg-it").forEach(b => b.onclick = () => edit(k, b.dataset.id));
-    const qi = $("mgQ"); qi.oninput = () => { q = qi.value.trim(); clearTimeout(qi._t); qi._t = setTimeout(() => { list(); setTimeout(() => { const n = $("mgQ"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 0); }, 350); };
-    const add = document.createElement("button"); add.className = "mg-add"; add.textContent = `＋ 新增${K[k]}`; add.onclick = () => edit(k, null); ov.appendChild(add);
+    box.innerHTML = h;
+    box.querySelectorAll(".mg-it").forEach(b => b.onclick = () => edit(k, b.dataset.id));
   }
 
   // ---------- 編輯 ----------
@@ -152,13 +182,16 @@
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
+      const HIDE = { venue: ["官方網站", "技術資料與圖面"] };
       for (const [name, type, opts] of T.SCHEMA[k].fields) {
-        if (!has(k, name) || type === "content") continue;
+        if (!has(k, name) || type === "content" || (HIDE[k] || []).includes(name) || (isNew && name === "時段費紀錄")) continue;
+        const lab = name + (type === "title" ? "（必填）" : "（非必填）");
         const fid = "f_" + name;
-        if (type === "select") h += selectHtml(fid, name, (opts || []).concat(r[name] && !(opts || []).includes(r[name]) ? [r[name]] : []).map(o => [o, o]), r[name] || "");
-        else if (name === "時段費紀錄" || name === "備註") h += `<label for="${fid}">${name}</label><textarea id="${fid}">${esc(r[name] || "")}</textarea>`;
-        else h += inp(fid, name + (type === "title" ? "（必填）" : ""), r[name], type === "number" ? 'inputmode="numeric"' : name === "電話" ? 'inputmode="tel"' : type === "url" ? 'inputmode="url" placeholder="https://"' : "");
+        if (type === "select") h += selectHtml(fid, lab, (opts || []).concat(r[name] && !(opts || []).includes(r[name]) ? [r[name]] : []).map(o => [o, o]), r[name] || "");
+        else if (name === "時段費紀錄" || name === "備註") h += `<label for="${fid}">${lab}</label><textarea id="${fid}">${esc(r[name] || "")}</textarea>`;
+        else h += inp(fid, lab, r[name], type === "number" ? 'inputmode="numeric"' : name === "電話" ? 'inputmode="tel"' : type === "url" ? 'inputmode="url" placeholder="https://"' : "");
       }
+      if (k === "troupe") h += `<div class="mg-note">劇團名稱會放在案名前面，當作複製訊息的內容，例如「光點劇場《午後的信》」。</div>`;
       if (!isNew && r["電話"]) h += `<div class="mg-note"><a href="tel:${esc(String(r["電話"]).replace(/[^\d+]/g, ""))}">📞 打電話給 ${esc(r[T.SCHEMA[k].fields[0][0]])}</a></div>`;
       h += `</div>`;
     }

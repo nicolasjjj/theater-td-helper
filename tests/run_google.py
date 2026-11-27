@@ -73,6 +73,15 @@ async def main():
         await card.locator(".bookBar").click(); await pg.wait_for_selector('.pchip:has-text("陳小米")', timeout=15000); await pg.wait_for_timeout(500)
         await pg.click('.pchip:has-text("陳小米")'); await pg.wait_for_timeout(1200); await shot("g11_chip")
         await pg.evaluate("[...document.querySelectorAll('.psheet button.primary')].find(x=>x.offsetParent).click()"); await pg.wait_for_timeout(3000); await shot("g12_after")
+        await pg.emulate_media(color_scheme="dark"); await pg.reload(); await pg.wait_for_timeout(3500)
+        await pg.click(".mg-btn"); await pg.wait_for_timeout(1500)
+        await pg.click('.mg-tabs button[data-k="crew"]'); await pg.wait_for_timeout(900); await shot("g13_crew_dark")
+        await pg.click('.mg-tabs button[data-k="venue"]'); await pg.wait_for_timeout(900)
+        await pg.click("#mgQ"); await pg.keyboard.type("水源"); await pg.wait_for_timeout(500)
+        print("focus kept:", await pg.evaluate("document.activeElement && document.activeElement.id"))
+        await pg.click('.mg-tabs button[data-k="cases"]'); await pg.wait_for_timeout(900); await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(900); await shot("g14_case_dark")
+        await pg.click("#mgX"); await pg.wait_for_timeout(3000)
+        await pg.click(".tdh-gear"); await pg.wait_for_timeout(1500); await pg.evaluate("document.querySelector('.tdh-ov').scrollTop=9999"); await shot("g15_settings_dark")
         print("errors:", errs[:10])
         ss = [k for k, v in fg.files.items() if v["name"] == "劇場幫幫資料"][0]
         for sid, sh in fg.sheets[ss].items():
