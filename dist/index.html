@@ -388,7 +388,7 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.27-1036";</script>
+<script>window.TDH_VERSION="2026.11.27-1049";</script>
 <script>
 // 劇場TD小幫手｜獨立版的 Notion 連線層
 // 把網頁原本透過 Claude 呼叫的 Notion 工具（notion-query-data-sources / notion-fetch / notion-update-page），
@@ -869,7 +869,7 @@
   .tdh-in{max-width:520px;margin:0 auto;padding:28px 18px 60px}
   .tdh-in h1{font-size:24px;margin:0 0 4px}.tdh-in .sub{color:#6e685f;font-size:14px;margin-bottom:20px}
   .tdh-st{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .tdh-st h2{font-size:16px;margin:0 0 8px;display:flex;gap:8px;align-items:center}
+  .tdh-st summary::marker{color:#2f5d50}.tdh-st h2{font-size:16px;margin:0 0 8px;display:flex;gap:8px;align-items:center}
   .tdh-st h2 b{display:inline-flex;width:24px;height:24px;border-radius:12px;background:#2f5d50;color:#fff;font-size:13px;align-items:center;justify-content:center}
   .tdh-st ol{margin:6px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:#3a362f}
   .tdh-st a.btn,.tdh-st button{display:inline-block;border:0;border-radius:999px;padding:10px 16px;font-size:15px;font-weight:600;background:#2f5d50;color:#fff;text-decoration:none;margin-top:10px}
@@ -884,53 +884,56 @@
   function open(force) {
     if (document.querySelector(".tdh-ov")) return;
     const c = T.cfg, ov = document.createElement("div"); ov.className = "tdh-ov";
+    const seen = (() => { try { return localStorage.getItem("tdh.seen") === "1"; } catch (e) { return false; } })();
     ov.innerHTML = `<div class="tdh-in">
-      <h1>劇場TD小幫手</h1><div class="sub">${force ? "設定" : "第一次使用，先連接你的 Notion（約 5 分鐘）"}</div>
-      <div class="tdh-st"><h2><b>1</b>建立 Notion 連線金鑰</h2><ol>
-        <li>按下面按鈕打開 Notion 的「開發人員連接」頁面（手機請用瀏覽器開）</li>
-        <li>按「＋ 新連接」：名稱填「劇場TD小幫手」，驗證方式選「API 權杖」，按「建立連接」</li>
-        <li>點進剛建立的連接，找到「API 權杖」→ 複製（開頭是 ntn_）</li></ol>
-        <a class="btn" href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener">打開 Notion 開發人員連接</a></div>
-      <div class="tdh-st"><h2><b>2</b>讓金鑰可以看到你的資料庫</h2><ol>
-        <li>在剛才的連接設定裡，打開「內容存取」，勾選放著資料庫的頁面</li>
-        <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場TD小幫手」</li>
-        <li>上層頁面授權後，底下的子頁面和資料庫會一起被授權</li></ol></div>
-      <div class="tdh-st"><h2><b>3</b>貼上金鑰</h2>
+      <h1>劇場TD小幫手</h1><div class="sub">${force ? "設定" : "連接你的 Notion，就可以開始使用"}</div>
+      <div class="tdh-st"><h2><b>1</b>貼上 Notion API 權杖</h2>
+        <div style="font-size:14px;color:#6e685f">還沒有權杖？看下面的「怎麼取得權杖」。</div>
         <input id="tdhTok" type="password" autocomplete="off" placeholder="ntn_ 開頭的一串字" value="${c.token ? c.token.replace(/"/g, "") : ""}">
         <button id="tdhGo">連線並尋找資料庫</button>
         <div class="tdh-res" id="tdhRes"></div><div class="tdh-err" id="tdhErr"></div></div>
-      <div class="tdh-st" id="tdhStep4" style="display:none"><h2><b>4</b>你的名字</h2>
+      <div class="tdh-st" id="tdhStep4" style="display:none"><h2><b>2</b>你的名字</h2>
         <div style="font-size:14px;color:#6e685f">大部分案子的 TD 是誰？（案子裡「TD姓名」空白時就用這個）</div>
         <input id="tdhTd" value="${(c.tdName || "").replace(/"/g, "")}" placeholder="例如：王小明">
         <button id="tdhSave">開始使用</button></div>
-      ${force ? `<div class="tdh-st"><button class="ghost" id="tdhClose">關閉</button> <button class="ghost" id="tdhOut">清除金鑰（登出）</button></div>` : ""}
-      <div style="font-size:12px;color:#8a847a;line-height:1.6;margin-top:8px">金鑰只存在這支手機的瀏覽器裡，資料直接在你的 Notion 讀寫，不會存到別的地方。</div>
+      <details class="tdh-st" ${seen || force ? "" : "open"}><summary style="font-weight:700;font-size:16px;cursor:pointer">怎麼取得權杖（第一次使用約 5 分鐘）</summary>
+        <h2 style="margin-top:12px"><b>A</b>建立 Notion 連接</h2><ol>
+        <li>按下面按鈕打開 Notion 的「開發人員連接」頁面（手機請用瀏覽器開）</li>
+        <li>按「＋ 新連接」：名稱填「劇場TD小幫手」，驗證方式選「API 權杖」，按「建立連接」</li>
+        <li>點進剛建立的連接，找到「API 權杖」→ 複製（開頭是 ntn_）</li></ol>
+        <a class="btn" href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener">打開 Notion 開發人員連接</a>
+        <h2 style="margin-top:16px"><b>B</b>讓權杖看得到你的頁面</h2><ol>
+        <li>在同一個連接設定裡打開「內容存取」，勾選要放劇場資料的頁面</li>
+        <li>或：在 Notion 打開那一頁，右上角「⋯」→「連線」→ 選「劇場TD小幫手」</li>
+        <li>還沒有劇場資料庫的話，先在 Notion 建一個空白頁面（例如「劇場管理」）再勾選它，下一步可以自動建立</li></ol></details>
+      ${force ? `<div class="tdh-st"><button class="ghost" id="tdhClose">關閉</button> <button class="ghost" id="tdhOut">清除權杖（登出）</button></div>` : ""}
+      <div style="font-size:12px;color:#8a847a;line-height:1.6;margin-top:8px">權杖只存在這個瀏覽器裡，資料直接在你的 Notion 讀寫，不會存到別的地方。請用 Safari 或 Chrome 打開，LINE、Notion 裡面的內建瀏覽器不會記住設定。</div>
     </div>`;
     document.body.appendChild(ov);
     const $ = (id) => ov.querySelector("#" + id);
     let found = null;
     $("tdhGo").onclick = async () => {
       const tok = $("tdhTok").value.trim(); $("tdhErr").textContent = ""; $("tdhRes").textContent = "連線中…";
-      if (!/^(ntn_|secret_)/.test(tok)) { $("tdhRes").textContent = ""; $("tdhErr").textContent = "金鑰看起來不對，應該是 ntn_ 或 secret_ 開頭。"; return; }
+      if (!/^(ntn_|secret_)/.test(tok)) { $("tdhRes").textContent = ""; $("tdhErr").textContent = "權杖看起來不對，應該是 ntn_ 開頭的一串字。"; return; }
       try {
         found = await T.findDatabases(tok);
         const names = T.DB_NAMES;
         $("tdhRes").innerHTML = Object.entries(names).map(([k, n]) => found[k] ? `<div class="ok">✓ ${n}</div>` : `<div class="no">✗ 找不到「${n}」</div>`).join("");
         if (Object.keys(names).every(k => found[k])) { T.setCfg({ token: tok }); $("tdhStep4").style.display = ""; $("tdhTd").focus(); }
         else if (!Object.keys(names).some(k => found[k])) { T.setCfg({ token: tok }); showCreate(tok); }
-        else $("tdhErr").textContent = "有資料庫找不到：請確認第 2 步已經把那一頁連線給「劇場TD小幫手」，或資料庫名稱完全一樣。";
+        else $("tdhErr").textContent = "有資料庫找不到：請確認已經在「內容存取」勾選放資料庫的頁面，或資料庫名稱完全一樣。";
       } catch (e) {
         $("tdhRes").textContent = "";
-        $("tdhErr").textContent = e.status === 401 ? "金鑰無效，請重新複製一次。" : "連線失敗：" + (e.message || e);
+        $("tdhErr").textContent = e.status === 401 ? "權杖無效，請回 Notion 重新複製一次。" : "連線失敗：" + (e.message || e);
       }
     };
     async function showCreate(tok) {
       const box = $("tdhRes");
-      box.innerHTML = `<div style="margin-bottom:6px">還沒有劇場資料庫。要幫你建立嗎？選一個要放資料庫的頁面（第 2 步連線過的頁面）：</div><div id="tdhPages">讀取頁面中…</div>`;
+      box.innerHTML = `<div style="margin-bottom:6px">還沒有劇場資料庫。要幫你建立嗎？選一個要放資料庫的頁面：</div><div id="tdhPages">讀取頁面中…</div>`;
       try {
         const pages = await T.listPages(tok);
         const el = $("tdhPages");
-        if (!pages.length) { el.innerHTML = `<div class="no">找不到可以用的頁面：請先完成第 2 步，把一個頁面連線給「劇場TD小幫手」。</div>`; return; }
+        if (!pages.length) { el.innerHTML = `<div class="no">找不到可以用的頁面：請先在 Notion 連接的「內容存取」勾選一個頁面。</div>`; return; }
         el.innerHTML = pages.map((p, i) => `<button class="ghost" data-i="${i}" style="display:block;width:100%;text-align:left;margin-top:6px">📄 ${p.title.replace(/</g, "&lt;")}</button>`).join("");
         el.querySelectorAll("button").forEach(b => b.onclick = async () => {
           const pg = pages[+b.dataset.i]; el.innerHTML = `<div>在「${pg.title.replace(/</g, "&lt;")}」建立中…</div><div id="tdhStepMsg"></div>`;
@@ -944,10 +947,11 @@
     }
     $("tdhSave").onclick = () => {
       T.setCfg({ db: found, tdName: $("tdhTd").value.trim() });
+      try { localStorage.setItem("tdh.seen", "1"); } catch (e) {}
       location.reload();
     };
     if ($("tdhClose")) $("tdhClose").onclick = () => ov.remove();
-    if ($("tdhOut")) $("tdhOut").onclick = () => { if (confirm("確定要清除這支手機上的 Notion 金鑰？")) { localStorage.removeItem("tdh.settings.v1"); location.reload(); } };
+    if ($("tdhOut")) $("tdhOut").onclick = () => { if (confirm("確定要清除這個瀏覽器裡的 Notion 權杖？")) { localStorage.removeItem("tdh.settings.v1"); location.reload(); } };
   }
 
   document.addEventListener("DOMContentLoaded", () => {
