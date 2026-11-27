@@ -106,6 +106,10 @@ rep('$("tsMake").onclick = () => makeGoogleSheet(c, merge ? buildTourSheet(c) : 
 rep("會建立在這個案子資料夾裡的「時段表」資料夾（知道連結的人都能檢視），同名的舊檔會保留，新檔名後面加上時間。", "會建立在你 Google 雲端硬碟的「劇場幫幫 / 時段表」資料夾（知道連結的人都能檢視），樣式和上面的預覽一樣，可以直接編輯：改段數或時段費，金額會自動重算。", 1)
 h = re.sub(r'\$\{c\.tsFolder \? `<div class="note">存放位置：[\s\S]*?</div>` : ""\}', "", h, count=1)
 
+# 3b. 預覽：拿掉上方的人數、段數、總金額
+h, n = re.subn(r'\$\{shot \? "" : `<div class="tsx-chips">.*?</div>`\}', "", h, count=1)
+assert n == 1, "tsx-chips"
+
 # 4. 錯誤訊息：獨立版沒有 claude.ai
 h = h.replace("Notion 的連線過期了，請到 claude.ai「設定 → 連接器」重新連接 Notion。", "Notion 金鑰失效了，請按上方的 ⚙︎ 重新貼上金鑰。")
 h = h.replace("還沒連接 Notion，請到 claude.ai「設定 → 連接器」加入 Notion。", "還沒設定 Notion，請按上方的 ⚙︎ 設定。")
