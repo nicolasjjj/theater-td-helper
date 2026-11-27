@@ -1,7 +1,7 @@
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
 (() => {
-  const NEED_KINDS = [["全程", 4, "blue"], ["裝拆", 9, "yellow"], ["裝台", 4, "green"], ["拆台", 5, "orange"], ["裝車", 4, "gray"], ["卸車", 3, "purple"]];
+  const NEED_KINDS = [["全程", 6, "blue"], ["裝拆", 9, "yellow"], ["裝台", 6, "green"], ["拆台", 6, "orange"], ["裝車", 3, "gray"], ["卸車", 3, "purple"]];
   const STATUS = [["尚未開始", "gray"], ["等待製作確認", "gray"], ["全部完成", "default"]];
   NEED_KINDS.forEach(([k, n, c]) => { for (let i = 1; i <= n; i++) STATUS.push([`${k}缺${i}`, c]); });
   const AREAS = ["雙北地區", "桃竹苗地區", "中部地區", "南部地區", "東部地區", "海外地區"];

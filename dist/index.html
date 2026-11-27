@@ -388,12 +388,12 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.27-2021";</script>
+<script>window.TDH_VERSION="2026.11.27-2040";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
 (() => {
-  const NEED_KINDS = [["全程", 4, "blue"], ["裝拆", 9, "yellow"], ["裝台", 4, "green"], ["拆台", 5, "orange"], ["裝車", 4, "gray"], ["卸車", 3, "purple"]];
+  const NEED_KINDS = [["全程", 6, "blue"], ["裝拆", 9, "yellow"], ["裝台", 6, "green"], ["拆台", 6, "orange"], ["裝車", 3, "gray"], ["卸車", 3, "purple"]];
   const STATUS = [["尚未開始", "gray"], ["等待製作確認", "gray"], ["全部完成", "default"]];
   NEED_KINDS.forEach(([k, n, c]) => { for (let i = 1; i <= n; i++) STATUS.push([`${k}缺${i}`, c]); });
   const AREAS = ["雙北地區", "桃竹苗地區", "中部地區", "南部地區", "東部地區", "海外地區"];
@@ -1670,6 +1670,19 @@
   .mg-tag.on.c-gray{background:#7a746b;border-color:#7a746b}.mg-tag.on.c-purple{background:#7a5aa8;border-color:#7a5aa8}
   .mg-tag.on.c-default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
   .mg a{color:var(--accent)}
+  .mg-modal{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));transition:background .18s}
+  .mg-modal.in{background:rgba(0,0,0,.45)}
+  .mg-dlg{background:var(--bg);border-radius:22px;width:100%;max-width:540px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.3);transform:translateY(16px) scale(.98);opacity:0;transition:all .18s}
+  .mg-modal.in .mg-dlg{transform:none;opacity:1}
+  .mg-dlg-h{font-size:19px;font-weight:700;padding:18px 18px 10px}
+  .mg-dlg-b{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 16px 8px}
+  .mg-dlg-f{display:flex;justify-content:flex-end;gap:10px;padding:12px 16px 16px;border-top:1px solid var(--line)}
+  .mg-dlg-f button{border-radius:14px;padding:12px 22px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .mg-dlg-f .ghost{background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:500}
+  .mg-dlg-f .pri{background:var(--accent);border:0;color:var(--accent-ink)}
+  .mg-cardfoot{display:flex;justify-content:flex-end;margin-top:12px}
+  .mg-clr2{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:2px 0;cursor:pointer}
+  .mg-clr2.armed{color:var(--tdh-dan);font-weight:700}
   .mg-note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
   .mg-chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;margin:8px 6px 0 0;font:inherit;font-size:13px;background:transparent;color:var(--ink);cursor:pointer}
   .mg-tbl .r{display:flex;gap:6px;margin-top:6px}.mg-tbl .r input:first-child{flex:0 0 36%}.mg-tbl .r button{flex:0 0 36px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;font-size:14px;cursor:pointer}
@@ -1792,12 +1805,12 @@
   // ---------- 編輯 ----------
   const inp = (id, label, v, extra = "") => `<label for="${id}">${label}</label><input id="${id}" value="${esc(v ?? "")}" ${extra}>`;
   function selectHtml(id, label, opts, v, addLabel) {
-    return `<label for="${id}">${label}</label><select id="${id}"><option value="">（不選）</option>${opts.map(([val, txt]) => `<option value="${esc(val)}" ${val === v ? "selected" : ""}>${esc(txt)}</option>`).join("")}${addLabel ? `<option value="__new">＋ ${addLabel}</option>` : ""}</select>`;
+    return `<label for="${id}">${label}</label><select id="${id}"><option value="">點這裡選擇</option>${opts.map(([val, txt]) => `<option value="${esc(val)}" ${val === v ? "selected" : ""}>${esc(txt)}</option>`).join("")}${addLabel ? `<option value="__new">＋ ${addLabel}</option>` : ""}</select>`;
   }
   // 下拉選單＋右上角「＋ 新增」：在下面展開一列輸入框，直接建立
   function pickHtml(id, label, kind, opts, v) {
     return `<div class="mg-lrow"><label for="${id}">${label}</label><button type="button" class="mg-mini" data-addfor="${id}" data-kind="${kind}">＋ 新增${K[kind]}</button></div>
-      <select id="${id}"><option value="">（不選）</option>${opts.map(([val, txt]) => `<option value="${esc(val)}" ${val === v ? "selected" : ""}>${esc(txt)}</option>`).join("")}</select>
+      <select id="${id}"><option value="">點這裡選擇${label}</option>${opts.map(([val, txt]) => `<option value="${esc(val)}" ${val === v ? "selected" : ""}>${esc(txt)}</option>`).join("")}</select>
       <div class="mg-newrow" id="${id}_new" style="display:none"><input placeholder="新的${K[kind]}名稱"><button type="button">加入</button><button type="button" class="ghost">取消</button></div>`;
   }
   function bindPick() {
@@ -1831,10 +1844,10 @@
   }
 
   async function edit(k, id) {
-    const old = ov.querySelector(".mg-add"); if (old) old.remove();
     const r = id ? data[k].find(x => x.id === id) : {};
     const isNew = !id;
-    let h = `<button class="mg-back" id="mgBack">‹ 返回${K[k]}列表</button><div class="mg-f">`;
+    if (!isNew) { const old = ov.querySelector(".mg-add"); if (old) old.remove(); }
+    let h = isNew ? `<div class="mg-f">` : `<button class="mg-back" id="mgBack">‹ 返回${K[k]}列表</button><div class="mg-f">`;
     if (k === "cases") h += await caseForm(r, isNew);
     else {
       h += `<div class="mg-card">`;
@@ -1849,17 +1862,36 @@
       }
       if (k === "troupe") h += `<div class="mg-note">劇團名稱會放在案名前面，當作複製訊息的內容，例如「光點劇場《午後的信》」。</div>`;
       if (!isNew && r["電話"]) h += `<div class="mg-note"><a href="tel:${esc(String(r["電話"]).replace(/[^\d+]/g, ""))}">📞 打電話給 ${esc(r[T.SCHEMA[k].fields[0][0]])}</a></div>`;
+      if (isNew) h += `<div class="mg-cardfoot"><button type="button" class="mg-clr2" data-clear="all">清除資料</button></div>`;
       h += `</div>`;
     }
-    h += `<div class="mg-err" id="mgErr"></div><div class="mg-act">${isNew ? `<button class="dan" id="mgClear" style="flex:0 0 34%">清除全部</button>` : ""}<button class="pri" id="mgSave">${isNew ? "新增" : "儲存"}</button></div>`;
-    if (!isNew) h += `<div class="mg-act"><button class="dan" id="mgDel">刪除</button></div>`;
-    h += `</div>`;
-    $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
-    $("mgBack").onclick = () => list();
+    if (isNew) {   // 新增：彈出視窗，右下角「取消、新增」
+      h += `<div class="mg-err" id="mgErr"></div></div>`;
+      const old = ov.querySelector(".mg-modal"); if (old) old.remove();
+      const md = document.createElement("div"); md.className = "mg-modal";
+      md.innerHTML = `<div class="mg-dlg" role="dialog"><div class="mg-dlg-h">新增${K[k]}</div><div class="mg-dlg-b">${h}</div>
+        <div class="mg-dlg-f"><button type="button" class="ghost" id="mgCancel">取消</button><button type="button" class="pri" id="mgSave">新增</button></div></div>`;
+      ov.appendChild(md);
+      requestAnimationFrame(() => md.classList.add("in"));
+      $("mgCancel").onclick = () => { md.classList.remove("in"); setTimeout(() => md.remove(), 180); };
+      md.onclick = (e) => { if (e.target === md) $("mgCancel").onclick(); };
+    } else {
+      h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="pri" id="mgSave">儲存</button></div><div class="mg-act"><button class="dan" id="mgDel">刪除</button></div></div>`;
+      $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0;
+      $("mgBack").onclick = () => list();
+    }
+    // 「清除資料」：點兩下才清（第一下變成「再點一次清除」）
+    ov.querySelectorAll("[data-clear]").forEach(btn => {
+      let t = null;
+      btn.onclick = () => {
+        if (!btn.classList.contains("armed")) { btn.classList.add("armed"); btn.textContent = "再點一次清除"; t = setTimeout(() => { btn.classList.remove("armed"); btn.textContent = "清除資料"; }, 2500); return; }
+        clearTimeout(t); btn.classList.remove("armed"); btn.textContent = "清除資料";
+        clearPart(btn.closest(".mg-card"), btn.dataset.clear);
+      };
+    });
     ov.querySelectorAll("select").forEach(s => s.onchange = () => { if (s.value === "__new") pickNew(s, s.dataset.kind); });
     if (k === "cases") { bindCase(r, isNew); bindPick(); }
     $("mgSave").onclick = () => save(k, id, r);
-    if ($("mgClear")) $("mgClear").onclick = () => { if (confirm("清除這張表單裡填的所有內容？")) edit(k, null); };
     if ($("mgArc")) $("mgArc").onclick = async () => {
       $("mgArc").disabled = true;
       try { await store().update("cases", id, { "封存": !r["封存"] }); dirty = true; await loadKind("cases", true); list(); }
@@ -1904,12 +1936,14 @@
         <div id="c_subBox" style="${r["負責人姓名"] ? "" : "display:none"}">${inp("c_td", "代班的人是誰", r["負責人姓名"], 'placeholder="例如：王小明"')}</div>` : ""}
       ${has("cases", "巡演") ? `<label class="mg-ck"><input type="checkbox" id="c_tourOn" ${r["巡演"] ? "checked" : ""}>這一檔是巡演</label>
         <div id="c_tourBox" style="${r["巡演"] ? "" : "display:none"}">${inp("c_tour", "巡演名稱（每一站都填一樣的名字，結案時可以合併成一張時段表）", r["巡演"], 'placeholder="例如：2026午後的信"')}</div>` : ""}
+      <div class="mg-cardfoot"><button type="button" class="mg-clr2" data-clear="basic">清除資料</button></div>
       </div>
       <div class="mg-h">人力分配填寫</div><div class="mg-card">
       ${has("cases", "人力分配") ? inp("c_plan", "人力分配（寫給自己看的筆記）", r["人力分配"], 'placeholder="例如：全程1帶2 / 裝2天+拆台1帶4"') : ""}
       <label>目前還缺幾人？（可複選）</label>
       <div id="c_need">${T.NEED_KINDS.map(([kind, n, col]) => `<div class="mg-tagrow"><span>${kind}</span><div>${Array.from({ length: n }, (_, i) => `${kind}缺${i + 1}`).map(tg => `<button type="button" class="mg-tag c-${col} ${st.includes(tg) ? "on" : ""}" data-tag="${tg}">${tg}</button>`).join("")}</div></div>`).join("")}
         <div class="mg-tagrow"><span>其他</span><div><button type="button" class="mg-tag c-default ${st.includes("全部完成") ? "on" : ""}" data-tag="全部完成">人都找齊了</button><button type="button" class="mg-tag c-gray ${st.includes("等待製作確認") ? "on" : ""}" data-tag="等待製作確認">人數尚未確認</button></div></div></div>
+      <div class="mg-cardfoot"><button type="button" class="mg-clr2" data-clear="need">清除資料</button></div>
       </div>
       <div class="mg-h">${esc(window.TEAM())}人員 Call Time</div>
       ${ct.err ? `<div class="mg-note">讀不到這個案子的 Call Time 表格：${esc(ct.err)}</div>` : `<div id="c_tblBox">${ctTable()}</div>
@@ -1917,6 +1951,14 @@
       ${ct.mode === "google" ? `<div><button type="button" class="mg-chip" id="c_addRow">＋ 加一列</button><button type="button" class="mg-chip" id="c_fillDays">補上缺的日期</button></div>` : ""}`}
       ${ct.notes ? `<div class="mg-h">其他資訊</div><div class="mg-card"><label for="c_notes">抬頭、統編（會用在截圖的抬頭統編卡片）</label><textarea id="c_notes" placeholder="抬頭：&#10;統編：">${esc(ct.notes.join("\n"))}</textarea></div>` : ""}`;
     return h;
+  }
+  function clearPart(card, which) {
+    if (!card) return;
+    card.querySelectorAll("input:not([type=checkbox]),select,textarea").forEach(x => { x.value = ""; });
+    card.querySelectorAll("input[type=checkbox]").forEach(x => { x.checked = false; x.dispatchEvent(new Event("change")); });
+    card.querySelectorAll(".mg-tag.on").forEach(x => x.classList.remove("on"));
+    card.querySelectorAll(".mg-newrow").forEach(x => { x.style.display = "none"; });
+    if (which === "basic" && $("c_e") && $("c_e").onchange) $("c_e").onchange();
   }
   let ct = null;
   function ctTable() {
@@ -1991,6 +2033,7 @@
       }
       else await store().create(k, vals, k === "cases" ? content : null);
       dirty = true;
+      const md = ov.querySelector(".mg-modal"); if (md) md.remove();
       await loadKind(k, true);
       list();
     } catch (e) { errEl.textContent = "儲存失敗：" + ((e && e.message) || e); btn.disabled = false; btn.textContent = id ? "儲存" : "新增"; }
