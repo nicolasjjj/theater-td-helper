@@ -112,7 +112,9 @@
         <input id="tdhTeam" value="${esc(c.team || "")}" placeholder="例如：舞台組">
         <button id="tdhSave" class="big">${force ? "儲存" : "開始使用"}</button></div>`;
 
-  function open(force, resume) {
+  let onCloseCb = null;
+  function open(force, resume, onClose) {
+    onCloseCb = onClose || null;
     if (document.querySelector(".tdh-ov")) return;
     const c = T.cfg, ov = document.createElement("div"); ov.className = "tdh-ov";
     const seen = (() => { try { return localStorage.getItem("tdh.seen") === "1"; } catch (e) { return false; } })();
@@ -217,7 +219,7 @@
     });
     if ($("tdhTipOk")) $("tdhTipOk").onclick = () => $("tdhTipOk").parentNode.remove();
     let changed = false;
-    const closeOv = () => { ov.remove(); if (changed) location.reload(); };
+    const closeOv = () => { ov.remove(); if (changed) { location.reload(); return; } if (onCloseCb) onCloseCb(); };
     if ($("tdhSave")) $("tdhSave").onclick = () => {
       T.setCfg({ tdName: $("tdhTd").value.trim(), role: $("tdhRole").value.trim(), team: $("tdhTeam").value.trim(), named: true });
       try { localStorage.setItem("tdh.seen", "1"); } catch (e) {}
@@ -242,7 +244,7 @@
     if ($("tdhOut")) $("tdhOut").onclick = () => { if (confirm("確定要登出並清除這個瀏覽器裡的設定？（你的資料不會被刪除）")) { localStorage.removeItem("tdh.settings.v1"); localStorage.removeItem("tdh.gat"); location.reload(); } };
   }
 
-  T.openSettings = () => open(true);
+  T.openSettings = (cb) => open(true, undefined, cb);
   document.addEventListener("DOMContentLoaded", async () => {
     const g = document.createElement("button"); g.className = "tdh-gear"; g.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>'; g.title = "設定"; g.setAttribute("aria-label", "設定");
     g.onclick = () => open(true);

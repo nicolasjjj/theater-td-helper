@@ -40,6 +40,9 @@
   .tdh-drawer .it{display:flex;align-items:center;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left;padding:11px 10px;border-radius:10px;cursor:pointer}
   .tdh-drawer .it.on{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:700}
   .tdh-drawer .sp{flex:1}
+  .tdh-drawer .db .car{color:var(--muted);transition:transform .15s}.tdh-drawer .db.open .car{transform:rotate(180deg)}
+  .tdh-drawer .it.sub{font-size:15px;padding:9px 10px 9px 26px;color:var(--muted)}.tdh-drawer .it.sub.on{color:var(--accent)}
+  .tdh-drawer .ic{display:inline-flex;margin-right:10px;color:var(--muted)}
   .tdh-drawer .foot{border-top:1px solid var(--line);padding-top:8px}
   .tdh-drawer .ver{font-size:11px;color:var(--muted);margin:6px 10px 0}
   .tdh-ptr{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));z-index:9400;transform:translate(-50%,-70px);background:var(--card);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font:13px "Noto Sans TC",sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.12);transition:transform .15s}
@@ -109,24 +112,31 @@
   let drawer = null;
   function buildDrawer() {
     drawer = document.createElement("div"); drawer.className = "tdh-drawer";
-    const main = UI === "D2" ? [["home", "我的案子"], ["find", "找人"], ["live", "每日打卡"], ["close", "結案"]] : [];
+    const main = UI === "D2" ? [["home", "首頁"], ["find", "找人"], ["live", "每日打卡"], ["close", "結案"]] : [];
     drawer.innerHTML = `<div class="sh"></div><div class="pn"><h2>劇場幫幫</h2>
       <button class="new" data-new="1">＋ 新增案子</button>
       ${main.map(([v, t]) => `<button class="it" data-v="${v}">${t}</button>`).join("")}
-      <div class="grp">資料</div>
-      ${[["cases", UI === "D2" ? "所有案子" : "案子"], ["troupe", "劇團（抬頭統編）"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it" data-v="${v}">${t}</button>`).join("")}
+      <button class="it" data-v="cases">我的案子</button>
+      <button class="it db" id="dbTog"><span style="flex:1">資料庫</span><span class="car">▾</span></button>
+      <div class="dbl" id="dbList" hidden>${[["troupe", "劇團"], ["crew", "Crew"], ["venue", "場館"]].map(([v, t]) => `<button class="it sub" data-v="${v}">${t}</button>`).join("")}</div>
       <div class="sp"></div>
-      <div class="foot"><button class="it" data-set="1">設定</button><div class="ver">介面 ${UI}</div></div></div>`;
+      <div class="foot"><button class="it" data-set="1"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.6 1.7 1.7 0 0 0 9.97 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.6.85 1 1.51 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg></span>設定</button><div class="ver">介面 ${UI}</div></div></div>`;
     document.body.appendChild(drawer);
     drawer.querySelector(".sh").onclick = closeDrawer;
     drawer.querySelectorAll("[data-v]").forEach(b => b.onclick = () => show(b.dataset.v));
     drawer.querySelector("[data-new]").onclick = () => show("cases", { add: true });
-    drawer.querySelector("[data-set]").onclick = () => { closeDrawer(); T.openSettings && T.openSettings(); };
+    drawer.querySelector("#dbTog").onclick = () => { const l = drawer.querySelector("#dbList"); l.hidden = !l.hidden; drawer.querySelector("#dbTog").classList.toggle("open", !l.hidden); };
+    drawer.querySelector("[data-set]").onclick = () => { T.openSettings && T.openSettings(() => openDrawer()); setTimeout(() => drawer.classList.remove("open"), 250); };
     let x0 = null;   // 往左滑關閉
     drawer.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
     drawer.addEventListener("touchend", e => { if (x0 !== null && e.changedTouches[0].clientX - x0 < -60) closeDrawer(); x0 = null; });
   }
-  function openDrawer() { if (!drawer) buildDrawer(); drawer.querySelectorAll(".it[data-v]").forEach(b => b.classList.toggle("on", b.dataset.v === cur)); requestAnimationFrame(() => drawer.classList.add("open")); }
+  function openDrawer() {
+    if (!drawer) buildDrawer();
+    drawer.querySelectorAll(".it[data-v]").forEach(b => b.classList.toggle("on", b.dataset.v === cur));
+    if (["troupe", "crew", "venue"].includes(cur)) { drawer.querySelector("#dbList").hidden = false; drawer.querySelector("#dbTog").classList.add("open"); }
+    requestAnimationFrame(() => drawer.classList.add("open"));
+  }
   function closeDrawer() { if (drawer) drawer.classList.remove("open"); }
   T.menuButton = () => { const b = document.createElement("button"); b.className = "tdh-menu"; b.type = "button"; b.setAttribute("aria-label", "選單"); b.innerHTML = MENU; b.onclick = openDrawer; return b; };
 

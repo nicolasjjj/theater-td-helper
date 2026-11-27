@@ -43,6 +43,13 @@ async def main():
         await pg.click('.tdh-drawer [data-new]'); await pg.wait_for_timeout(1500)
         await pg.fill("#c_name", "午後的信"); await pg.fill("#c_s", "2026-11-23"); await pg.fill("#c_e", "2026-11-27")
         await pg.click('#c_need [data-tag="全程缺1"]'); await pg.click("#mgSave"); await pg.wait_for_timeout(1500); await shot("d1_cases")
+        await pg.click('.mg-it:has-text("午後的信")'); await pg.wait_for_timeout(1500); await shot("d1_board")
+        await pg.click("#mgEdit"); await pg.wait_for_timeout(1200); await shot("d1_edit")
+        await pg.evaluate("document.querySelector('#mgDel').scrollIntoView()"); await shot("d1_edit_bottom")
+        await pg.click("#mgCancel"); await pg.wait_for_timeout(1200)
+        await pg.click(".mg .tdh-menu"); await pg.wait_for_timeout(500); await pg.click("#dbTog"); await pg.wait_for_timeout(300); await shot("d1_drawer2")
+        await pg.click(".tdh-drawer [data-set]"); await pg.wait_for_timeout(1200); await pg.click("#tdhDone"); await pg.wait_for_timeout(800); await shot("d1_after_settings")
+        await pg.click('.tdh-drawer [data-v="crew"]'); await pg.wait_for_timeout(1200); await shot("d1_crew")
         await pg.click('.tdh-tabbar [data-t="close"]'); await pg.wait_for_timeout(4000); await shot("d1_close")
         # D2
         await pg.goto(U + "?ui=D2"); await pg.wait_for_timeout(4500); await shot("d2_home")
