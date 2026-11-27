@@ -73,6 +73,10 @@
   .tdh-st .tdh-seg button{flex:1;margin:0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:500;padding:8px 0;font-size:14px}
   .tdh-st .tdh-seg button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
   .tdh-toast{position:fixed;left:50%;bottom:calc(var(--tab-h,0px) + 24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:10001;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;transition:all .2s;pointer-events:none;font-family:"Noto Sans TC",sans-serif}
+  .tdh-sum{font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+  .tdh-sum::-webkit-details-marker{display:none}
+  .tdh-sum::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 3px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1);flex:0 0 auto}
+  details[open]>.tdh-sum::before{transform:rotate(135deg)}
   .tdh-toast.in{transform:translate(-50%,0);opacity:1}
   #findView .totop{display:flex;flex-direction:row;white-space:nowrap;width:auto;height:auto;align-items:center;gap:6px;margin:18px auto 0;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer}
   .tdh-foot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:6px;padding:0 4px}
@@ -91,7 +95,7 @@
         <input id="tdhTok" type="password" autocomplete="off" placeholder="ntn_ 開頭的一串字" value="${esc(c.token || "")}">
         <button id="tdhGo">連線並尋找資料庫</button>
         <div class="tdh-res" id="tdhRes"></div><div class="tdh-err" id="tdhErr"></div>
-        <details style="margin-top:12px" ${seen || force ? "" : "open"}><summary style="font-weight:700;font-size:15px;cursor:pointer">怎麼取得權杖（約 5 分鐘）</summary>
+        <details style="margin-top:12px" ${seen || force ? "" : "open"}><summary class="tdh-sum">怎麼取得權杖（約 5 分鐘）</summary>
         <h2 style="margin-top:12px"><b>A</b>建立 Notion 連接</h2><ol>
         <li>按下面按鈕打開 Notion 的「開發人員連接」頁面（手機請用瀏覽器開）</li>
         <li>按「＋ 新連接」：名稱填「劇場幫幫」，驗證方式選「API 權杖」，按「建立連接」</li>
@@ -104,10 +108,10 @@
   const whoCard = (c, force) => `<div class="tdh-st" id="tdhWho">${force ? "" : "<h2><b>2</b>你是誰</h2>"}
         <label class="tdh-lab" for="tdhTd">你的名字</label>
         <input id="tdhTd" value="${esc(c.tdName || "")}" placeholder="例如：王小明">
-        <label class="tdh-lab">你的職稱（畫面和時段表上會這樣稱呼你）</label>
+        <label class="tdh-lab">你的職稱（也可以手動填寫）</label>
         <div class="tdh-chips" data-for="tdhRole">${["TD", "ME", "PA", "SM"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
         <input id="tdhRole" value="${esc(c.role || "")}" placeholder="例如：TD、ME、PA、SM">
-        <label class="tdh-lab">你帶的組別（例如「舞台組人員名單」）</label>
+        <label class="tdh-lab">你的組別（也可以手動填寫）</label>
         <div class="tdh-chips" data-for="tdhTeam">${["舞台組", "燈光組", "音響組", "舞監組", "製作組"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
         <input id="tdhTeam" value="${esc(c.team || "")}" placeholder="例如：舞台組">
         <button id="tdhSave" class="big">${force ? "儲存" : "開始使用"}</button></div>`;

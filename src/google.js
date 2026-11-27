@@ -74,6 +74,13 @@
       if (await G.fileOk(T.cfg.gRoot)) return T.cfg.gRoot;
       const id = await G.folder("劇場幫幫"); T.setCfg({ gRoot: id }); return id;
     },
+    // 時段表放在「劇場幫幫 / 案名 / 時段表」；建不出來就放在「劇場幫幫」這一層
+    async caseSheetFolder(name) {
+      const root = await G.rootFolder();
+      const nm = String(name || "").replace(/[\\/]/g, "／").trim();
+      if (!nm) return root;
+      try { return await G.folder("時段表", await G.folder(nm, root)); } catch (e) { return root; }
+    },
     async sheetFolder() {
       if (await G.fileOk(T.cfg.gSheetDir)) return T.cfg.gSheetDir;
       const id = await G.folder("時段表", await G.rootFolder()); T.setCfg({ gSheetDir: id }); return id;

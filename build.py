@@ -54,6 +54,7 @@ h = h.replace("每天預計的舞台組人員", "每天預計的${window.TEAM()}
 assert "劉冠佑" not in h and "冠佑" not in h, "personal name left"
 
 # 3. 時段表：仿預覽樣式。主要按鈕建立 Google 試算表（使用者自己的雲端），另外可以下載 Excel
+rep('if (my === saveSeq) status("已儲存 ✓");', 'if (my === saveSeq) { status(""); if (window.__tdh && window.__tdh.toast) window.__tdh.toast("已儲存"); else status("已儲存 ✓"); }', 1)
 rep("async function makeGoogleSheet(c, s) {", "async function makeGoogleSheet_google(c, s) {", 1)
 rep("  // ---------- preview ----------", (ROOT/"src/prettysheet.js").read_text() + """
   async function makeGoogleSheet(c, s) {   // 劇場幫幫：在使用者自己的 Google 雲端建立試算表
@@ -63,8 +64,8 @@ rep("  // ---------- preview ----------", (ROOT/"src/prettysheet.js").read_text(
     btn.disabled = true; btn.textContent = "建立中…";
     try {
       const plan = prettyPlan(s);
-      msg.textContent = "準備「劇場幫幫 / 時段表」資料夾…";
-      const dir = await G.sheetFolder();
+      msg.textContent = `準備「劇場幫幫 / ${c.title || "案子"} / 時段表」資料夾…`;
+      const dir = await G.caseSheetFolder(c.title);
       msg.textContent = "建立試算表…";
       const f = await G.api("https://www.googleapis.com/drive/v3/files?fields=id", { method: "POST", body: { name: s.title, mimeType: "application/vnd.google-apps.spreadsheet", parents: [dir] } });
       const id = f.id, SS = `https://sheets.googleapis.com/v4/spreadsheets/${id}`;
@@ -167,7 +168,7 @@ for a, b in [
     ("<h1>Call人訊息複製 / 編輯人員名單</h1>", "<h1>Call人訊息複製</h1>"),
     ('let html = `<div class="planrow"><b>人力分配</b>　<span>${i.plan ? esc(i.plan) : "—"}</span></div>`;', 'let html = "";'),
     ('el.innerHTML = `<div class="bk-h"><span>加入 / 編輯</span><i>›</i></div>`;', 'el.innerHTML = `<div class="bk-h"><span>+ Crew</span></div>`;'),
-    ('<button class="tblBtn">看表格</button>', '<button class="tblBtn">詳細資訊</button>'),
+    ('<button class="tblBtn">看表格</button>', '<button class="tblBtn">目前人力</button>'),
     ('if (e.target.closest(".tblBtn")) { e.stopPropagation(); openTable(i); return; }', 'if (e.target.closest(".tblBtn")) { e.stopPropagation(); const T2 = window.__tdh, m = String(i.url || "").replace(/-/g, "").match(/[0-9a-f]{32}/i); if (T2 && T2.showTab && m) T2.showTab("cases", { caseId: m[0].toLowerCase(), scrollTo: "ct" }); else openTable(i); return; }'),
     ('${rest.slice(0, 120).map(p => chip(p, false)).join("")', '${rest.slice(0, q ? 120 : 20).map(p => chip(p, false)).join("")'),
 ]:

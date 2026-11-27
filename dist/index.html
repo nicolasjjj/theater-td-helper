@@ -388,7 +388,7 @@
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.28-0058";</script>
+<script>window.TDH_VERSION="2026.11.28-0129";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
@@ -967,6 +967,13 @@
       if (await G.fileOk(T.cfg.gRoot)) return T.cfg.gRoot;
       const id = await G.folder("劇場幫幫"); T.setCfg({ gRoot: id }); return id;
     },
+    // 時段表放在「劇場幫幫 / 案名 / 時段表」；建不出來就放在「劇場幫幫」這一層
+    async caseSheetFolder(name) {
+      const root = await G.rootFolder();
+      const nm = String(name || "").replace(/[\\/]/g, "／").trim();
+      if (!nm) return root;
+      try { return await G.folder("時段表", await G.folder(nm, root)); } catch (e) { return root; }
+    },
     async sheetFolder() {
       if (await G.fileOk(T.cfg.gSheetDir)) return T.cfg.gSheetDir;
       const id = await G.folder("時段表", await G.rootFolder()); T.setCfg({ gSheetDir: id }); return id;
@@ -1471,6 +1478,10 @@
   .tdh-st .tdh-seg button{flex:1;margin:0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:500;padding:8px 0;font-size:14px}
   .tdh-st .tdh-seg button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
   .tdh-toast{position:fixed;left:50%;bottom:calc(var(--tab-h,0px) + 24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:10001;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;transition:all .2s;pointer-events:none;font-family:"Noto Sans TC",sans-serif}
+  .tdh-sum{font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+  .tdh-sum::-webkit-details-marker{display:none}
+  .tdh-sum::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 3px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1);flex:0 0 auto}
+  details[open]>.tdh-sum::before{transform:rotate(135deg)}
   .tdh-toast.in{transform:translate(-50%,0);opacity:1}
   #findView .totop{display:flex;flex-direction:row;white-space:nowrap;width:auto;height:auto;align-items:center;gap:6px;margin:18px auto 0;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer}
   .tdh-foot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:6px;padding:0 4px}
@@ -1489,7 +1500,7 @@
         <input id="tdhTok" type="password" autocomplete="off" placeholder="ntn_ 開頭的一串字" value="${esc(c.token || "")}">
         <button id="tdhGo">連線並尋找資料庫</button>
         <div class="tdh-res" id="tdhRes"></div><div class="tdh-err" id="tdhErr"></div>
-        <details style="margin-top:12px" ${seen || force ? "" : "open"}><summary style="font-weight:700;font-size:15px;cursor:pointer">怎麼取得權杖（約 5 分鐘）</summary>
+        <details style="margin-top:12px" ${seen || force ? "" : "open"}><summary class="tdh-sum">怎麼取得權杖（約 5 分鐘）</summary>
         <h2 style="margin-top:12px"><b>A</b>建立 Notion 連接</h2><ol>
         <li>按下面按鈕打開 Notion 的「開發人員連接」頁面（手機請用瀏覽器開）</li>
         <li>按「＋ 新連接」：名稱填「劇場幫幫」，驗證方式選「API 權杖」，按「建立連接」</li>
@@ -1502,10 +1513,10 @@
   const whoCard = (c, force) => `<div class="tdh-st" id="tdhWho">${force ? "" : "<h2><b>2</b>你是誰</h2>"}
         <label class="tdh-lab" for="tdhTd">你的名字</label>
         <input id="tdhTd" value="${esc(c.tdName || "")}" placeholder="例如：王小明">
-        <label class="tdh-lab">你的職稱（畫面和時段表上會這樣稱呼你）</label>
+        <label class="tdh-lab">你的職稱（也可以手動填寫）</label>
         <div class="tdh-chips" data-for="tdhRole">${["TD", "ME", "PA", "SM"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
         <input id="tdhRole" value="${esc(c.role || "")}" placeholder="例如：TD、ME、PA、SM">
-        <label class="tdh-lab">你帶的組別（例如「舞台組人員名單」）</label>
+        <label class="tdh-lab">你的組別（也可以手動填寫）</label>
         <div class="tdh-chips" data-for="tdhTeam">${["舞台組", "燈光組", "音響組", "舞監組", "製作組"].map(x => `<button type="button" class="ghost">${x}</button>`).join("")}</div>
         <input id="tdhTeam" value="${esc(c.team || "")}" placeholder="例如：舞台組">
         <button id="tdhSave" class="big">${force ? "儲存" : "開始使用"}</button></div>`;
@@ -1700,13 +1711,14 @@
   .mg-in details>summary::before{content:"▸";display:inline-block;width:14px;transition:transform .15s}.mg-in details[open]>summary::before{transform:rotate(90deg)}
   .mg-it{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer}
   .mg-it{position:relative;padding-right:40px;transition:transform .15s ease,border-color .2s,background .2s}
-  .mg-it::after,.mg-go i{content:"";position:absolute;right:17px;top:50%;width:7px;height:7px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg);opacity:.75;transition:right .2s}
+  .mg-it::after{content:"";position:absolute;right:17px;top:50%;width:7px;height:7px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg);opacity:.75;transition:right .2s}
   .mg-it:active{transform:scale(.982);background:var(--sel)}
   @media (hover:hover){.mg-it:hover{border-color:var(--accent)}.mg-it:hover::after{right:14px}}
-  .mg-go{position:relative;display:flex;align-items:center;width:100%;margin:22px 0 8px;padding:15px 44px 15px 16px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink,#fff);font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 18px -8px var(--accent);transition:transform .15s}
-  .mg-go b{display:block;font-size:16px;font-weight:700}.mg-go small{display:block;font-size:12.5px;opacity:.85;margin-top:2px}
-  .mg-go i{border-color:currentColor;opacity:.9}
-  .mg-go:active{transform:scale(.98)}
+  .mg-gow{display:flex;justify-content:center;margin:26px 0 10px}
+  .mg-go{position:relative;display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--accent);font:inherit;font-size:17px;font-weight:800;letter-spacing:.06em;padding:8px 4px 6px;cursor:pointer;border-bottom:2px solid currentColor;transition:gap .2s,opacity .15s}
+  .mg-go i{display:inline-block;width:8px;height:8px;border-right:2.4px solid currentColor;border-top:2.4px solid currentColor;transform:rotate(45deg);margin-right:3px}
+  .mg-go:active{opacity:.6}
+  @media (hover:hover){.mg-go:hover{gap:12px}}
   .mg-it b{font-size:15px;font-weight:700;display:block}.mg-it small{color:var(--muted);font-size:12px;display:block;margin-top:3px;line-height:1.5}
   .mg-it .tg{display:inline-block;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;margin:6px 4px 0 0;background:var(--blue);color:var(--blue-ink)}
   .mg-it .tg.ok{background:var(--sel);color:var(--accent)}.mg-it .tg.w{background:var(--yellow);color:var(--yellow-ink)}
@@ -2105,7 +2117,7 @@
       </div>
       <div class="mg-h" id="ctSec">${esc(window.TEAM())}人員 Call Time</div>
       ${ct.err ? `<div class="mg-note">讀不到 Call Time 表格：${esc(ct.err)}</div>` : ct.rows.length ? `<table class="mg-ct ro"><tbody>${ct.rows.map(x => `<tr><td>${esc(x.a)}</td><td><div class="mg-names">${splitNames(x.b).map(n => `<span class="mg-nm${known.size && !known.has(n) ? " unk" : ""}">${esc(n)}</span>`).join("") || `<span class="mg-none">—</span>`}</div></td></tr>`).join("")}</tbody></table>` : `<div class="mg-empty" style="margin:0">還沒有 Call Time 表格</div>`}`;
-    h += `<button class="mg-go" id="mgGoClose"><span><b>去結案</b><small>回報出勤、算時段、產生時段表</small></span><i></i></button>`;
+    h += `<div class="mg-gow"><button class="mg-go" id="mgGoClose">去結案<i></i></button></div>`;
     $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0; reveal("item");
     $("mgGoClose").onclick = () => T.showTab && T.showTab("close", { caseId: id });
     if (scrollCT) { scrollCT = false; const el = $("ctSec"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }
@@ -2303,7 +2315,7 @@
       dirty = true;
       const md = ov.querySelector(".mg-modal"); if (md) md.remove();
       await loadKind(k, true);
-      if (id) edit(k, id); else list();
+      if (id) { edit(k, id); if (T.toast) T.toast("已儲存"); } else list();
     } catch (e) { errEl.textContent = "儲存失敗：" + ((e && e.message) || e); btn.disabled = false; btn.textContent = id ? "儲存" : "新增"; }
   }
 
@@ -2385,9 +2397,7 @@
   .tdh-drawer .dbl.open>div>*:nth-child(2){transition-delay:.04s}.tdh-drawer .dbl.open>div>*:nth-child(3){transition-delay:.08s}.tdh-drawer .dbl.open>div>*:nth-child(4){transition-delay:.12s}.tdh-drawer .dbl.open>div>*:nth-child(5){transition-delay:.16s}.tdh-drawer .dbl.open>div>*:nth-child(n+6){transition-delay:.2s}
   .tdh-drawer .it{transition:background .18s,transform .12s}.tdh-drawer .it:active{transform:scale(.98);background:var(--sel)}
   .tdh-drawer .new{transition:transform .12s,filter .2s}.tdh-drawer .new:active{transform:scale(.97)}
-  .tdh-drawer .pn>h2,.tdh-drawer .scr>*,.tdh-drawer .foot{opacity:0;transform:translateX(-14px);transition:opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
-  .tdh-drawer.open .pn>h2,.tdh-drawer.open .scr>*,.tdh-drawer.open .foot{opacity:1;transform:none}
-  .tdh-drawer.open .scr>*:nth-child(1){transition-delay:.04s}.tdh-drawer.open .scr>*:nth-child(2){transition-delay:.07s}.tdh-drawer.open .scr>*:nth-child(3){transition-delay:.1s}.tdh-drawer.open .scr>*:nth-child(4){transition-delay:.13s}.tdh-drawer.open .scr>*:nth-child(n+5){transition-delay:.16s}.tdh-drawer.open .foot{transition-delay:.18s}
+  .tdh-drawer .it,.tdh-drawer .it.sub{font-weight:700}
   .tdh-drawer .sync{font-size:11.5px;color:var(--muted);margin:6px 10px 8px;line-height:1.5}
   .tdh-drawer .it.sub{font-size:14.5px;padding:6px 10px 6px 22px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.tdh-drawer .it.sub.on{color:var(--accent);font-weight:700}
   .tdh-drawer .dbl>div{padding-bottom:2px}.tdh-drawer .none{font-size:13px;color:var(--muted);padding:4px 22px 6px}
@@ -2830,7 +2840,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
         c.innerHTML = `<div class="check"></div>
           <div class="meta">${i.tags.map(t => `<span class="tag ${i.kind === "全程" ? "w" : i.kind === "裝車" ? "l" : "s"}">${t}</span>`).join("")}
           <span class="case"></span></div><pre></pre><div class="info"></div>
-          <div class="cardBtns"><button class="tblBtn">詳細資訊</button><button class="bookBar"></button></div>`;
+          <div class="cardBtns"><button class="tblBtn">目前人力</button><button class="bookBar"></button></div>`;
         c.querySelector(".case").textContent = i.title;
         c.querySelector("pre").textContent = i.text;
         fillInfo(c.querySelector(".info"), i);
@@ -3557,7 +3567,7 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
     const my = ++saveSeq; status("儲存中…");
     try {
       await mcp.callTool(SERVER, "notion-update-page", { page_id: id, command: "update_properties", properties, allow_async: false }, { cache: false });
-      if (my === saveSeq) status("已儲存 ✓");
+      if (my === saveSeq) { status(""); if (window.__tdh && window.__tdh.toast) window.__tdh.toast("已儲存"); else status("已儲存 ✓"); }
     } catch (e) { status("儲存失敗：" + errText(e), true); }
   }
   const timers = {};
@@ -4748,8 +4758,8 @@ document.getElementById("pRefresh").addEventListener("click", () => window.__pun
     btn.disabled = true; btn.textContent = "建立中…";
     try {
       const plan = prettyPlan(s);
-      msg.textContent = "準備「劇場幫幫 / 時段表」資料夾…";
-      const dir = await G.sheetFolder();
+      msg.textContent = `準備「劇場幫幫 / ${c.title || "案子"} / 時段表」資料夾…`;
+      const dir = await G.caseSheetFolder(c.title);
       msg.textContent = "建立試算表…";
       const f = await G.api("https://www.googleapis.com/drive/v3/files?fields=id", { method: "POST", body: { name: s.title, mimeType: "application/vnd.google-apps.spreadsheet", parents: [dir] } });
       const id = f.id, SS = `https://sheets.googleapis.com/v4/spreadsheets/${id}`;

@@ -33,13 +33,14 @@
   .mg-in details>summary::before{content:"▸";display:inline-block;width:14px;transition:transform .15s}.mg-in details[open]>summary::before{transform:rotate(90deg)}
   .mg-it{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer}
   .mg-it{position:relative;padding-right:40px;transition:transform .15s ease,border-color .2s,background .2s}
-  .mg-it::after,.mg-go i{content:"";position:absolute;right:17px;top:50%;width:7px;height:7px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg);opacity:.75;transition:right .2s}
+  .mg-it::after{content:"";position:absolute;right:17px;top:50%;width:7px;height:7px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:translateY(-50%) rotate(45deg);opacity:.75;transition:right .2s}
   .mg-it:active{transform:scale(.982);background:var(--sel)}
   @media (hover:hover){.mg-it:hover{border-color:var(--accent)}.mg-it:hover::after{right:14px}}
-  .mg-go{position:relative;display:flex;align-items:center;width:100%;margin:22px 0 8px;padding:15px 44px 15px 16px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink,#fff);font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 18px -8px var(--accent);transition:transform .15s}
-  .mg-go b{display:block;font-size:16px;font-weight:700}.mg-go small{display:block;font-size:12.5px;opacity:.85;margin-top:2px}
-  .mg-go i{border-color:currentColor;opacity:.9}
-  .mg-go:active{transform:scale(.98)}
+  .mg-gow{display:flex;justify-content:center;margin:26px 0 10px}
+  .mg-go{position:relative;display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--accent);font:inherit;font-size:17px;font-weight:800;letter-spacing:.06em;padding:8px 4px 6px;cursor:pointer;border-bottom:2px solid currentColor;transition:gap .2s,opacity .15s}
+  .mg-go i{display:inline-block;width:8px;height:8px;border-right:2.4px solid currentColor;border-top:2.4px solid currentColor;transform:rotate(45deg);margin-right:3px}
+  .mg-go:active{opacity:.6}
+  @media (hover:hover){.mg-go:hover{gap:12px}}
   .mg-it b{font-size:15px;font-weight:700;display:block}.mg-it small{color:var(--muted);font-size:12px;display:block;margin-top:3px;line-height:1.5}
   .mg-it .tg{display:inline-block;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;margin:6px 4px 0 0;background:var(--blue);color:var(--blue-ink)}
   .mg-it .tg.ok{background:var(--sel);color:var(--accent)}.mg-it .tg.w{background:var(--yellow);color:var(--yellow-ink)}
@@ -438,7 +439,7 @@
       </div>
       <div class="mg-h" id="ctSec">${esc(window.TEAM())}人員 Call Time</div>
       ${ct.err ? `<div class="mg-note">讀不到 Call Time 表格：${esc(ct.err)}</div>` : ct.rows.length ? `<table class="mg-ct ro"><tbody>${ct.rows.map(x => `<tr><td>${esc(x.a)}</td><td><div class="mg-names">${splitNames(x.b).map(n => `<span class="mg-nm${known.size && !known.has(n) ? " unk" : ""}">${esc(n)}</span>`).join("") || `<span class="mg-none">—</span>`}</div></td></tr>`).join("")}</tbody></table>` : `<div class="mg-empty" style="margin:0">還沒有 Call Time 表格</div>`}`;
-    h += `<button class="mg-go" id="mgGoClose"><span><b>去結案</b><small>回報出勤、算時段、產生時段表</small></span><i></i></button>`;
+    h += `<div class="mg-gow"><button class="mg-go" id="mgGoClose">去結案<i></i></button></div>`;
     $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0; reveal("item");
     $("mgGoClose").onclick = () => T.showTab && T.showTab("close", { caseId: id });
     if (scrollCT) { scrollCT = false; const el = $("ctSec"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }
@@ -636,7 +637,7 @@
       dirty = true;
       const md = ov.querySelector(".mg-modal"); if (md) md.remove();
       await loadKind(k, true);
-      if (id) edit(k, id); else list();
+      if (id) { edit(k, id); if (T.toast) T.toast("已儲存"); } else list();
     } catch (e) { errEl.textContent = "儲存失敗：" + ((e && e.message) || e); btn.disabled = false; btn.textContent = id ? "儲存" : "新增"; }
   }
 
