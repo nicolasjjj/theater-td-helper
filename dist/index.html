@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>劇場幫幫</title>
+<meta name="description" content="給劇場人的工作小幫手：找人、每日打卡、時段表一次搞定。資料存在你自己的 Google 雲端硬碟。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="劇場幫幫">
+<meta property="og:title" content="劇場幫幫｜找人・打卡・時段表">
+<meta property="og:description" content="給劇場人的工作小幫手：找人、每日打卡、時段表一次搞定。">
+<meta property="og:url" content="https://theater-helper.j7897063.workers.dev/">
+<meta property="og:image" content="https://theater-helper.j7897063.workers.dev/og.png?v=2">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://theater-helper.j7897063.workers.dev/og.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -387,8 +397,8 @@
 <meta name="apple-mobile-web-app-title" content="劇場幫幫">
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/icon-180.png">
-<script>window.TDH_VERSION="2026.11.28-0349";</script>
+<link rel="apple-touch-icon" href="/icon-180.png?v=2"><link rel="icon" type="image/png" href="/icon-192.png?v=2">
+<script>window.TDH_VERSION="2026.11.28-1726";</script>
 <script>
 // 劇場幫幫｜資料欄位（Notion 和 Google 試算表共用）
 // 欄位型別：title 標題、text 文字、number 數字、select 單選、multi 多選、rel:xxx 關聯、date 日期（可有結束日）、url 網址、checkbox 勾選、content 內文
@@ -994,6 +1004,9 @@
     if (!r.ok) return { error: "Google 登入失敗：" + (j.detail || j.error || r.status) };
     saveAccess(j.access_token, j.expires_in || 3600);
     T.setCfg(Object.assign({ gEmail: j.email || T.cfg.gEmail || "" }, j.refresh_token ? { gRefresh: j.refresh_token } : {}));
+    // 登入畫面上「雲端硬碟」那一項沒打勾：Google 不給存取檔案的權限
+    if (j.scope && !/drive\.file|auth\/drive\b/.test(j.scope)) { try { sessionStorage.setItem("tdh.noScope", "1"); } catch (e) {} }
+    else { try { sessionStorage.removeItem("tdh.noScope"); } catch (e) {} }
     return { ok: true, after: saved.after || "" };
   })();
 })();
@@ -1503,6 +1516,10 @@
   .tdh-pop.in{opacity:1;transform:none}
   .tdh-pop::before{content:"";position:absolute;left:calc(var(--ax) - 6px);width:12px;height:12px;background:inherit;transform:rotate(45deg);border-radius:2px}
   .tdh-pop.dn::before{top:-5px}.tdh-pop.up::before{bottom:-5px}
+  .tdh-warn{margin-top:8px;font-size:13px;line-height:1.6;background:#fff4e0;color:#7a4b12;border-radius:10px;padding:8px 11px}
+  .tdh-scope{background:#fff4e0;color:#5c3a0e;border-radius:14px;padding:14px;line-height:1.65;font-size:14px}
+  .tdh-scope b{color:#7a3a0e}.tdh-scope p{margin:8px 0;color:inherit}.tdh-scope button{width:100%}
+  .tdh-ov .linkbtn{background:transparent!important;border:0!important;color:var(--muted)!important;text-decoration:underline;box-shadow:none!important;width:100%;padding:8px!important;font:inherit;cursor:pointer}
   .tdh-sum{font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
   .tdh-sum::-webkit-details-marker{display:none}
   .tdh-sum::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);margin:0 3px 0 1px;transition:transform .25s cubic-bezier(.2,.8,.2,1);flex:0 0 auto}
@@ -1517,8 +1534,9 @@
   const chooseCard = () => `<div class="tdh-st" id="tdhChoose"><h2>你的資料要放在哪裡？</h2>
       <button class="big" id="tdhPickG">用 Google 帳號開始<span class="tdh-rec">推薦</span></button>
       <p style="margin-top:8px">資料存在你自己的 Google 雲端硬碟，不用另外學 Notion。登入一次就好。</p>
+      <p class="tdh-warn">⚠️ Google 登入畫面中，<b>「查看、編輯、建立及刪除…Google 雲端硬碟檔案」那一項一定要打勾</b>，不然沒辦法存資料。</p>
       <button class="big ghost" id="tdhPickN" style="margin-top:14px">我已經在用 Notion</button>
-      <p style="margin-top:8px">用你 Notion 裡的「劇場の案子」等資料庫，需要貼一次 Notion API 權杖。</p></div>`;
+      <p style="margin-top:8px">用你 Notion 裡的「劇場の案子」等資料庫，需要貼一次 Notion API 權杖。<b>沒用過 Notion 的話建議選 Google。</b></p></div>`;
   const googleCard = (force) => `<div class="tdh-st" id="tdhG"><h2>${force ? "" : "<b>1</b>"}Google 帳號</h2><div id="tdhGBody"><p>讀取中…</p></div></div>`;
   const notionCard = (c, seen, force) => `<div class="tdh-st" id="tdhN"><h2>${force ? "" : "<b>1</b>"}Notion API 權杖</h2>
         <p>還沒有權杖？看下面的「怎麼取得權杖」。</p>
@@ -1596,13 +1614,29 @@
       box.innerHTML = `<p class="ok">✓ 已登入 ${esc(G.email)}</p>${force ? `<button class="ghost" id="tdhGOut">登出 Google</button>` : `<div id="tdhGStep" style="font-size:14px;color:#6e685f;margin-top:6px">準備你的資料…</div><div class="tdh-err" id="tdhGErr"></div>`}`;
       if ($("tdhGOut")) $("tdhGOut").onclick = () => { if (T.cfg.mode === "google" && !confirm("登出後要重新登入才能讀到資料，確定嗎？")) return; G.logout(); location.reload(); };
       if (!force) {
+        const noScope = () => {
+          $("tdhGStep").innerHTML = "";
+          $("tdhGErr").innerHTML = `<div class="tdh-scope"><b>還差一步：雲端硬碟的權限沒有打勾</b>
+            <p>剛剛的 Google 登入畫面裡，有一項「查看、編輯、建立及刪除你透過這個應用程式使用的 Google 雲端硬碟檔案」，旁邊的方框要<b>打勾</b>，劇場幫幫才能在你的雲端硬碟建立資料。</p>
+            <p>劇場幫幫只會看到它自己建立的檔案，看不到你雲端硬碟裡的其他東西。</p>
+            <button id="tdhGRelog">重新登入 Google（這次記得打勾）</button>
+            <button class="ghost" id="tdhGBackN" style="margin-top:10px">改用 Notion</button>
+            <button class="linkbtn" id="tdhGBack0" style="margin-top:8px">登出，回到第一步</button></div>`;
+          $("tdhGRelog").onclick = () => { try { sessionStorage.removeItem("tdh.noScope"); } catch (e) {} G.logout(); G.login("setup"); };
+          $("tdhGBackN").onclick = () => { G.logout(); T.setCfg({ mode: "notion" }); ov.remove(); open(false, "notion"); };
+          $("tdhGBack0").onclick = () => { G.logout(); T.setCfg({ mode: "" }); ov.remove(); open(false); };
+        };
+        let ns = false; try { ns = sessionStorage.getItem("tdh.noScope") === "1"; } catch (e) {}
+        if (ns) { noScope(); return; }
         try {
           await T.gstore.ensure((m) => { const x = $("tdhGStep"); if (x) x.textContent = m; });
           $("tdhGStep").innerHTML = `<span class="ok">✓ 資料放在你的雲端硬碟「劇場幫幫 / 劇場幫幫資料」</span>`;
           showWho();
         } catch (e) {
-          $("tdhGErr").innerHTML = "準備資料失敗：" + esc(e.message || e) + `<br><button id="tdhGRetry">再試一次</button>`;
+          if (/insufficient authentication scopes|insufficientPermissions|PERMISSION_DENIED/i.test(String(e.message || e)) || e.code === "forbidden") { noScope(); return; }
+          $("tdhGErr").innerHTML = "準備資料失敗：" + esc(e.message || e) + `<br><button id="tdhGRetry">再試一次</button><button class="linkbtn" id="tdhGBack0" style="margin-top:8px">登出，回到第一步</button>`;
           $("tdhGRetry").onclick = () => { ov.remove(); open(false, "google"); };
+          $("tdhGBack0").onclick = () => { G.logout(); T.setCfg({ mode: "" }); ov.remove(); open(false); };
         }
       }
     })();

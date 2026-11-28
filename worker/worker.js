@@ -45,5 +45,5 @@ async function google(url, request, env) {
   if (!r.ok) return J({ error: j.error || "token_failed", detail: j.error_description || "" }, r.status === 400 ? 401 : 502);
   let email = "";
   if (j.id_token) { try { email = JSON.parse(atob(j.id_token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).email || ""; } catch (e) {} }
-  return J({ access_token: j.access_token, expires_in: j.expires_in, refresh_token: j.refresh_token || "", email });
+  return J({ access_token: j.access_token, expires_in: j.expires_in, refresh_token: j.refresh_token || "", email, scope: j.scope || "" });
 }

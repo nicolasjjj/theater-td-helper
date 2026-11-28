@@ -101,6 +101,9 @@
     if (!r.ok) return { error: "Google 登入失敗：" + (j.detail || j.error || r.status) };
     saveAccess(j.access_token, j.expires_in || 3600);
     T.setCfg(Object.assign({ gEmail: j.email || T.cfg.gEmail || "" }, j.refresh_token ? { gRefresh: j.refresh_token } : {}));
+    // 登入畫面上「雲端硬碟」那一項沒打勾：Google 不給存取檔案的權限
+    if (j.scope && !/drive\.file|auth\/drive\b/.test(j.scope)) { try { sessionStorage.setItem("tdh.noScope", "1"); } catch (e) {} }
+    else { try { sessionStorage.removeItem("tdh.noScope"); } catch (e) {} }
     return { ok: true, after: saved.after || "" };
   })();
 })();
