@@ -10,7 +10,7 @@ class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a): pass
 srv = http.server.ThreadingHTTPServer(("127.0.0.1", 8800), functools.partial(Q, directory=str(ROOT / "dist")))
 threading.Thread(target=srv.serve_forever, daemon=True).start()
-CLOCK = "(()=>{const R=Date,T=new R(2026,10,24,15,0).getTime();window.Date=class extends R{constructor(...a){a.length?super(...a):super(T)} static now(){return T}};})();"
+CLOCK = "try{localStorage.setItem('tdh.tour','1');localStorage.setItem('tdh.seeded','1')}catch(e){};(()=>{const R=Date,T=new R(2026,10,24,15,0).getTime();window.Date=class extends R{constructor(...a){a.length?super(...a):super(T)} static now(){return T}};})();"
 
 async def main():
     fk = Fake()

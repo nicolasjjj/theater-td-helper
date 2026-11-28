@@ -42,8 +42,8 @@
   .mg-go:active{opacity:.6}
   @media (hover:hover){.mg-go:hover{gap:12px}}
   .mg-it b{font-size:15px;font-weight:700;display:block}.mg-it small{color:var(--muted);font-size:12px;display:block;margin-top:3px;line-height:1.5}
-  .mg-it .tg{display:inline-block;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;margin:6px 4px 0 0;background:var(--blue);color:var(--blue-ink)}
-  .mg-it .tg.ok{background:var(--sel);color:var(--accent)}.mg-it .tg.w{background:var(--yellow);color:var(--yellow-ink)}
+  .mg-it .tg,.mg-mc .tg{display:inline-block;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;margin:6px 4px 0 0;background:var(--blue);color:var(--blue-ink)}
+  .mg-it .tg.ok,.mg-mc .tg.ok{background:var(--sel);color:var(--accent)}.mg-it .tg.w,.mg-mc .tg.w{background:var(--yellow);color:var(--yellow-ink)}
   .mg-add{position:fixed;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:532px;bottom:calc(14px + env(safe-area-inset-bottom));border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:15px;font-weight:700;padding:13px;box-shadow:0 6px 18px rgba(0,0,0,.16);cursor:pointer}
   .mg-empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted);padding:22px 12px;font-size:14px;line-height:1.7;margin-top:6px}
   .mg-back{border:0;background:none;color:var(--accent);font:inherit;font-size:14px;font-weight:600;padding:4px 0;margin:0 0 6px;cursor:pointer}
@@ -79,6 +79,19 @@
   .mg-tag.on.c-gray{background:#7a746b;border-color:#7a746b}.mg-tag.on.c-purple{background:#7a5aa8;border-color:#7a5aa8}
   .mg-tag.on.c-default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
   .mg a{color:var(--accent)}
+  .mg-dlg-f.ask{flex-wrap:wrap;align-items:center}
+  .mg-askt{flex:1 0 100%;font-size:14px;color:var(--warn,#c0612b);font-weight:700;margin-bottom:8px;animation:mgFade .25s both}
+  .mg-views{margin-bottom:4px}
+  .mg-board{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;margin:4px -16px 0;padding:4px 16px 14px;scroll-padding:0 16px}
+  .mg-col{flex:0 0 min(78vw,300px);scroll-snap-align:start;background:color-mix(in srgb,var(--line) 35%,transparent);border-radius:16px;padding:10px}
+  .mg-colh{font-weight:800;font-size:15px;padding:4px 4px 10px;display:flex;align-items:center;gap:8px}.mg-colh i{font-style:normal;font-weight:600;font-size:12px;color:var(--muted)}
+  .mg-mc{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer;transition:transform .15s}
+  .mg-mc:active{transform:scale(.98)}
+  .mg-mc b{font-size:15px}.mg-mc small{display:block;font-size:12.5px;color:var(--muted);margin-top:4px}.mg-mc small.v::before{content:"📍 "}.mg-mc .pl{font-size:12px}
+  .mg-mc .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);margin-right:7px;vertical-align:1px}.mg-mc .dot.ok{background:#4caf7d}.mg-mc .dot.w{background:#e0a03a}
+  .mg-mc .tgs{display:flex;flex-wrap:wrap;margin-top:2px}
+  .mg-hint{text-align:center;font-size:12px;color:var(--muted);margin-top:-4px}
+  #mgList.mg-vin{animation:mgFade .28s cubic-bezier(.2,.8,.2,1) both}
   @keyframes mgFwd{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
   @keyframes mgBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
   @keyframes mgFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -242,8 +255,13 @@
       $("mgSubTabs").innerHTML = areas.length ? `<div class="mg-sub">${[["", "全部"]].concat(areas.map(a => [a, a])).concat(none ? [["__none", "未分類"]] : []).map(([v, t]) => `<button data-v="${esc(v)}" class="${sub === v ? "on" : ""}">${esc(t)}</button>`).join("")}</div>` : "";
       $("mgSubTabs").querySelectorAll("button").forEach(b => b.onclick = () => { sub = b.dataset.v; results(); });
       if (sub) rows = rows.filter(r => sub === "__none" ? !r[key] : r[key] === sub);
+    } else if (k === "cases") {   // 案子的顯示方式：清單／月份／還缺人／已完成
+      let cv = "list"; try { cv = localStorage.getItem("tdh.caseView") || "list"; } catch (e) {}
+      $("mgSubTabs").innerHTML = `<div class="mg-sub mg-views">${[["list", "清單"], ["month", "月份"], ["need", "還缺人"], ["done", "已完成"]].map(([v, t]) => `<button data-v="${v}" class="${cv === v ? "on" : ""}">${t}</button>`).join("")}</div>`;
+      $("mgSubTabs").querySelectorAll("button").forEach(b => b.onclick = () => { try { localStorage.setItem("tdh.caseView", b.dataset.v); } catch (e) {} results(); const bd = $("mgList"); if (bd) { bd.classList.remove("mg-vin"); void bd.offsetWidth; bd.classList.add("mg-vin"); } });
     } else $("mgSubTabs").innerHTML = "";
     if (k === "cases") {
+      let cv = "list"; try { cv = localStorage.getItem("tdh.caseView") || "list"; } catch (e) {}
       const t = today();
       const st = (r) => r["進場日期"] ? (r["進場日期"].end || r["進場日期"].start) : "";
       const live = rows.filter(r => !st(r) || st(r) >= t).sort((a, b) => String((a["進場日期"] || {}).start || "9").localeCompare(String((b["進場日期"] || {}).start || "9")));
@@ -255,9 +273,28 @@
         const tags = (r["Crew 狀態"] || []).includes("全部完成") ? `<span class="tg ok">人都找齊了</span>` : need.map(x => `<span class="tg w">${esc(x)}</span>`).join("");
         return `<button class="mg-it" data-id="${r.id}"><b>${esc(r["案名"] || "（未命名）")}</b><small>${d ? md(d.start) + (d.end && d.end !== d.start ? " – " + md(d.end) : "") : "還沒填日期"}${v ? "・" + esc(v) : ""}</small>${tags}</button>`;
       };
-      if (live.length) h += `<div class="mg-sec">進行中、還沒開始</div>` + live.map(item).join("");
-      else if (!past.length) h += `<div class="mg-empty">${q ? "找不到符合的案子" : "還沒有案子，按右下角的 ＋ 新增。"}</div>`;
-      if (past.length) h += `<div class="mg-sec">已經結束</div>` + years.map(y => { const ys = past.filter(r => st(r).startsWith(y)); return `<details ${q ? "open" : ""}><summary class="mg-sec" style="cursor:pointer;font-size:15px;color:var(--ink)">${y} 年（${ys.length}）</summary>${ys.map(item).join("")}</details>`; }).join("");
+      const wk = (() => { const d = new Date(); d.setDate(d.getDate() - 7); return T.isoDay(d); })();
+      const recent = rows.filter(r => !st(r) || st(r) >= wk).sort((a, b) => String((a["進場日期"] || {}).start || "9").localeCompare(String((b["進場日期"] || {}).start || "9")));
+      const empty = (m) => `<div class="mg-empty">${q ? "找不到符合的案子" : m}</div>`;
+      if (cv === "month") {
+        const mk = (r) => { const d = (r["進場日期"] || {}).start; return d ? d.slice(0, 7) : "9999"; };
+        const ms = [...new Set(recent.map(mk))];
+        const card = (r) => {
+          const d = r["進場日期"], v = (r["進場地點"] || []).map(id => nameOf("venue", id)).filter(Boolean).join("、");
+          const done = (r["Crew 狀態"] || []).includes("全部完成"), need = (r["Crew 狀態"] || []).filter(x => /缺/.test(x));
+          return `<button class="mg-mc" data-id="${r.id}"><span class="dot ${done ? "ok" : need.length ? "w" : ""}"></span><b>${esc(r["案名"] || "（未命名）")}</b>
+            <small>${d ? md(d.start) + (d.end && d.end !== d.start ? " → " + md(d.end) : "") : "還沒填日期"}</small>${v ? `<small class="v">${esc(v)}</small>` : ""}
+            <span class="tgs">${done ? `<span class="tg ok">人都找齊了</span>` : need.map(x => `<span class="tg w">${esc(x)}</span>`).join("")}</span>${r["人力分配"] ? `<small class="pl">${esc(String(r["人力分配"]).split("\n")[0])}</small>` : ""}</button>`;
+        };
+        h += ms.length ? `<div class="mg-board">${ms.map(m => { const its = recent.filter(r => mk(r) === m); return `<div class="mg-col"><div class="mg-colh">${m === "9999" ? "還沒填日期" : `${+m.slice(0, 4)}年${+m.slice(5)}月`}<i>${its.length}</i></div>${its.map(card).join("")}</div>`; }).join("")}</div><div class="mg-hint">左右滑動看其他月份</div>` : empty("接下來沒有案子");
+      } else if (cv === "need") {
+        const need = recent.filter(r => !(r["Crew 狀態"] || []).includes("全部完成"));
+        h += need.length ? `<div class="mg-sec">還沒找齊人（${need.length}）</div>` + need.map(item).join("") : empty("太好了，接下來的案子人都找齊了 🎉");
+      } else if (cv === "done") {
+        h += past.length ? years.map(y => { const ys = past.filter(r => st(r).startsWith(y)); return `<div class="mg-sec">${y} 年（${ys.length}）</div>${ys.map(item).join("")}`; }).join("") : empty("還沒有結束的案子");
+      } else if (live.length) h += `<div class="mg-sec">進行中、還沒開始</div>` + live.map(item).join("");
+      else if (!past.length) h += empty("還沒有案子，按右下角的 ＋ 新增。");
+      if (cv === "list" && past.length) h += `<div class="mg-sec">已經結束</div>` + years.map(y => { const ys = past.filter(r => st(r).startsWith(y)); return `<details ${q ? "open" : ""}><summary class="mg-sec" style="cursor:pointer;font-size:15px;color:var(--ink)">${y} 年（${ys.length}）</summary>${ys.map(item).join("")}</details>`; }).join("");
     } else {
       if (k === "crew") {   // 常出現的人排前面：被排進或問過的案子數
         const freq = {};
@@ -276,7 +313,7 @@
       }).join("") : `<div class="mg-empty">${q || sub ? "找不到符合的" + K[k] : "還沒有" + K[k] + "，按右下角的 ＋ 新增。"}</div>`;
     }
     box.innerHTML = h;
-    box.querySelectorAll(".mg-it").forEach(b => b.onclick = () => edit(k, b.dataset.id));
+    box.querySelectorAll(".mg-it,.mg-mc").forEach(b => b.onclick = () => edit(k, b.dataset.id));
   }
 
   // ---------- 編輯 ----------
@@ -351,12 +388,26 @@
         <div class="mg-dlg-f"><button type="button" class="ghost" id="mgCancel">取消</button><button type="button" class="pri" id="mgSave">新增</button></div></div>`;
       ov.appendChild(md);
       requestAnimationFrame(() => md.classList.add("in"));
-      $("mgCancel").onclick = () => { md.classList.remove("in"); setTimeout(() => md.remove(), 180); };
+      // 不小心按到取消：有填東西就先問一下，不會直接消失
+      const sig = () => [...md.querySelectorAll("input,select,textarea")].map(e => e.type === "checkbox" ? e.checked : e.value).join("\u0001") + "|" + [...md.querySelectorAll(".mg-tag.on")].map(e => e.dataset.tag).join(",") + "|" + ((md.querySelector("#c_tblBox") || {}).innerText || "");
+      let sig0 = null; setTimeout(() => { sig0 = sig(); }, 450);
+      const close = () => { md.classList.remove("in"); setTimeout(() => md.remove(), 180); };
+      const foot = md.querySelector(".mg-dlg-f"), footH = foot.innerHTML;
+      $("mgCancel").onclick = () => {
+        if (sig0 === null || sig() === sig0) return close();
+        foot.classList.add("ask");
+        foot.innerHTML = `<span class="mg-askt">剛剛填的內容還沒存，要放棄嗎？</span><button type="button" class="ghost" id="mgDiscard">放棄</button><button type="button" class="pri" id="mgKeep">繼續填</button>`;
+        $("mgDiscard").onclick = close;
+        $("mgKeep").onclick = () => { foot.classList.remove("ask"); foot.innerHTML = footH; $("mgCancel").onclick = cancelFn; $("mgSave").onclick = () => save(k, id, r); };
+      };
+      const cancelFn = $("mgCancel").onclick;
       md.onclick = (e) => { if (e.target === md) $("mgCancel").onclick(); };
     } else {
       h += `<div class="mg-err" id="mgErr"></div><div class="mg-act"><button class="ghost2" id="mgCancel">取消</button><button class="pri" id="mgSave">儲存</button></div><div class="mg-act" style="margin-top:28px"><button class="red" id="mgDel">${k === "cases" ? "刪除整個案子" : "刪除這筆" + K[k]}</button></div></div>`;
       $("mgBody").innerHTML = h; $("mgScroll").scrollTop = 0; reveal("item");
       $("mgCancel").onclick = () => edit(k, id);
+      setTimeout(() => { const s0 = [...ov.querySelectorAll("#mgBody input,#mgBody select,#mgBody textarea")].map(e => e.type === "checkbox" ? e.checked : e.value).join("\u0001");
+        if ($("mgCancel")) $("mgCancel").onclick = () => { const s1 = [...ov.querySelectorAll("#mgBody input,#mgBody select,#mgBody textarea")].map(e => e.type === "checkbox" ? e.checked : e.value).join("\u0001"); if (s1 !== s0 && !confirm("剛剛改的內容還沒存，要放棄嗎？")) return; edit(k, id); }; }, 450);
     }
     // 「清除資料」：點兩下才清（第一下變成「再點一次清除」）
     ov.querySelectorAll("[data-clear]").forEach(btn => {
@@ -622,7 +673,10 @@
       if (k === "cases" && $("c_tt") && vals["劇團"] && vals["劇團"][0]) {   // 抬頭、統編寫回劇團
         const tid = vals["劇團"][0], t0 = (data.troupe || []).find(x => x.id === tid) || {};
         const tt = $("c_tt").value.trim(), tn = $("c_tn").value.trim();
-        if (tt !== (t0["抬頭"] || "") || tn !== (t0["統編"] || "")) { await store().update("troupe", tid, { "抬頭": tt, "統編": tn }); data.troupe = null; await loadKind("troupe", true); }
+        if (tt !== (t0["抬頭"] || "") || tn !== (t0["統編"] || "")) {
+          try { await store().update("troupe", tid, { "抬頭": tt, "統編": tn }); data.troupe = null; await loadKind("troupe", true); }
+          catch (e) { console.warn("抬頭統編沒寫回劇團", e); }   // 寫不回劇團也不影響案子本身
+        }
       }
       if (id) {
         await store().update(k, id, vals);

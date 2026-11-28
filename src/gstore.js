@@ -66,7 +66,7 @@
   async function load(force) {
     if (!force && cache) return cache;
     if (!force && !cache && !loading) { const sv = T.snap.get("g:data"); if (sv) { cache = build(sv.r, sv.at); cache.snap = true; return cache; } }
-    if (loading) return loading;
+    if (loading) { if (!force) return loading; try { await loading; } catch (e) {} if (loading) return loading; }
     loading = (async () => {
       const id = T.cfg.gData; if (!id) throw err("not_configured", "還沒設定資料");
       const r = await T.google.api(`${SS(id)}/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&` + KINDS.map(k => "ranges=" + encodeURIComponent(`'${S[k].tab}'!A1:AZ5000`)).join("&"));
@@ -76,6 +76,12 @@
     return loading;
   }
   const loadW = () => load(!cache || !!cache.snap);
+  // 找某一筆：記憶體裡沒有就重新向雲端讀一次再找（剛新增、或別的裝置改過）
+  async function recOf(id) {
+    let c = await loadW(), rec = c.byId[idOf(id)];
+    if (!rec) { c = await load(true); rec = c.byId[idOf(id)]; }
+    return rec;
+  }
   function build(r, at) {
     {
       const c = { at, byId: {} };
@@ -205,7 +211,7 @@
     T.snap.drop(k => k === "g:data");
   }
   async function updateProps(pageId, props) {
-    const c = await loadW(), rec = c.byId[idOf(pageId)];
+    const rec = await recOf(pageId);
     if (!rec) throw err("not_found", "找不到這筆資料");
     const vals = {};
     for (const [k, v] of Object.entries(props)) vals[T.BACK[k] || k] = v;
@@ -232,7 +238,7 @@
   T.gstore = {
     ensure, load, queryView, fetchText, updateContent, updateProps, create, remove,
     async list(kind, fresh) { const c = await load(!!fresh); return c[kind].rows.map(raw); },
-    async update(kind, id, vals) { const c = await loadW(); const rec = c.byId[idOf(id)]; if (!rec) throw err("not_found", "找不到這筆資料"); await writeFields(rec, vals); },
+    async update(kind, id, vals) { const rec = await recOf(id); if (!rec) throw err("not_found", "找不到這筆資料"); await writeFields(rec, vals); },
     async getContent(id) { const c = await load(); const rec = c.byId[idOf(id)]; return rec ? contentOf(rec) : { notes: [], table: [] }; },
     url: () => T.cfg.gData ? `https://docs.google.com/spreadsheets/d/${T.cfg.gData}/edit` : "",
     invalidate() { drop(); },

@@ -266,6 +266,7 @@
   }
 
   // ---------- 往下拉重新整理、回到 app 時自動更新 ----------
+  T.refreshNow = () => refreshNow();
   async function refreshNow() {
     if (document.querySelector(".mg.embed")) {
       try { const m = await window.claude.use("mcp"); await m.invalidate("Notion"); } catch (e) {}

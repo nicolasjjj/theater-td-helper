@@ -157,6 +157,9 @@
     if (force) {
       body = `${whoCard(c, true)}
         <div class="tdh-st"><h2>使用模式${T.help("「完整版」有找人、打卡、結案和資料庫，適合要管整組人的 TD。「個人打卡」只留下打卡和你自己的時段明細：每天記上下班時間，結案時直接看到自己的段數和金額，可以截圖或複製文字傳給製作方。適合舞監、燈光技術指導（ME）等只需要記自己時段的人。隨時可以切回來，資料不會不見。")}</h2><div class="tdh-seg">${[["", "完整版"], ["solo", "個人打卡"]].map(([v, t]) => `<button type="button" class="${(T.cfg.use || "") === v ? "on" : ""}" data-use-v="${v}">${t}</button>`).join("")}</div></div>
+        <div class="tdh-st"><h2>教學與測試資料${T.help("第一次使用時，劇場幫幫會放幾筆名字開頭是「【測試】」的劇團、Crew、場館和案子，讓你先試玩。確定會用了，就可以在這裡一次刪掉，不會動到你自己的資料。")}</h2>
+          <button class="ghost" id="tdhTour">再看一次使用教學</button>
+          <button class="ghost" id="tdhDelSample" style="margin-top:10px">刪除所有【測試】資料</button></div>
         <div class="tdh-st"><h2>外觀</h2><div class="tdh-seg">${[["", "跟著手機"], ["light", "日間模式"], ["dark", "夜間模式"]].map(([v, t]) => `<button type="button" class="${(T.cfg.theme || "") === v ? "on" : ""}" data-theme-v="${v}">${t}</button>`).join("")}</div></div>
         <div class="tdh-st"><h2>資料放在${T.help("你的案子、Crew、場館、劇團都存在這裡。用 Google 雲端的話，資料是你雲端硬碟裡的一份試算表，你自己也能直接打開來看或修改。")}</h2><p>${mode === "google" ? "Google 雲端硬碟「劇場幫幫 / 劇場幫幫資料」" + (T.gstore.url() ? `　<a href="${T.gstore.url()}" target="_blank" rel="noopener">打開 ↗</a>` : "") : "Notion"}</p>
           <button class="ghost" id="tdhSwitch">${mode === "google" ? "改用 Notion" : "改用 Google 雲端"}</button></div>
@@ -287,6 +290,14 @@
       T.setCfg({ theme: b.dataset.themeV }); applyTheme();
       ov.querySelectorAll("[data-theme-v]").forEach(x => x.classList.toggle("on", x === b));
     });
+    if ($("tdhTour")) $("tdhTour").onclick = () => { ov.remove(); if (T.showTour) T.showTour(); };
+    if ($("tdhDelSample")) $("tdhDelSample").onclick = async () => {
+      const b = $("tdhDelSample");
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "再點一次確定刪除"; b._t = setTimeout(() => { b.classList.remove("armed"); b.textContent = "刪除所有【測試】資料"; }, 3000); return; }
+      clearTimeout(b._t); b.classList.remove("armed"); b.disabled = true; b.textContent = "刪除中…";
+      try { const n = await T.removeSamples((k) => { b.textContent = `刪除中…（${k}）`; }); b.textContent = n ? `已刪除 ${n} 筆測試資料` : "沒有測試資料了"; changed = true; }
+      catch (e) { b.disabled = false; b.textContent = "刪除失敗，再試一次"; }
+    };
     if ($("tdhClose")) $("tdhClose").onclick = closeOv;
     if ($("tdhDone")) $("tdhDone").onclick = closeOv;
     if ($("tdhSwitch")) $("tdhSwitch").onclick = () => {

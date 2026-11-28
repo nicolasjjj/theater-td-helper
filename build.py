@@ -143,16 +143,17 @@ h = re.sub(r"<title>[^<]*</title>", """<title>劇場幫幫</title>
 <meta property="og:title" content="劇場幫幫｜找人・打卡・時段表">
 <meta property="og:description" content="給劇場人的工作小幫手：找人、每日打卡、時段表一次搞定。">
 <meta property="og:url" content="https://theater-helper.j7897063.workers.dev/">
-<meta property="og:image" content="https://theater-helper.j7897063.workers.dev/og.png?v=2">
+<meta property="og:image" content="https://theater-helper.j7897063.workers.dev/og.png?v=3">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://theater-helper.j7897063.workers.dev/og.png?v=2">""", h, count=1)
+<meta name="twitter:image" content="https://theater-helper.j7897063.workers.dev/og.png?v=3">""", h, count=1)
 head_extra = f"""<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="劇場幫幫">
 <meta name="theme-color" content="#f4f1ea">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/icon-180.png?v=2"><link rel="icon" type="image/png" href="/icon-192.png?v=2">
+<link rel="apple-touch-icon" href="/icon-180.png?v=3"><link rel="icon" type="image/png" href="/icon-192.png?v=3">
 <script>window.TDH_VERSION={json.dumps(VERSION)};</script>
+<script>\n{(ROOT/'src/inapp.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/schema.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/shim.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/google.js').read_text()}\n</script>
@@ -161,6 +162,7 @@ head_extra = f"""<meta name="apple-mobile-web-app-capable" content="yes">
 <script>\n{(ROOT/'src/setup.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/manage.js').read_text()}\n</script>
 <script>\n{(ROOT/'src/nav.js').read_text()}\n</script>
+<script>\n{(ROOT/'src/tour.js').read_text()}\n</script>
 """
 rep("</head>", head_extra + "</head>", 1)
 
